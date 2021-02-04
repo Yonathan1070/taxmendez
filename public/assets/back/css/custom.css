@@ -1,0 +1,39 @@
+.search {
+    width: 90%;
+    max-width: 1000px;
+    margin: auto;
+    background: #fff;
+    padding: 0 10px;
+    padding-bottom: 5px;
+    max-height: 85%;
+    overflow-x: hidden;
+    display: none;
+}
+
+.search-table{
+    width: 100%;
+}
+
+.search-table tbody tr td{
+    width: 100%;
+}
+
+.search-table table tbody tr td a{
+    text-decoration: none;
+    font-size: 18px;
+    color: #737373;
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 20px 0;
+    padding-left: 20px;
+    border: 2px solid #fff;
+}
+
+.search::-webkit-scrollbar{
+    background: rgba(0, 0, 0, 0);
+}
+
+.sorting_asc{
+    display: none;
+}
