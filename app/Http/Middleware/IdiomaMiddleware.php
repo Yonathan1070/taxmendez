@@ -24,9 +24,9 @@ class IdiomaMiddleware
          */
         if (config('locale.status')) {
             if(!session()->has('locale')){
-                $locale = locale_accept_from_http($_SERVER['HTTP_ACCEPT_LANGUAGE']);
-                $strLocale = Str::of($locale)->explode('_');
-                Session::put(['locale' => $strLocale[0]]);
+                //$locale = locale_accept_from_http($_SERVER['HTTP_ACCEPT_LANGUAGE']);
+                //$strLocale = Str::of($locale)->explode('_');
+                Session::put(['locale' => 'es'/*$strLocale[0]*/]);
             }
             
             if (session()->has('locale') &&

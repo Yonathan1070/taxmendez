@@ -2,14 +2,15 @@
 
 namespace App\Models\Entity;
 
+use Laravel\Passport\HasApiTokens;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Session;
 
 class Usuarios extends Authenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     protected $table = 'TBL_Usuario';
     protected $fillable = ['USR_Tipo_Documento_Usuario',

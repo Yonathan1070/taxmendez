@@ -1,0 +1,56 @@
+DROP PROCEDURE IF EXISTS obtenerTurnos;
+
+DELIMITER $$
+CREATE PROCEDURE obtenerTurnos(IN id_automovil INT, IN fecha_inicio DATE, IN fecha_fin DATE)
+BEGIN
+	SELECT
+    	UAT.id,															#0
+        UAT.TRN_AUT_Automovil_Id,										#1
+        A.AUT_Placa_Automovil,											#2
+        A.AUT_Numero_Interno_Automovil,									#3
+        A.AUT_Fecha_Vencimiento_Soat_Automovil,							#4
+        A.AUT_Fecha_Vencimiento_Seguro_Actual_Automovil,				#5
+        A.AUT_Fecha_Vencimiento_Seguro_Extracontractual_Automovil,		#6
+        A.AUT_Empresa_Id,												#7
+        E.EMP_Nombre_Empresa,											#8
+        E.EMP_NIT_Empresa,												#9
+        E.EMP_Telefono_Empresa,											#10
+        E.EMP_Direccion_Empresa,										#11
+        E.EMP_Correo_Empresa,											#12
+        E.EMP_Logo_Empresa,												#13
+        A.AUT_Foto_Automovil,											#14
+        UAT.TRN_AUT_Kilometraje_Turno,									#15
+        UAT.TRN_AUT_Kilometros_Andados_Turno,							#16
+        UAT.TRN_AUT_Producido_Turno,									#17
+        UAT.TRN_AUT_Usuario_Turno_Id,									#18
+        U.USR_Tipo_Documento_Usuario,									#19
+        U.USR_Documento_Usuario,										#20
+        U.USR_Fecha_Vencimiento_Licencia_Usuario,						#21
+        U.USR_Nombres_Usuario,											#22
+        U.USR_Apellidos_Usuario,										#23
+        U.USR_Fecha_Nacimiento_Usuario,									#24
+        U.USR_Direccion_Residencia_Usuario,								#25
+        U.USR_Telefono_Usuario,											#26
+        U.USR_Correo_Usuario,											#27
+        U.USR_Nombre_Usuario,											#28
+        UAT.TRN_AUT_Fecha_Turno,										#29
+        UAT.TRN_AUT_Turno_Id,											#30
+        T.TRN_Nombre_Turno,												#31
+        T.TRN_Slug_Turno,												#32
+        T.TRN_Descripcion_Turno,										#33
+        T.TRN_Color_Turno,												#34
+        T.TRN_Valor_Turno,												#35
+        UAT.TRN_AUT_Observacion_Turno_Seleccionado						#36
+    FROM
+    	tbl_usuario_automovil_turno AS UAT
+    INNER JOIN tbl_automovil AS A ON A.id = UAT.TRN_AUT_Automovil_Id
+    INNER JOIN tbl_empresa AS E ON E.id = A.AUT_Empresa_Id
+    INNER JOIN tbl_usuario AS U ON U.id = UAT.TRN_AUT_Usuario_Turno_Id
+    INNER JOIN tbl_turno AS T ON T.id = UAT.TRN_AUT_Turno_Id
+    WHERE (id_automovil IS NULL OR UAT.trn_aut_automovil_id = id_automovil) AND
+		(fecha_inicio IS NULL OR UAT.trn_aut_fecha_turno >= fecha_inicio) AND
+        (fecha_fin IS NULL OR UAT.trn_aut_fecha_turno <= fecha_fin)
+    GROUP BY UAT.id;
+END$$
+DELIMITER
+GO;

@@ -21,4 +21,16 @@ class UsuarioAutomovilTurno extends Model
         'TRN_AUT_Observacion_Turno_Seleccionado'
     ];
     protected $guarded = ['id'];
+
+    public function turno(){
+        return $this->hasOne(Turno::class, 'id', 'TRN_AUT_Turno_Id');
+    }
+
+    public function automovil(){
+        return $this->hasOne(Automovil::class, 'id', 'TRN_AUT_Automovil_Id');
+    }
+
+    public function conductor(){
+        return $this->hasOne(Usuarios::class, 'id', 'TRN_AUT_Usuario_Turno_Id');
+    }
 }
