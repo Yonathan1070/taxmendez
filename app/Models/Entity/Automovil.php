@@ -20,4 +20,8 @@ class Automovil extends Model
         'AUT_Foto_Automovil'
     ];
     protected $guarded = ['id'];
+
+    public function empresa(){
+        return $this->hasOne(Empresa::class, 'id', 'AUT_Empresa_Id');
+    }
 }

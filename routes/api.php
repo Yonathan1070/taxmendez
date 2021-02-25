@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\api\AutomovilController;
 use App\Http\Controllers\api\LoginController;
+use App\Http\Controllers\api\TurnosController;
+use App\Http\Controllers\api\UsuariosController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -41,5 +43,11 @@ Route::group(['prefix' => 'automoviles', 'middleware' => ['auth:api']], function
             Route::put('editar/{idBalance}', [AutomovilController::class, 'editarBalance']);
         });
     });
+});
+Route::group(['prefix' => 'conductores', 'middleware' => ['auth:api']], function () {
+    Route::get('listar', [UsuariosController::class, 'obtenerConductores']);
+});
+Route::group(['prefix' => 'turnos', 'middleware' => ['auth:api']], function () {
+    Route::get('listar', [TurnosController::class, 'obtenerTurnos']);
 });
 Route::get('usuario', [LoginController::class, 'usuario'])->middleware('auth:api');

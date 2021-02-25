@@ -272,4 +272,7 @@ return [
     'RegexOnlyNumbersAndLetters' => 'Digite solo números y/o letras',
     'RegexOnlyNumbersAndLetters_' => 'Digite solo números y/o letras y/o _',
     'RegexOnlyNumbersAndLetters_-' => 'Digite solo números y/o letras y/o _ -',
+
+    //Descargar Aplicación
+    'descargar_app' => 'Descargar Aplicación',
 ];

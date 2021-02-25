@@ -271,4 +271,7 @@ return [
     'RegexOnlyNumbersAndLetters' => 'Type only numbers and/or letters',
     'RegexOnlyNumbersAndLetters_' => 'Type only numbers and/or letters and/or _',
     'RegexOnlyNumbersAndLetters_-' => 'Type only numbers and/or letters and/or _ -',
+
+    //Descargar APP
+    'descargar_app' => 'Download App',
 ];

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\api;
 
 use Illuminate\Http\Request;
-use App\Http\Controllers\API\BaseController as BaseController;
+use App\Http\Controllers\api\BaseController as BaseController;
 use App\Models\Entity\Usuarios;
 use App\Models\User;
 use Carbon\Carbon;
@@ -37,9 +37,9 @@ class LoginController extends BaseController
                     return $this->sendResponse($success, 'Login correcto.');
                 }
             }
-            return $this->sendError('Unauthorised.', ['error'=>'Contraseña incorrecta!']);
+            return $this->sendError('Unauthorised.', ['error'=>'Contraseña incorrecta!'], 200);
         }
-        return $this->sendError('Unauthorised.', ['error'=>'Usuario no existe!']);
+        return $this->sendError('Unauthorised.', ['error'=>'Usuario no existe!'], 200);
     }
 
     public function usuario(Request $request){

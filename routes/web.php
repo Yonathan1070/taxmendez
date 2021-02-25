@@ -31,6 +31,7 @@ Route::group(['prefix' => '/setting', 'middleware' => ['auth']], function () {
 Route::group(['prefix' => '/administracion', 'middleware' => ['auth']], function () {
     Route::get('/', [AdministracionController::class, 'index'])->name('administracion');
     Route::get('/obtenermensuales', [AdministracionController::class, 'datosMensuales'])->name('obtener_datos_mensuales');
+    Route::get('descargar-app', [AdministracionController::class, 'descargarApp'])->name('descargar_app');
 });
 Route::group(['prefix' => '/roles', 'middleware' => ['auth']], function () {
     Route::get('', [RolesController::class, 'index'])->name('roles');

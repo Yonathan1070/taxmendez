@@ -204,6 +204,11 @@
                                         <h4>{{$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}</h4>
                                         <p class="text-muted"><a href="https://www.wrappixel.com/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="780e190a0d16381f15191114561b1715">[{{Lang::get('messages.EmailProtected')}}]</a></p>
                                         <a href="profile.html" class="btn btn-rounded btn-danger btn-sm">{{Lang::get('messages.ViewProfile')}}</a>
+                                        @if (can2('descargar_app'))
+                                            <a href='{{route(can4("descargar_app")->PRM_Accion_Permiso)}}' class="btn btn-rounded btn-danger btn-sm">
+                                                {{(Lang::get('messages.'.can4('descargar_app')->PRM_Slug_Permiso) == 'messages.'.can4('descargar_app')->PRM_Slug_Permiso) ? can4('descargar_app')->PRM_Nombre_Permiso : Lang::get('messages.'.can4('descargar_app')->PRM_Slug_Permiso)}}
+                                            </a>
+                                        @endif
                                     </div>
                                 </div>
                             </li>

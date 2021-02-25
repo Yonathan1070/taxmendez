@@ -47,6 +47,11 @@ class Usuarios extends Authenticatable
         )->withPivot('USR_RL_Usuario_Id', 'USR_RL_Rol_Id');
     }
 
+    public function empresa()
+    {
+        return $this->hasOne(Empresa::class, 'id', 'USR_Empresa_Id');
+    }
+
     public function setSession($roles)
     {
         Session::put([
