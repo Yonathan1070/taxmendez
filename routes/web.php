@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Administracion\AdministracionController;
+use App\Http\Controllers\Administracion\PerfilUsuarioController;
 use App\Http\Controllers\AutomovilController;
 use App\Http\Controllers\ConductorController;
 use App\Http\Controllers\IdiomaController;
@@ -30,6 +31,9 @@ Route::group(['prefix' => '/setting', 'middleware' => ['auth']], function () {
 });
 Route::group(['prefix' => '/administracion', 'middleware' => ['auth']], function () {
     Route::get('/', [AdministracionController::class, 'index'])->name('administracion');
+    Route::get('perfil', [PerfilUsuarioController::class, 'index'])->name('perfil');
+    Route::put('perfil', [PerfilUsuarioController::class, 'actualizarPerfil'])->name('actualizar_perfil');
+    Route::post('cambiar-pswd', [PerfilUsuarioController::class, 'cambiarContrasena'])->name('actualizar_contrasena');
     Route::get('/obtenermensuales', [AdministracionController::class, 'datosMensuales'])->name('obtener_datos_mensuales');
     Route::get('descargar-app', [AdministracionController::class, 'descargarApp'])->name('descargar_app');
 });

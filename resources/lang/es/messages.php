@@ -275,4 +275,19 @@ return [
 
     //Descargar Aplicación
     'descargar_app' => 'Descargar Aplicación',
+
+    //Perfil
+    'Profile' => 'Perfil',
+    'EditProfile' => 'Editar Perfil',
+    'ChangePassword' => 'Cambiar Contraseña',
+    'FullName' => 'Nombre completo',
+    'updateProfile' => 'Actualizar Perfil',
+    'OldPassword' => 'Contraseña anterior',
+    'NewPassword' => 'Contraseña Nueva',
+    'RetypePassword' => 'Escriba nuevamente la contraseña',
+    'updatePassword' => 'Actualizar Contraseña',
+    'ProfileUpdated' => 'Perfil Actualizado',
+    'PasswordUpdated' => 'Contraseña Actualizada',
+    'ErrorRetypePwsd' => 'Las contraseñas no son iguales.',
+    'ErrorPswdCheck' => 'La contraseña es incorrecta.',
 ];

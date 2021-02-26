@@ -194,16 +194,29 @@
                 <!-- Profile -->
                 <!-- ============================================================== -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="{{asset("assets/back/images/users/1.jpg")}}" alt="user" class="profile-pic" /></a>
+                    <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        @if ($datosUsuario->USR_Foto_Perfil_Usuario != null)
+                            <img src="data:image/png;base64, {{$datosUsuario->USR_Foto_Perfil_Usuario}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}"  class="profile-pic" />
+                        @else
+                            <img src="{{asset("assets/back/images/users/usericon.png")}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" class="profile-pic" />
+                        @endif
+                    </a>
                     <div class="dropdown-menu dropdown-menu-right scale-up">
                         <ul class="dropdown-user">
                             <li>
                                 <div class="dw-user-box">
-                                    <div class="u-img"><img src="{{asset("assets/back/images/users/1.jpg")}}" alt="user"></div>
+                                    <div class="u-img">
+                                        @if ($datosUsuario->USR_Foto_Perfil_Usuario != null)
+                                            <img src="data:image/png;base64, {{$datosUsuario->USR_Foto_Perfil_Usuario}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" />
+                                        @else
+                                            <img src="{{asset("assets/back/images/users/usericon.png")}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" />
+                                        @endif
+                                    </div>
                                     <div class="u-text">
                                         <h4>{{$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}</h4>
-                                        <p class="text-muted"><a href="https://www.wrappixel.com/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="780e190a0d16381f15191114561b1715">[{{Lang::get('messages.EmailProtected')}}]</a></p>
-                                        <a href="profile.html" class="btn btn-rounded btn-danger btn-sm">{{Lang::get('messages.ViewProfile')}}</a>
+                                        <br/>
+                                        {{--<p class="text-muted"><a href="https://www.wrappixel.com/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="780e190a0d16381f15191114561b1715">[{{Lang::get('messages.EmailProtected')}}]</a></p>--}}
+                                        <a href="{{route('perfil')}}" class="btn btn-rounded btn-danger btn-sm">{{Lang::get('messages.ViewProfile')}}</a>
                                         @if (can2('descargar_app'))
                                             <a href='{{route(can4("descargar_app")->PRM_Accion_Permiso)}}' class="btn btn-rounded btn-danger btn-sm">
                                                 {{(Lang::get('messages.'.can4('descargar_app')->PRM_Slug_Permiso) == 'messages.'.can4('descargar_app')->PRM_Slug_Permiso) ? can4('descargar_app')->PRM_Nombre_Permiso : Lang::get('messages.'.can4('descargar_app')->PRM_Slug_Permiso)}}

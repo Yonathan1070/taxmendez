@@ -7,14 +7,20 @@
         <!-- User profile -->
         <div class="user-profile" style="background: url({{asset("assets/back/images/background/user-info.jpg")}}) no-repeat;">
             <!-- User profile image -->
-            <div class="profile-img"> <img src="{{asset("assets/back/images/users/profile.png")}}" alt="user" /> </div>
+            <div class="profile-img">
+                @if ($datosUsuario->USR_Foto_Perfil_Usuario != null)
+                    <img src="data:image/png;base64, {{$datosUsuario->USR_Foto_Perfil_Usuario}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}"  class="profile-pic" />
+                @else
+                    <img src="{{asset("assets/back/images/users/usericon.png")}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" class="profile-pic" />
+                @endif
+            </div>
             <!-- User profile text-->
             <div class="profile-text">
                 <a href="#" class="dropdown-toggle u-dropdown" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">
                     {{$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}
                 </a>
                 <div class="dropdown-menu animated flipInY">
-                    <a href="#" class="dropdown-item"><i class="ti-user"></i> {{Lang::get('messages.MyProfile')}}</a>
+                    <a href="{{route('perfil')}}" class="dropdown-item"><i class="ti-user"></i> {{Lang::get('messages.MyProfile')}}</a>
                     {{--<a href="#" class="dropdown-item"><i class="ti-wallet"></i> My Balance</a>
                     <a href="#" class="dropdown-item"><i class="ti-email"></i> Inbox</a>
                     <div class="dropdown-divider"></div>

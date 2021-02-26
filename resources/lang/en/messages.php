@@ -274,4 +274,19 @@ return [
 
     //Descargar APP
     'descargar_app' => 'Download App',
+
+    //Profile
+    'Profile' => 'Profile',
+    'EditProfile' => 'Edit Profile',
+    'ChangePassword' => 'Change Password',
+    'FullName' => 'Full Name',
+    'updateProfile' => 'Update Profile',
+    'OldPassword' => 'Old Password',
+    'NewPassword' => 'New Password',
+    'RetypePassword' => 'Retype Password',
+    'updatePassword' => 'Update Password',
+    'ProfileUpdated' => 'Profile Updated',
+    'PasswordUpdated' => 'Password Updated',
+    'ErrorRetypePwsd' => 'Passwords are not the same.',
+    'ErrorPswdCheck' => 'The password is wrong.',
 ];
