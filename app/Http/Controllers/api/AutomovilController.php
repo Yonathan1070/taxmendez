@@ -36,7 +36,7 @@ class AutomovilController extends BaseController
         $automovil = Automovil::find($id);
 
         if($automovil){
-            if($request->all() && !$this->isNullOrEmpty($request->Fecha_Inicio) && !$this->isNullOrEmpty($request->Fecha_Fin)){
+            if($request->all() && (!$this->isNullOrEmpty($request->Fecha_Inicio) || !$this->isNullOrEmpty($request->Fecha_Fin))){
                 if($request->has('Fecha_Inicio') && !$this->isNullOrEmpty($request->Fecha_Inicio) && (Carbon::createFromFormat('Y-m-d', $request->Fecha_Inicio)->format('Y-m-d') > Carbon::now()->format('Y-m-d'))){
                     return $this->sendError('La fecha de inicio no puede se mayor a la fecha actual.', 200);
                 }

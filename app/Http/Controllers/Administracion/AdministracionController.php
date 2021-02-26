@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Entity\Automovil;
 use App\Models\Entity\Mensualidad;
 use Carbon\Carbon;
+use Faker\Provider\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class AdministracionController extends Controller
 {
@@ -161,9 +163,11 @@ class AdministracionController extends Controller
      */
     public function descargarApp()
     {
-        $ruta = public_path().'/app/TaxMobile.apk';
-        
-        return response()->download($ruta);
+        $fileName = 'TaxMobile.apk';
+        $path = storage_path($fileName);
+        $headers = array('Content-Type'=>'application/vnd.android.package-archive');
+
+        return response()->download($path, $fileName, $headers);
     }
 
     /**

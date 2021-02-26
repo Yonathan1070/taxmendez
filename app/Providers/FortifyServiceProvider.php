@@ -39,16 +39,23 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::loginView( fn () => view('theme.back.general.login'));
         
         Fortify::authenticateUsing(function (Request $request) {
-            $user = Usuarios::where('USR_Nombre_Usuario', $request->USR_Nombre_Usuario)->first();
+            $user = Usuarios::from('TBL_Usuario as u')
+                ->join('TBL_Rol_Usuario as ru', 'ru.USR_RL_Usuario_Id', 'u.id')
+                ->where('u.USR_Nombre_Usuario', $request->USR_Nombre_Usuario)
+                ->select('ru.*', 'u.*')
+                ->first();
     
             if ($user && Hash::check($request->password, $user->password)) {
-                $roles = $user->roles()->get();
-                if($roles->isNotEmpty()){
-                    $user->setSession($roles->toArray());
-                    return $user;
+                if($user->USR_RL_Estado){
+                    $roles = Usuarios::find($user->id)->roles()->get();
+                    if($roles->isNotEmpty()){
+                        $user->setSession($roles->toArray());
+                        return $user;
+                    }
                 }
                 return false;
             }
+            return false;
         });
 
         Passport::routes();

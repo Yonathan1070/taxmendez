@@ -20,27 +20,34 @@ class LoginController extends BaseController
         $validacion = new LoginRequest();
         $validator = Validator::make($datos, $validacion->rules(), $validacion->messages());
         if($validator->passes()){
-            $user = Usuarios::where('USR_Nombre_Usuario', $request->USR_Nombre_Usuario)->first();
+            $user = Usuarios::from('TBL_Usuario as u')
+                ->join('TBL_Rol_Usuario as ru', 'ru.USR_RL_Usuario_Id', 'u.id')
+                ->where('u.USR_Nombre_Usuario', $request->USR_Nombre_Usuario)
+                ->select('ru.*', 'u.*')
+                ->first();
         
             if ($user) {
                 if(Hash::check($request->password, $user->password)){
-                    $roles = $user->roles()->get();
-                    if($roles->isNotEmpty()){
-                        //Create Token
-                        $tokenAuth = $user->createToken('Personal Access Token');
-                        $token = $tokenAuth->token;
-                        $token->expires_at = Carbon::now()->addWeeks(1);
+                    if($user->USR_RL_Estado){
+                        $roles = Usuarios::find($user->id)->roles()->get();
+                        if($roles->isNotEmpty()){
+                            //Create Token
+                            $tokenAuth = $user->createToken('Personal Access Token');
+                            $token = $tokenAuth->token;
+                            $token->expires_at = Carbon::now()->addWeeks(1);
 
-                        $token->save();
-                        //End Section
-                        //$user->setSession($roles->toArray());
-                        $success['token'] = $tokenAuth->accessToken;
-                        $success['token_type'] = 'Bearer ';
-                        $success['expire_token'] = Carbon::parse($tokenAuth->token->expires_at)->toDateTimeString();
-                        $success['usuario'] =  $user;
+                            $token->save();
+                            //End Section
+                            //$user->setSession($roles->toArray());
+                            $success['token'] = $tokenAuth->accessToken;
+                            $success['token_type'] = 'Bearer ';
+                            $success['expire_token'] = Carbon::parse($tokenAuth->token->expires_at)->toDateTimeString();
+                            $success['usuario'] =  $user;
 
-                        return $this->sendResponse($success, 'Login correcto.');
+                            return $this->sendResponse($success, 'Login correcto.');
+                        }
                     }
+                    return $this->sendError('El usuario se encuentra inactivo!', 200);
                 }
                 return $this->sendError('Contraseña incorrecta!', 200);
             }
