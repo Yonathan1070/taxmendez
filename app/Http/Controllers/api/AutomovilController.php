@@ -36,16 +36,19 @@ class AutomovilController extends BaseController
         $automovil = Automovil::find($id);
 
         if($automovil){
-            if($request->all()){
-                if($request->has('Fecha_Inicio') && $request->Fecha_Inicio != null && (Carbon::createFromFormat('Y-m-d', $request->Fecha_Inicio)->format('Y-m-d') > Carbon::now()->format('Y-m-d'))){
-                    return $this->sendError('Error.', ['error'=>'La fecha de inicio no puede se mayor a la fecha actual.'], 200);
+            if($request->all() && !$this->isNullOrEmpty($request->Fecha_Inicio) && !$this->isNullOrEmpty($request->Fecha_Fin)){
+                if($request->has('Fecha_Inicio') && !$this->isNullOrEmpty($request->Fecha_Inicio) && (Carbon::createFromFormat('Y-m-d', $request->Fecha_Inicio)->format('Y-m-d') > Carbon::now()->format('Y-m-d'))){
+                    return $this->sendError('La fecha de inicio no puede se mayor a la fecha actual.', 200);
                 }
-                if($request->has('Fecha_Inicio') && $request->Fecha_Inicio != null && !$request->has('Fecha_Fin')){
-                    return $this->sendError('Error.', ['error'=>'La fecha de fin es requerida.'], 200);
+                if($request->has('Fecha_Inicio') && !$this->isNullOrEmpty($request->Fecha_Inicio) && !$request->has('Fecha_Fin') || $this->isNullOrEmpty($request->Fecha_Fin)){
+                    return $this->sendError('La fecha de fin es requerida.', 200);
                 }
-                if($request->has('Fecha_Fin') && $request->Fecha_Fin != null && !Carbon::createFromFormat('Y-m-d', $request->Fecha_Inicio)->equalTo(Carbon::createFromFormat('Y-m-d', $request->Fecha_Fin)->format('Y-m-d'))){
+                if(!$request->has('Fecha_Inicio') && $this->isNullOrEmpty($request->Fecha_Inicio) && $request->has('Fecha_Fin') && !$this->isNullOrEmpty($request->Fecha_Fin) && Carbon::createFromFormat('Y-m-d', Carbon::now()->format('Y-m-d'))->format('Y-m-d') > Carbon::createFromFormat('Y-m-d', $request->Fecha_Fin)->format('Y-m-d')){
+                    return $this->sendError('La fecha de fin no puede ser mayor a la fecha actual.', 200);
+                }
+                if(($request->has('Fecha_Fin') && !$this->isNullOrEmpty($request->Fecha_Fin) && $request->has('Fecha_Inicio') && !$this->isNullOrEmpty($request->Fecha_Inicio)) && !Carbon::createFromFormat('Y-m-d', $request->Fecha_Inicio)->equalTo(Carbon::createFromFormat('Y-m-d', $request->Fecha_Fin)->format('Y-m-d'))){
                     if(Carbon::createFromFormat('Y-m-d', $request->Fecha_Inicio)->format('Y-m-d') > Carbon::createFromFormat('Y-m-d', $request->Fecha_Fin)->format('Y-m-d')){
-                        return $this->sendError('Error.', ['error'=>'La fecha de inicio no puede se mayor a la fecha de fin.'], 200);
+                        return $this->sendError('La fecha de inicio no puede se mayor a la fecha de fin.', 200);
                     }
                 }
             }
@@ -53,7 +56,11 @@ class AutomovilController extends BaseController
             //$parametro = $automovil->id.', '.(($request->has('Fecha_Inicio')) ? "'".$request->Fecha_Inicio."'" : 'null').', '.(($request->has('Fecha_Fin')) ? "'".$request->Fecha_Fin."'" : 'null');
             
             if((!$request->has('Fecha_Inicio') && !$request->has('Fecha_Fin')) || ($request->Fecha_Inicio == null && $request->Fecha_Fin == null)){
-                $turnos = UsuarioAutomovilTurno::where('TRN_AUT_Automovil_Id', $automovil->id)
+                $turnos = UsuarioAutomovilTurno::from('TBL_Usuario_Automovil_Turno as uat')
+                    ->join('TBL_Automovil as a', 'a.id', 'uat.TRN_AUT_Automovil_Id')    
+                    ->where('a.id', $automovil->id)
+                    ->where('uat.TRN_AUT_Fecha_Turno', '>=', Carbon::now()->format('Y-m-d'))
+                    ->where('uat.TRN_AUT_Fecha_Turno', '<=', Carbon::now()->format('Y-m-d'))
                     ->with('automovil')
                     ->with('conductor')
                     ->with('turno')
@@ -63,7 +70,7 @@ class AutomovilController extends BaseController
                     ->join('TBL_Automovil as a', 'a.id', 'uat.TRN_AUT_Automovil_Id')
                     ->select('uat.*')
                     ->where('a.id', $automovil->id)
-                    ->where('uat.TRN_AUT_Fecha_Turno', '>=', Carbon::createFromFormat('Y-m-d', $request->Fecha_Inicio)->addDays(-1))
+                    ->where('uat.TRN_AUT_Fecha_Turno', '>=', Carbon::createFromFormat('Y-m-d',  ($request->has('Fecha_Inicio') || $request->Fecha_Inicio != null) ? $request->Fecha_Inicio : Carbon::now()->format('Y-m-d'))->addDays(-1))
                     ->where('uat.TRN_AUT_Fecha_Turno', '<=', (($request->has('Fecha_Fin')) ? Carbon::createFromFormat('Y-m-d', $request->Fecha_Fin) : Carbon::now()->format('Y-m-d')))
                     ->with('automovil')
                     ->with('conductor')
@@ -75,7 +82,7 @@ class AutomovilController extends BaseController
             
             return $this->sendResponse($turnos, 'Completado correctamente!');
         }
-        return $this->sendError('Error.', ['error'=>'El automovil no existe!'], 200);
+        return $this->sendError('El automovil no existe!', 200);
     }
 
     /**
@@ -104,9 +111,9 @@ class AutomovilController extends BaseController
                 ]);
                 return $this->sendResponse(null, 'Turno agregado correctamente.');
             }
-            return $this->sendError('Error.', ['error'=>$validator->errors()->all()], 200);
+            return $this->sendError($validator->errors()->first(), 200);
         }
-        return $this->sendError('Error.', ['error'=>'El automovil no existe!'], 200);
+        return $this->sendError('El automovil no existe!', 200);
     }
 
     /**
@@ -131,9 +138,9 @@ class AutomovilController extends BaseController
             if($balance){
                 return $this->sendResponse($balance, 'Completado correctamente.');
             }
-            return $this->sendError('Error.', ['error'=>'El turno no existe!'], 200);
+            return $this->sendError('El turno no existe!', 200);
         }
-        return $this->sendError('Error.', ['error'=>'El automovil no existe!'], 200);
+        return $this->sendError('El automovil no existe!', 200);
     }
 
     /**
@@ -171,11 +178,11 @@ class AutomovilController extends BaseController
 
                     return $this->sendResponse($balance, 'Turno actualizado correctamente.');
                 }
-                return $this->sendError('Error.', ['error'=>$validator->errors()->all()], 200);
+                return $this->sendError($validator->errors()->first(), 200);
             }
-            return $this->sendError('Error.', ['error'=>'El turno no existe!'], 200);
+            return $this->sendError('El turno no existe!', 200);
         }
-        return $this->sendError('Error.', ['error'=>'El automovil no existe!'], 200);
+        return $this->sendError('El automovil no existe!', 200);
     }
 
     /**
@@ -185,9 +192,13 @@ class AutomovilController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    private function isNullOrEmpty($str)
     {
-        //
+        if(is_null($str) || empty($str)){
+            return true;
+        }
+
+        return false;
     }
 
     /**

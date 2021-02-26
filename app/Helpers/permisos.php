@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Lang;
  * 
  * @version: dd/MM/yyyy 1.0
  */
-if (!function_exists('can') && !function_exists('can2')) {
+if (!function_exists('can') && !function_exists('can2') && !function_exists('can3') && !function_exists('can4')) {
     function can($permiso, $redirect = true)
     {
         if (session()->get('Rol_Nombre') == 'Super Administrador') {
