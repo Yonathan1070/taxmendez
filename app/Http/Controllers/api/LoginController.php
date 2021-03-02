@@ -5,12 +5,14 @@ namespace App\Http\Controllers\api;
 use Illuminate\Http\Request;
 use App\Http\Controllers\api\BaseController as BaseController;
 use App\Http\Requests\api\LoginRequest;
+use App\Models\Entity\Permiso;
 use App\Models\Entity\Usuarios;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class LoginController extends BaseController
 {
@@ -29,22 +31,44 @@ class LoginController extends BaseController
             if ($user) {
                 if(Hash::check($request->password, $user->password)){
                     if($user->USR_RL_Estado){
+                        $permiso = false;
                         $roles = Usuarios::find($user->id)->roles()->get();
+                        
                         if($roles->isNotEmpty()){
-                            //Create Token
-                            $tokenAuth = $user->createToken('Personal Access Token');
-                            $token = $tokenAuth->token;
-                            $token->expires_at = Carbon::now()->addWeeks(1);
+                            foreach ($roles as $rol) {
+                                if(Str::contains($rol->RL_Nombre_Rol, 'Admin')){
+                                    $permiso = true;
+                                    break;
+                                }else{
+                                    $permisos = Permiso::from('TBL_Permiso as p')
+                                        ->join('TBL_Permiso_Usuario as pu', 'pu.PRM_USR_Permiso_Id', 'p.id')
+                                        ->where('pu.PRM_USR_Usuario_Id', $user->id)
+                                        ->where('p.PRM_Slug_Permiso', 'like', 'app')
+                                        ->select('pu.*', 'p.*')
+                                        ->first();
+                                    
+                                    if($permisos != null){
+                                        $permiso = true;
+                                    }
+                                }
+                            }
+                            if($permiso){
+                                //Create Token
+                                $tokenAuth = $user->createToken('Personal Access Token');
+                                $token = $tokenAuth->token;
+                                $token->expires_at = Carbon::now()->addWeeks(1);
 
-                            $token->save();
-                            //End Section
-                            //$user->setSession($roles->toArray());
-                            $success['token'] = $tokenAuth->accessToken;
-                            $success['token_type'] = 'Bearer ';
-                            $success['expire_token'] = Carbon::parse($tokenAuth->token->expires_at)->toDateTimeString();
-                            $success['usuario'] =  $user;
+                                $token->save();
+                                //End Section
+                                //$user->setSession($roles->toArray());
+                                $success['token'] = $tokenAuth->accessToken;
+                                $success['token_type'] = 'Bearer ';
+                                $success['expire_token'] = Carbon::parse($tokenAuth->token->expires_at)->toDateTimeString();
+                                $success['usuario'] =  $user;
 
-                            return $this->sendResponse($success, 'Login correcto.');
+                                return $this->sendResponse($success, 'Login correcto.');
+                            }
+                            return $this->sendError('Permisos insuficientes, comuniquese con el administrador!', 200);
                         }
                     }
                     return $this->sendError('El usuario se encuentra inactivo!', 200);
