@@ -7,6 +7,8 @@ use App\Models\Entity\Usuarios;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Lang;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class PerfilUsuarioController extends Controller
 {
@@ -85,9 +87,88 @@ class PerfilUsuarioController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function actualizarFotoPerfil(Request $request)
     {
-        //
+        if($request->has('USR_Foto_Perfil_Usuario') && $request->USR_Foto_Perfil_Usuario != null){
+            if (Str::contains($request->USR_Foto_Perfil_Usuario, 'base64')){
+                $strBase64 = Str::of($request->USR_Foto_Perfil_Usuario)->explode('base64');
+                $base64 = substr($strBase64[1],1);
+                Usuarios::findOrFail(session()->get('Usuario_Id'))
+                    ->update(['USR_Foto_Perfil_Usuario' => $base64]);
+
+                return response()
+                    ->json([
+                        'success' => true,
+                        'message' => Lang::get('messages.ImageUpdated'),
+                        'title' => Lang::get('TaxMendez'),
+                        'type' => 'success',
+                        'image' => $base64
+                    ]);
+            } else {
+                $rules = [
+                    'USR_Foto_Perfil_Usuario' =>
+                        'required|image|mimes:jpeg,png,jpg,gif,svg',//|max:2048
+                ];
+                $messages = [
+                    'required' => Lang::get('messages.ImageRequired'),
+                    'image' => Lang::get('messages.ImageType'),
+                    'mimes' => Lang::get('messages.Mimes'),
+                ];
+                $validator = Validator::make(
+                    $request->all(), 
+                    $rules, 
+                    $messages
+                );
+                
+                if ($validator->passes()) {
+                    $imagen = getimagesize($request->USR_Foto_Perfil_Usuario);
+                    $ancho = $imagen[0];
+                    $alto = $imagen[1];
+
+                    $contenidoBinario = file_get_contents($request->USR_Foto_Perfil_Usuario);
+                    $imagenComoBase64 = base64_encode($contenidoBinario);
+                    if($ancho == $alto){
+                        Usuarios::findOrFail(session()->get('Usuario_Id'))
+                            ->update(['USR_Foto_Perfil_Usuario' => $imagenComoBase64]);
+                        
+                        return response()
+                            ->json([
+                                'success' => true,
+                                'message' => Lang::get('messages.ImageUpdated'),
+                                'title' => Lang::get('TaxMendez'),
+                                'type' => 'success',
+                                'image' => $imagenComoBase64
+                            ]);
+                    } else{
+                        return response()
+                            ->json([
+                                'success' => false,
+                                'message' => Lang::get('messages.HeightEqualsWidth'),
+                                'title' => Lang::get('TaxMendez'),
+                                'type' => 'success',
+                                'image' => $imagenComoBase64
+                            ]);
+                    }
+                }
+
+                return response()
+                    ->json([
+                        'success' => false,
+                        'message' => $validator->errors()->first(),
+                        'title' => Lang::get('TaxMendez'),
+                        'type' => 'error'
+                    ]);
+            }
+        }
+        else{
+            return response()
+                ->json([
+                    'success' => false,
+                    'message' => Lang::get('messages.ImageRequired'),
+                    'title' => Lang::get('TaxMendez'),
+                    'type' => 'error'
+                ]);
+        }
     }
 
     /**

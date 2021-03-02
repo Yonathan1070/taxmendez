@@ -196,9 +196,9 @@
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         @if ($datosUsuario->USR_Foto_Perfil_Usuario != null)
-                            <img src="data:image/png;base64, {{$datosUsuario->USR_Foto_Perfil_Usuario}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}"  class="profile-pic" />
+                            <img id="Foto_Perfil_Top" src="data:image/png;base64, {{$datosUsuario->USR_Foto_Perfil_Usuario}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}"  class="profile-pic" />
                         @else
-                            <img src="{{asset("assets/back/images/users/usericon.png")}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" class="profile-pic" />
+                            <img id="Foto_Perfil_Top" src="{{asset("assets/back/images/users/usericon.png")}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" class="profile-pic" />
                         @endif
                     </a>
                     <div class="dropdown-menu dropdown-menu-right scale-up">
@@ -207,9 +207,9 @@
                                 <div class="dw-user-box">
                                     <div class="u-img">
                                         @if ($datosUsuario->USR_Foto_Perfil_Usuario != null)
-                                            <img src="data:image/png;base64, {{$datosUsuario->USR_Foto_Perfil_Usuario}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" />
+                                            <img id="Foto_Perfil_Top_Notif" src="data:image/png;base64, {{$datosUsuario->USR_Foto_Perfil_Usuario}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" />
                                         @else
-                                            <img src="{{asset("assets/back/images/users/usericon.png")}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" />
+                                            <img id="Foto_Perfil_Top_Notif" src="{{asset("assets/back/images/users/usericon.png")}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" />
                                         @endif
                                     </div>
                                     <div class="u-text">

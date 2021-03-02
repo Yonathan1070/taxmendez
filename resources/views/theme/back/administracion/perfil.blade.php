@@ -3,7 +3,8 @@
     {{Lang::get('messages.Profile')}}
 @endsection
 @section('styles')
-    
+    <!-- Cropper CSS -->
+    <link href="{{asset('assets/back/plugins/cropper/cropper.min.css')}}" rel="stylesheet">
 @endsection
 @section('content')
 <div class="row page-titles">
@@ -24,11 +25,16 @@
                     <x-alert tipo="success" :mensaje="session('mensaje')" />
                 @endif
                 <center class="m-t-30">
-                    @if ($datosUsuario->USR_Foto_Perfil_Usuario != null)
-                        <img src="data:image/png;base64, {{$datosUsuario->USR_Foto_Perfil_Usuario}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" class="img-circle" width="150" />
-                    @else
-                        <img src="{{asset("assets/back/images/users/usericon.png")}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" class="img-circle" width="150" />
-                    @endif
+                    <span data-toggle="tooltip" title="{{Lang::get('messages.ChangeImage')}}">
+                        @if ($datosUsuario->USR_Foto_Perfil_Usuario != null)
+                            <img id="Foto_Perfil" src="data:image/png;base64, {{$datosUsuario->USR_Foto_Perfil_Usuario}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" class="img-circle" width="150" onclick="imageClic()" />
+                        @else
+                            <img id="Foto_Perfil" src="{{asset("assets/back/images/users/usericon.png")}}" alt="{{'Foto '.$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}" class="img-circle" width="150" onclick="imageClic()" />
+                        @endif
+                    </span>
+                    <form action="" method="post" style="display: none" id="fotoForm" name="fotoForm" enctype="multipart/form-data">
+                        <input type="file" id="USR_Foto_Perfil_Usuario" name="USR_Foto_Perfil_Usuario" accept="image/*" />
+                    </form>
                     <h4 class="card-title m-t-10">
                         {{$datosUsuario->USR_Nombres_Usuario.' '.$datosUsuario->USR_Apellidos_Usuario}}
                     </h4>
@@ -189,11 +195,183 @@
                 </div>
             </div>
         </div>
+        <div id="modal-editor" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" style="display: none;">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title" id="myLargeModalLabel">Editor de imagen</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <!-- .Your image -->
+                            <div class="col-md-9 p-20">
+                                <div class="img-container">
+                                    <img id="imageEditor" src="{{asset('assets/back/images/big/img2.jpg')}}" class="img-responsive" alt="EditorImage">
+                                </div>
+                            </div>
+                            <!-- /.Your image -->
+                            <!-- .Croping image -->
+                            <div class="col-md-3">
+                                <!-- <h3>Preview:</h3> -->
+                                <div class="docs-preview clearfix">
+                                    <div class="img-preview preview-lg"></div>
+                                    <div class="img-preview preview-md"></div>
+                                    <div class="img-preview preview-sm"></div>
+                                    <div class="img-preview preview-xs"></div>
+                                </div>
+                                <!-- <h3>Data:</h3> -->
+                                <div class="docs-data">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-prepend">
+                                            <label class="input-group-text" for="dataX">{{Lang::get('messages.X')}}</label>
+                                        </span>
+                                        <input type="text" class="form-control" id="dataX" placeholder="{{Lang::get('messages.X')}}">
+                                        <span class="input-group-append">
+                                            <span class="input-group-text">{{Lang::get('messages.px')}}</span>
+                                        </span>
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-prepend">
+                                            <label class="input-group-text" for="dataY">{{lang::get('messages.Y')}}</label>
+                                        </span>
+                                        <input type="text" class="form-control" id="dataY" placeholder="{{lang::get('messages.Y')}}">
+                                        <span class="input-group-append">
+                                            <span class="input-group-text">{{Lang::get('messages.px')}}</span>
+                                        </span>
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-prepend">
+                                            <label class="input-group-text" for="dataWidth">{{Lang::get('messages.Width')}}</label>
+                                        </span>
+                                        <input type="text" class="form-control" id="dataWidth" placeholder="{{Lang::get('messages.Width')}}">
+                                        <span class="input-group-append">
+                                            <span class="input-group-text">{{Lang::get('messages.px')}}</span>
+                                        </span>
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-prepend">
+                                            <label class="input-group-text" for="dataHeight">{{Lang::get('messages.Height')}}</label>
+                                        </span>
+                                        <input type="text" class="form-control" id="dataHeight" placeholder="{{Lang::get('messages.Height')}}">
+                                        <span class="input-group-append">
+                                            <span class="input-group-text">{{Lang::get('messages.px')}}</span>
+                                        </span>
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-prepend">
+                                            <label class="input-group-text" for="dataRotate">{{Lang::get('messages.Rotate')}}</label>
+                                        </span>
+                                        <input type="text" class="form-control" id="dataRotate" placeholder="{{Lang::get('messages.Rotate')}}">
+                                        <span class="input-group-append">
+                                            <span class="input-group-text">{{Lang::get('messages.Degree')}}</span>
+                                        </span>
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-prepend">
+                                            <label class="input-group-text" for="dataScaleX">{{Lang::get('messages.ScaleX')}}</label>
+                                        </span>
+                                        <input type="text" class="form-control" id="dataScaleX" placeholder="{{Lang::get('messages.ScaleX')}}">
+                                    </div>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-prepend">
+                                            <label class="input-group-text" for="dataScaleY">{{Lang::get('messages.ScaleY')}}</label>
+                                        </span>
+                                        <input type="text" class="form-control" id="dataScaleY" placeholder="{{Lang::get('messages.ScaleY')}}">
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- /.Croping of image -->
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-9 docs-buttons">
+                                <!-- .btn groups -->
+                                <div class="btn-group">
+                                    <button type="button" onclick="changeMethod('setDragMode', 'move')" class="btn btn-info"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.Move')}}"> <span class="fas fa-arrows-alt"></span> </span>
+                                    </button>
+                                    <button type="button" onclick="changeMethod('setDragMode', 'crop')" class="btn btn-info"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.Crop')}}"> <span class="fa fa-crop"></span> </span>
+                                    </button>
+                                </div>
+                                <div class="btn-group">
+                                    <button type="button" onclick="changeMethod('zoom', '0.1')" class="btn btn-success"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.ZoomIn')}}"> <span class="fa fa-search-plus"></span> </span>
+                                    </button>
+                                    <button type="button" onclick="changeMethod('zoom', '-0.1')" class="btn btn-success"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.ZoomOut')}}"> <span class="fa fa-search-minus"></span> </span>
+                                    </button>
+                                </div>
+                                <div class="btn-group">
+                                    <button type="button" onclick="changeMethod('move', '-10', '0')" class="btn btn-secondary btn-outline"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.MoveLeft')}}"> <span class="fa fa-arrow-left"></span> </span>
+                                    </button>
+                                    <button type="button" onclick="changeMethod('move', '10', '0')" class="btn btn-secondary btn-outline"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.MoveRight')}}"> <span class="fa fa-arrow-right"></span> </span>
+                                    </button>
+                                    <button type="button" onclick="changeMethod('move', '0', '-10')" class="btn btn-secondary btn-outline"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.MoveUp')}}"> <span class="fa fa-arrow-up"></span> </span>
+                                    </button>
+                                    <button type="button" onclick="changeMethod('move', '0', '10')" class="btn btn-secondary btn-outline"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.MoveDown')}}"> <span class="fa fa-arrow-down"></span> </span>
+                                    </button>
+                                </div>
+                                <div class="btn-group">
+                                    <button type="button" onclick="changeMethod('rotate', '-45')" class="btn btn-secondary btn-outline"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.Rotate45')}}"> <span class="fas fa-undo"></span> </span>
+                                    </button>
+                                    <button type="button" onclick="changeMethod('rotate', '-180')" class="btn btn-secondary btn-outline"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.Rotate180')}}"> <span class="fas fa-sync-alt"></span> </span>
+                                    </button>
+                                </div>
+                                <div class="btn-group">
+                                    <button type="button" onclick="changeMethod('scaleX', -1)" class="btn btn-secondary btn-outline"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.FlipHorizontal')}}"> <span class="fas fa-arrows-alt-h"></span> </span>
+                                    </button>
+                                    <button type="button" onclick="changeMethod('scaleY', -1)" class="btn btn-secondary btn-outline"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.FlipVertical')}}"> <span class="fas fa-arrows-alt-v"></span> </span>
+                                    </button>
+                                </div>
+                                <div class="btn-group">
+                                    <button type="button" onclick="changeMethod('disable')" class="btn btn-secondary btn-outline"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.Disable')}}"> <span class="fa fa-lock"></span> </span>
+                                    </button>
+                                    <button type="button" onclick="changeMethod('enable')" class="btn btn-secondary btn-outline"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.Enable')}}"> <span class="fa fa-unlock"></span> </span>
+                                    </button>
+                                </div>
+                                <div class="btn-group">
+                                    <button type="button" onclick="changeMethod('reset')" class="btn btn-secondary btn-outline"> <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.Reset')}}"> <span class="fas fa-sync-alt"></span> </span>
+                                    </button>
+                                    <label class="btn btn-secondary btn-outline btn-upload" for="inputImage">
+                                        <input type="file" class="sr-only" id="inputImage" name="file" accept="image/*">
+                                        <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.UploadImage')}}"> <span class="fa fa-upload"></span> </span>
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- /.btn groups -->
+                            <div class="col-md-3 docs-toggles">
+                                <!-- .btn groups -->
+                                <div class="btn-group btn-group-justified" data-toggle="buttons">
+                                    <button type="button" onclick="changeMethod('aspectRatio', 'NaN')" class="btn btn-secondary btn-outline">
+                                        <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.Free')}}">
+                                            {{Lang::get('messages.Free')}}
+                                        </span>
+                                    </button>
+                                    <button type="button" onclick="changeMethod('aspectRatio', '1')" class="btn btn-secondary btn-outline">
+                                        <span class="docs-tooltip" data-toggle="tooltip" title="{{Lang::get('messages.1_1')}}">
+                                            {{Lang::get('messages.1_1')}}
+                                        </span>
+                                    </button>
+                                </div>
+                                <!-- /.btn groups -->
+                            </div>
+                            <!-- /.btn groups -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default waves-effect" data-dismiss="modal">{{Lang::get('messages.Close')}}</button>
+                        <button type="button" onclick="changeMethod('getCroppedCanvas')" class="btn btn-danger waves-effect waves-light">{{Lang::get('messages.Save')}}</button>
+                    </div>
+                </div>
+                <!-- /.modal-content -->
+            </div>
+            <!-- /.modal-dialog -->
+        </div>
     </div>
     <!-- Column -->
 @endsection
 @section('scriptsPlugins')
-    
+    <!-- Image cropper JavaScript -->
+    <script src="{{asset('assets/back/plugins/cropper/cropper.min.js')}}"></script>
+    <script src="{{asset('assets/back/plugins/cropper/cropper.perfil.init.js')}}"></script>
 @endsection
 @section('scripts')
     <script src="{{asset("assets/back/js/validation.js")}}"></script>
@@ -202,5 +380,56 @@
             "use strict";
             $("input,select,textarea").not("[type=submit]").jqBootstrapValidation()
         }(window, document, jQuery);
+    </script>
+    <script>
+        function imageClic(){
+            $('#USR_Foto_Perfil_Usuario').trigger('click');
+        }
+
+        $(function () {
+            $("#USR_Foto_Perfil_Usuario").on('change', function () {
+                form = new FormData();
+                form.append('USR_Foto_Perfil_Usuario', $('#USR_Foto_Perfil_Usuario')[0].files[0]);
+                jQuery.ajax({
+                    url:"foto-perfil",
+                    headers: {
+                        'X-CSRF-TOKEN': "{{csrf_token()}}"
+                    },
+                    data:form,
+                    method:"POST",
+                    processData: false,
+                    contentType: false,
+                    success:function(data){  
+                        if(data.success){
+                            document.getElementById('Foto_Perfil_Top').setAttribute(
+                                'src', 'data:image/png;base64,'+data.image
+                            );
+                            document.getElementById('Foto_Perfil_Top_Notif').setAttribute(
+                                'src', 'data:image/png;base64,'+data.image
+                            );
+                            document.getElementById('Foto_Perfil_Aside').setAttribute(
+                                'src', 'data:image/png;base64,'+data.image
+                            );
+                            document.getElementById('Foto_Perfil').setAttribute(
+                                'src', 'data:image/png;base64,'+data.image
+                            );
+                            taxmendez.notificaciones(data.message, data.title, data.type);
+                        }else{
+                            if(data.image != null){
+                                document.getElementById('imageEditor').setAttribute(
+                                    'src', 'data:image/png;base64,'+data.image
+                                );
+                                $('#imageEditor').cropper('destroy').cropper('crop');
+                                $('#modal-editor').modal('show');
+                            }
+                            taxmendez.notificaciones(data.message, data.title, data.type);
+                        }
+                    },
+                    error:function(error){
+                        taxmendez.notificaciones(data.message, data.title, data.type);
+                    }
+                });
+            });
+        });
     </script>
 @endsection

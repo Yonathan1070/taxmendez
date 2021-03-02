@@ -43,6 +43,9 @@
     <input type="hidden" id="last" value="{{Lang::get('pagination.last')}}">
     <input type="hidden" id="next" value="{{Lang::get('pagination.next')}}">
     <input type="hidden" id="previous" value="{{Lang::get('pagination.previous')}}">
+
+    <input type="hidden" id="cropDimention" value="{{Lang::get('messages.CropDimention')}}">
+    <input type="hidden" id="cropCut" value="{{Lang::get('messages.CropCut')}}">
     <!-- ============================================================== -->
     <!-- Preloader - style you can find in spinners.css -->
     <!-- ============================================================== -->
