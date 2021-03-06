@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Controllers\api\AutomovilController;
+use App\Http\Controllers\api\ControlDesinfeccionController;
 use App\Http\Controllers\api\LoginController;
 use App\Http\Controllers\api\TurnosController;
 use App\Http\Controllers\api\UsuariosController;
+use App\Models\Entity\ControlDesinfeccion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -51,3 +53,8 @@ Route::group(['prefix' => 'turnos', 'middleware' => ['auth:api']], function () {
     Route::get('listar', [TurnosController::class, 'obtenerTurnos']);
 });
 Route::get('usuario', [LoginController::class, 'usuario'])->middleware('auth:api');
+//Control Desinfeccion
+Route::post('buscar-usuario', [ControlDesinfeccionController::class, 'findDriver']);
+Route::post('guardar-control', [ControlDesinfeccionController::class, 'save']);
+Route::get('buscar-usuario/{id}', [ControlDesinfeccionController::class, 'findById']);
+Route::get('obtener-automoviles', [ControlDesinfeccionController::class, 'getCars']);
