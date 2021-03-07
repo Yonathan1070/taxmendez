@@ -329,4 +329,12 @@ return [
     'Free' => 'Libre',
     '1_1' => '1:1',
     'Close' => 'Cerrar',
+
+    //Desinfeccón
+    'ControlDesinfeccion' => 'Control de Desinfección',
+    'DesinfeccionList' => 'Lista de control de desinfección',
+    'AddDesinfeccion' => 'Agregar',
+    'DateTime' => 'Fecha Y Hora',
+    'Temperature' => 'Temperatura',
+    'Signature' => 'Firma',
 ];

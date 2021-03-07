@@ -17,10 +17,10 @@ class CrearTablaControlDesinfeccion extends Migration
         Schema::create('TBL_Control_Desinfeccion', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->dateTime('CTD_Fecha_Hora_Desinfeccion');
-            $table->bigInteger('CTD_Automovil_Id');
-            //$table->foreign('CTD_Automovil_Id', 'FK_Control_Desinfeccion_Automovil')->references('id')->on('TBL_Automovil')->onDelete('restrict')->onUpdate('restrict');
-            $table->bigInteger('CTD_Usuario_Id');
-            //$table->foreign('CTD_Usuario_Id', 'FK_Control_Desinfeccion_Usuario')->references('id')->on('TBL_Usuario')->onDelete('restrict')->onUpdate('restrict');
+            $table->unsignedBigInteger('CTD_Automovil_Id');
+            $table->foreign('CTD_Automovil_Id', 'FK_Control_Desinfeccion_Automovil')->references('id')->on('TBL_Automovil')->onDelete('restrict')->onUpdate('restrict');
+            $table->unsignedBigInteger('CTD_Usuario_Id');
+            $table->foreign('CTD_Usuario_Id', 'FK_Control_Desinfeccion_Usuario')->references('id')->on('TBL_Usuario')->onDelete('restrict')->onUpdate('restrict');
             $table->float('CTD_Temperatura_Control_Desinfeccion');
             $table->longText('CTD_Firma_Control_Desinfeccion');
             $table->timestamps();

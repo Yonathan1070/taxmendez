@@ -598,6 +598,7 @@ class AutomovilController extends Controller
                     ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
                     ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
                     ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-01')
+                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Dia%')
                     ->select(
                         DB::raw('(uat.TRN_AUT_Kilometraje_Turno - uat.TRN_AUT_Kilometros_Andados_Turno) as KM_Anterior')
                     )
@@ -694,6 +695,12 @@ class AutomovilController extends Controller
                         'MNS_Kilometraje_Mensualidad' => $mensual->Kilometraje,
                         'MNS_Dias_Trabajados_Mensualidad' => $mensual->DiasTrabajados,
                         'MNS_Mes_Anio_Mensualidad' => Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnio)->format('Y-m-d')
+                    ]);
+                } else {
+                    $mensualDatos->update([
+                        'MNS_Producido_Mensualidad' => $mensual->Producido,
+                        'MNS_Kilometraje_Mensualidad' => $mensual->Kilometraje,
+                        'MNS_Dias_Trabajados_Mensualidad' => $mensual->DiasTrabajados
                     ]);
                 }
                 if($gastos->GST_Costo_Gasto >= 0 && $mensualDatos->MNS_Gastos_Mensualidad == -1){
@@ -867,11 +874,14 @@ class AutomovilController extends Controller
 
                 $fechaMes = $request->mesAnioTurnos;
                 //Conductores fijos
-                $conductorFijoUno = $this->obtenerConductoresFijos($fecha, $cantidadDias, $automovil->id)->orderBy('u.USR_Nombres_Usuario')
-                    ->first();
-                
-                $conductorFijoDos = $this->obtenerConductoresFijos($fecha, $cantidadDias, $automovil->id)->orderBy('u.USR_Nombres_Usuario', 'desc')
-                    ->first();
+                $conductoresFijos = $this->obtenerConductoresFijos($fecha, $cantidadDias, $automovil->id)->orderBy('u.id')
+                    ->get();
+
+                foreach ($conductoresFijos as $key => $conductor) {
+                    $conductorFijoUno = $conductoresFijos[++$key];
+                    $conductorFijoDos = $conductor;
+                    break;
+                }
                 
                 $dias = [];
                 for($i = 1; $i <= $cantidadDias; $i++){
@@ -913,6 +923,7 @@ class AutomovilController extends Controller
                     ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
                     ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
                     ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-01')
+                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Dia%')
                     ->select(
                         DB::raw('(uat.TRN_AUT_Kilometraje_Turno - uat.TRN_AUT_Kilometros_Andados_Turno) as KM_Anterior')
                     )

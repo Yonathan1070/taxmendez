@@ -24,7 +24,7 @@
                 @foreach (Route::getRoutes() as $route)
                     @if ($route->getName() == $item->PRM_Accion_Permiso)
                         <tr>
-                            <td><a href="{{route($item->PRM_Accion_Permiso)}}" class="btn btn-block btn-light">{{(Lang::get('messages.'.$item->PRM_Slug_Permiso) == 'messages.'.$item->PRM_Slug_Permiso) ? $item->Nombre_Permiso : Lang::get('messages.'.$item->PRM_Slug_Permiso)}}</a></td>
+                            <td><a href="{{route($item->PRM_Accion_Permiso)}}" class="btn btn-block btn-light">{{(Lang::get('messages.'.$item->PRM_Slug_Permiso) == 'messages.'.$item->PRM_Slug_Permiso) ? $item->PRM_Nombre_Permiso : Lang::get('messages.'.$item->PRM_Slug_Permiso)}}</a></td>
                         </tr>
                         @break
                     @endif

@@ -51,7 +51,7 @@
                     <tbody>
                         @foreach ($permisos as $permiso)
                             <tr>
-                                <td>{{$permiso->PRM_Nombre_Permiso}} <i class="mdi {{$permiso->PRM_Icono_Permiso}}"></i></td>
+                                <td>{{$permiso->PRM_Nombre_Permiso}} <i class="{{$permiso->PRM_Icono_Permiso}}"></i></td>
                                 <td>{{(Lang::get('messages.'.$permiso->CAT_Nick_Categoria) == 'messages.'.$permiso->CAT_Nick_Categoria) ? $permiso->CAT_Nombre_Categoria : Lang::get('messages.'.$permiso->CAT_Nick_Categoria) }}</td>
                                 <td>
                                     <a class="mytooltip" href="{{route('editar_permiso', ['id'=>Crypt::encrypt($permiso->id)])}}">

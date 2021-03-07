@@ -4,6 +4,7 @@ use App\Http\Controllers\Administracion\AdministracionController;
 use App\Http\Controllers\Administracion\PerfilUsuarioController;
 use App\Http\Controllers\AutomovilController;
 use App\Http\Controllers\ConductorController;
+use App\Http\Controllers\DesinfeccionController;
 use App\Http\Controllers\IdiomaController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\RolesController;
@@ -95,6 +96,13 @@ Route::group(['prefix' => '/turnos', 'middleware' => ['auth']], function () {
     Route::get('/editar/{id}', [TurnosController::class, 'editar'])->name('editar_turno');
     Route::post('/crear', [TurnosController::class, 'guardar'])->name('guardar_turno');
     Route::put('/editar/{id}', [TurnosController::class, 'actualizar'])->name('actualizar_turno');
+});
+Route::group(['prefix' => '/desinfeccion', 'middleware' => ['auth']], function () {
+    Route::get('', [DesinfeccionController::class, 'index'])->name('control_desinfeccion');
+    Route::get('/crear', [DesinfeccionController::class, 'crear'])->name('crear_desinfeccion');
+    Route::get('/editar/{id}', [DesinfeccionController::class, 'editar'])->name('editar_desinfeccion');
+    Route::post('/crear', [DesinfeccionController::class, 'guardar'])->name('guardar_desinfeccion');
+    Route::put('/editar/{id}', [DesinfeccionController::class, 'actualizar'])->name('actualizar_desinfeccion');
 });
 
 Route::get('idioma/{idioma}', [IdiomaController::class, 'cambiar'])->name('cambiar_idioma');

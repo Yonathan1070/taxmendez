@@ -39,6 +39,7 @@
                 <table class="table table-bordered table-striped myTable">
                     <thead>
                         <tr>
+                            <th></th>
                             <th>{{Lang::get('messages.Name')}}</th>
                             <th>{{Lang::get('messages.LastName')}}</th>
                             <th>{{Lang::get('messages.Phone')}}</th>
@@ -48,9 +49,6 @@
                             @endif
                             @if (can2('roles_asignar'))
                                 <th>{{Lang::get('messages.Roles')}}</th>
-                            @endif
-                            @if (can2('editar_usuario'))
-                                <th></th>
                             @endif
                         </tr>
                     </thead>
