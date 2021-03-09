@@ -13,6 +13,7 @@ class Gastos extends Model
     protected $fillable = [
         'GST_Automovil_Id',
         'GST_Mes_Anio_Gasto',
+        'GST_Descripcion_Gasto',
         'GST_Costo_Gasto'
     ];
     protected $guarded = ['id'];

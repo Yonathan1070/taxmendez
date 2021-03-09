@@ -337,4 +337,12 @@ return [
     'DateTime' => 'Fecha Y Hora',
     'Temperature' => 'Temperatura',
     'Signature' => 'Firma',
+
+    //Gastos
+    'InsertExpenses' => 'Agregar Gastos',
+    'GeneralExpenses' => 'Gastos Generales',
+    'AddExpenses' => 'Agregar Gastos',
+    'AddExpensesCar' => 'Agregar Gastos Automóvil ',
+    'Cost' => 'Costo',
+    'ExpenseAdded' => 'Gasto Agregado',
 ];

@@ -37,21 +37,36 @@
             @endif
             <div id="calendar"></div>
             <br />
-            <form class="m-t-40" action="{{route('balance_diario', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
-                @csrf
-                <input name="mesAnioTurnos" id="mesAnioTurnos" type="hidden">
-                <button type="submit" id="turnos" class="btn btn-success">{{Lang::get('messages.Cuadro_Turnos')}}</button>
-            </form>
-            <form class="m-t-40" action="{{route('generar_balance', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
-                @csrf
-                <input name="mesAnio" id="mesAnio" type="hidden">
-                <button type="submit" id="mensualidad" class="btn btn-success" style="display:{{$boton}}">{{Lang::get('messages.GenerateMonthlyPayment')}}</button>
-            </form>
-            <form class="m-t-40" action="{{route('balance_anual', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
-                @csrf
-                <input name="Anio" id="Anio" type="hidden">
-                <button type="submit" id="anual" class="btn btn-success">{{Lang::get('messages.GenerateAnnualBalance')}}</button>
-            </form>
+            <div class="row button-group">
+                <div class="col-lg-3 col-md-4">
+                    <form action="{{route('balance_diario', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
+                        @csrf
+                        <input name="mesAnioTurnos" id="mesAnioTurnos" type="hidden">
+                        <button type="submit" id="turnos" class="btn btn-block btn-success">{{Lang::get('messages.Cuadro_Turnos')}}</button>
+                    </form>
+                </div>
+                <div class="col-lg-3 col-md-4">
+                    <form action="{{route('generar_balance', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
+                        @csrf
+                        <input name="mesAnio" id="mesAnio" type="hidden">
+                        <button type="submit" id="mensualidad" class="btn btn-block btn-success" style="display:{{$boton}}">{{Lang::get('messages.GenerateMonthlyPayment')}}</button>
+                    </form>
+                </div>
+                <div class="col-lg-3 col-md-4">
+                    <form action="{{route('balance_anual', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
+                        @csrf
+                        <input name="Anio" id="Anio" type="hidden">
+                        <button type="submit" id="anual" class="btn btn-block btn-success">{{Lang::get('messages.GenerateAnnualBalance')}}</button>
+                    </form>
+                </div>
+                <div class="col-lg-3 col-md-4">
+                    <form action="{{route('agregar_gastos', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
+                        @csrf
+                        <input name="mesAnioGastos" id="mesAnioGastos" type="hidden">
+                        <button type="submit" id="gastos" class="btn btn-block btn-success">{{Lang::get('messages.InsertExpenses')}}</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -71,6 +86,17 @@
                 editable: true,
                 events: "{{route('balance_obtener_datos', ['id'=>Crypt::encrypt($automovil->id)])}}",
                 displayEventTime: false,
+                loading: function (bool) {
+                    if(!bool){
+                        var fechaCalendar = moment($("#calendar").fullCalendar('getDate').format('Y')+$("#calendar").fullCalendar('getDate').format('MM')).format('YYYY-MM');
+                        var fechaSistema = moment('{{\Carbon\Carbon::now()->format("Y-m")}}').format('YYYY-MM');
+                        document.getElementById('gastos').style.display = (fechaCalendar<=fechaSistema) ? 'block' : 'none';
+                        document.getElementById('mesAnio').value = $("#calendar").fullCalendar('getDate').format('MM')+'-'+$("#calendar").fullCalendar('getDate').format('Y');
+                        document.getElementById('Anio').value = $("#calendar").fullCalendar('getDate').format('Y');
+                        document.getElementById('mesAnioTurnos').value = $("#calendar").fullCalendar('getDate').format('MM')+'-'+$("#calendar").fullCalendar('getDate').format('Y');
+                        document.getElementById('mesAnioGastos').value = $("#calendar").fullCalendar('getDate').format('MM')+'-'+$("#calendar").fullCalendar('getDate').format('Y');
+                    }
+                },
                 eventRender: function (event, element, view) {
                     if (event.allDay === 'true') {
                         event.allDay = true;
@@ -137,11 +163,21 @@
                             document.getElementById('Anio').value = $("#calendar").fullCalendar('getDate').format('Y');
                             document.getElementById('mesAnioTurnos').value = $("#calendar").fullCalendar('getDate').format('MM')+'-'+$("#calendar").fullCalendar('getDate').format('Y');
                             document.getElementById('mensualidad').style.display = 'block';
+                            document.getElementById('mesAnioGastos').value = $("#calendar").fullCalendar('getDate').format('MM')+'-'+$("#calendar").fullCalendar('getDate').format('Y');
+                            //BTN Gastos Visible
+                            var fechaCalendar = moment($("#calendar").fullCalendar('getDate').format('Y')+$("#calendar").fullCalendar('getDate').format('MM')).format('YYYY-MM');
+                            var fechaSistema = moment('{{\Carbon\Carbon::now()->format("Y-m")}}').format('YYYY-MM');
+                            document.getElementById('gastos').style.display = (fechaCalendar<=fechaSistema) ? 'block' : 'none';
                         } else if(data==0){
                             document.getElementById('mesAnio').value = '';
                             document.getElementById('Anio').value = $("#calendar").fullCalendar('getDate').format('Y');
                             document.getElementById('mesAnioTurnos').value = $("#calendar").fullCalendar('getDate').format('MM')+'-'+$("#calendar").fullCalendar('getDate').format('Y');
                             document.getElementById('mensualidad').style.display = 'none';
+                            document.getElementById('mesAnioGastos').value = $("#calendar").fullCalendar('getDate').format('MM')+'-'+$("#calendar").fullCalendar('getDate').format('Y');
+                            //BTN Gastos Visible
+                            var fechaCalendar = moment($("#calendar").fullCalendar('getDate').format('Y')+$("#calendar").fullCalendar('getDate').format('MM')).format('YYYY-MM');
+                            var fechaSistema = moment('{{\Carbon\Carbon::now()->format("Y-m")}}').format('YYYY-MM');
+                            document.getElementById('gastos').style.display = (fechaCalendar<=fechaSistema) ? 'block' : 'none';
                         }
                     }
                 });
@@ -163,11 +199,13 @@
                             document.getElementById('Anio').value = $("#calendar").fullCalendar('getDate').format('Y');
                             document.getElementById('mesAnioTurnos').value = $("#calendar").fullCalendar('getDate').format('MM')+'-'+$("#calendar").fullCalendar('getDate').format('Y');
                             document.getElementById('mensualidad').style.display = 'block';
+                            document.getElementById('mesAnioGastos').value = $("#calendar").fullCalendar('getDate').format('MM')+'-'+$("#calendar").fullCalendar('getDate').format('Y');
                         } else if(data==0){
                             document.getElementById('mesAnio').value = '';
                             document.getElementById('Anio').value = $("#calendar").fullCalendar('getDate').format('Y');
                             document.getElementById('mesAnioTurnos').value = $("#calendar").fullCalendar('getDate').format('MM')+'-'+$("#calendar").fullCalendar('getDate').format('Y');
                             document.getElementById('mensualidad').style.display = 'none';
+                            document.getElementById('mesAnioGastos').value = $("#calendar").fullCalendar('getDate').format('MM')+'-'+$("#calendar").fullCalendar('getDate').format('Y');
                         }
                     }
                 });

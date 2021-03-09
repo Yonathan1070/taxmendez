@@ -738,34 +738,46 @@ class AutomovilController extends Controller
             $automovil = Automovil::findOrFail($automovilId);
 
             if($automovil){
-                if($request->Gastos == -1){
-                    return response()->json(['mensaje' => 'noGastos']);
-                }
-                $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
-                    ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.$request->MesAnio)->format('Y-m-d'))
-                    ->first();
-                
-                if(!$gastos){
+                if($request->ajax()){
+                    if($request->Gastos == -1){
+                        return response()->json(['mensaje' => 'noGastos']);
+                    }
+                    $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+                        ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.$request->MesAnio)->format('Y-m-d'))
+                        ->first();
+                    
+                    if(!$gastos){
+                        Gastos::create([
+                            'GST_Automovil_Id' => $automovil->id,
+                            'GST_Mes_Anio_Gasto' => Carbon::createFromFormat('d-m-Y', '01-'.$request->MesAnio)->format('Y-m-d'),
+                            'GST_Costo_Gasto' => $request->Gastos
+                        ]);
+                    } else {
+                        $gastos->update([
+                            'GST_Costo_Gasto' => $request->Gastos
+                        ]);
+                    }
+                    Mensualidad::where('MNS_Automovil_Id', $automovil->id)
+                        ->where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('d-m-Y', '01-'.$request->MesAnio)->format('Y-m-d'))
+                        ->first()->update([
+                            'MNS_Gastos_Mensualidad' => $request->Gastos
+                        ]);
+                    
+                    $propietarios = AutomovilPropietario::where('AUT_PRP_Automovil_Id', $automovil->id)
+                        ->get()->count();
+                    
+                    return response()->json(['mensaje' => 'ok', 'propietarios' => $propietarios]);
+                } else {
                     Gastos::create([
                         'GST_Automovil_Id' => $automovil->id,
-                        'GST_Mes_Anio_Gasto' => Carbon::createFromFormat('d-m-Y', '01-'.$request->MesAnio)->format('Y-m-d'),
-                        'GST_Costo_Gasto' => $request->Gastos
+                        'GST_Mes_Anio_Gasto' => Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnioGastos)->format('Y-m-d'),
+                        'GST_Descripcion_Gasto' => $request->GST_Descripcion_Gasto,
+                        'GST_Costo_Gasto' => $request->GST_Costo_Gasto
                     ]);
-                } else {
-                    $gastos->update([
-                        'GST_Costo_Gasto' => $request->Gastos
-                    ]);
+                    Session::put(['FechaGastos' => $request->mesAnioGastos]);
+
+                    return redirect()->route('agregar_gastos_sesion', ['id'=>Crypt::encrypt($automovil->id)])->with('mensaje', Lang::get('messages.ExpenseAdded'));
                 }
-                Mensualidad::where('MNS_Automovil_Id', $automovil->id)
-                    ->where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('d-m-Y', '01-'.$request->MesAnio)->format('Y-m-d'))
-                    ->first()->update([
-                        'MNS_Gastos_Mensualidad' => $request->Gastos
-                    ]);
-                
-                $propietarios = AutomovilPropietario::where('AUT_PRP_Automovil_Id', $automovil->id)
-                    ->get()->count();
-                
-                return response()->json(['mensaje' => 'ok', 'propietarios' => $propietarios]);
             }
             return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
         } catch (DecryptException $e) {
@@ -876,9 +888,12 @@ class AutomovilController extends Controller
                 //Conductores fijos
                 $conductoresFijos = $this->obtenerConductoresFijos($fecha, $cantidadDias, $automovil->id)->orderBy('u.id')
                     ->get();
-
+                    
+                $conductorFijoUno = null;
+                $conductorFijoDos = null;
                 foreach ($conductoresFijos as $key => $conductor) {
-                    $conductorFijoUno = $conductoresFijos[++$key];
+                    $contador = $key+1;
+                    $conductorFijoUno = ($conductoresFijos->count() <= $contador) ? $conductor : $conductoresFijos[$contador];
                     $conductorFijoDos = $conductor;
                     break;
                 }
@@ -944,6 +959,11 @@ class AutomovilController extends Controller
                 $diferencia = $KMSTotales - (($mensual) ? $mensual->Kilometraje : 0);
                 $cadaConductor = ($diferencia >= 0) ? ($diferencia / 2) : 0;
                 
+                $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+                    ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnioTurnos)->format('Y-m-d'))
+                    ->orderBy('id')
+                    ->get();
+                
                 return view(
                     'theme.back.automoviles.cuadro-turno',
                     compact(
@@ -953,9 +973,30 @@ class AutomovilController extends Controller
                         'dias',
                         'fechaMes',
                         'cantidadFebrero',
-                        'cadaConductor'
+                        'cadaConductor',
+                        'gastos'
                     )
                 );
+            }
+            return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
+        } catch (DecryptException $e) {
+            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
+        }
+    }
+
+    public function agregarGastos(Request $request, $id){
+        try {
+            $automovilId = Crypt::decrypt($id);
+            $automovil = Automovil::findOrFail($automovilId);
+
+            if($automovil){
+                $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+                    ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.((sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos))->format('Y-m-d'))
+                    ->get();
+                
+                $mesAnio = (sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos;
+
+                return view('theme.back.automoviles.gastos.agregar', compact('gastos', 'mesAnio', 'automovil'));
             }
             return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
         } catch (DecryptException $e) {

@@ -336,4 +336,12 @@ return [
     'DateTime' => 'Date and Time',
     'Temperature' => 'Temperature',
     'Signature' => 'Signature',
+
+    //Gastos
+    'InsertExpenses' => 'Add Expenses',
+    'GeneralExpenses' => 'General Expenses',
+    'AddExpenses' => 'Add Expenses',
+    'AddExpensesCar' => 'Add Expenses Car ',
+    'Cost' => 'Cost',
+    'ExpenseAdded' => 'Expense Added',
 ];
