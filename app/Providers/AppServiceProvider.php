@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Routing\UrlGenerator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot()
+    public function boot(UrlGenerator $url)
     {
         View::composer("theme.back.layout", function($view){
             $menus = DB::table('TBL_Permiso as p')
@@ -103,6 +104,8 @@ class AppServiceProvider extends ServiceProvider
             $view->with('automovilesFotos', $automovilesFotos)
                 ->with('idiomas', $idiomas);
         });
+
+        if(env('APP_ENV') !== 'local') { $url->forceScheme('https'); }
     }
 
     private function obtenerDiasMes($mes, $anio)
