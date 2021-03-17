@@ -9,17 +9,21 @@
                 <b>
                     <!--You can put here icon as well // <i class="wi wi-sunset"></i> //-->
                     <!-- Dark Logo icon -->
-                    <img src="{{asset("assets/back/images/logo-icon.png")}}" alt="homepage" class="dark-logo" />
-                    <!-- Light Logo icon -->
-                    <img src="{{asset("assets/back/images/logo-light-icon.png")}}" alt="homepage" class="light-logo" />
+                    @if ($empresa->EMP_Logo_Empresa != null || $empresa->EMP_Logo_Empresa != '')
+                        <img src="data:image/png;base64, {{$empresa->EMP_Logo_Empresa}}" alt="homepage" class="dark-logo" height="27" width="50" />
+                    @else
+                        <img src="{{asset("assets/back/images/logo-icon.png")}}" alt="homepage" class="dark-logo" height="27" width="50" />
+                    @endif
                 </b>
                 <!--End Logo icon -->
                 <!-- Logo text -->
                 <span>
                     <!-- dark Logo text -->
-                    <img src="{{asset("assets/back/images/logo-text.png")}}" alt="homepage" class="dark-logo" />
-                    <!-- Light Logo text -->    
-                    <img src="{{asset("assets/back/images/logo-light-text.png")}}" class="light-logo" alt="homepage" />
+                    @if ($empresa->EMP_Logo_Texto_Empresa != null || $empresa->EMP_Logo_Texto_Empresa != '')
+                        <img src="data:image/png;base64, {{$empresa->EMP_Logo_Texto_Empresa}}" alt="homepage" class="dark-logo" height="29" width="148" />    
+                    @else
+                        <img src="{{asset("assets/back/images/logo-text.png")}}" alt="homepage" class="dark-logo"  height="29" width="148" />
+                    @endif
                 </span>
             </a>
         </div>

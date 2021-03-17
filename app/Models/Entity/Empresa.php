@@ -16,7 +16,8 @@ class Empresa extends Model
         'EMP_Telefono_Empresa',
         'EMP_Direccion_Empresa',
         'EMP_Correo_Empresa',
-        'EMP_Logo_Empresa'
+        'EMP_Logo_Empresa',
+        'EMP_Logo_Texto_Empresa'
     ];
     protected $guarded = ['id'];
 

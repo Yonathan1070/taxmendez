@@ -55,13 +55,20 @@ class EmpresasController extends Controller
             $imagenComoBase64 = base64_encode($contenidoBinario);
         }
 
+        $textoLogoComoBase64 = null;
+        if($request->EMP_Logo_Texto_Empresa){
+            $contenidoBinario = file_get_contents($request->EMP_Logo_Texto_Empresa);
+            $textoLogoComoBase64 = base64_encode($contenidoBinario);
+        }
+
         Empresa::create([
             'EMP_Nombre_Empresa' => $request->EMP_Nombre_Empresa,
             'EMP_NIT_Empresa' => $request->EMP_NIT_Empresa,
             'EMP_Telefono_Empresa' => $request->EMP_Telefono_Empresa,
             'EMP_Direccion_Empresa' => $request->EMP_Direccion_Empresa,
             'EMP_Correo_Empresa' => $request->EMP_Correo_Empresa,
-            'EMP_Logo_Empresa' => $imagenComoBase64
+            'EMP_Logo_Empresa' => $imagenComoBase64,
+            'EMP_Logo_Texto_Empresa' => $textoLogoComoBase64
         ]);
 
         return redirect()->route('empresas')->with('mensaje', Lang::get('messages.CreatedCompany'));
@@ -124,13 +131,22 @@ class EmpresasController extends Controller
                     $imagenComoBase64 = $empresa->EMP_Logo_Empresa;
                 }
 
+                $textoLogoComoBase64 = null;
+                if($request->EMP_Logo_Texto_Empresa){
+                    $contenidoBinario = file_get_contents($request->EMP_Logo_Texto_Empresa);
+                    $textoLogoComoBase64 = base64_encode($contenidoBinario);
+                } else {
+                    $textoLogoComoBase64 = $empresa->EMP_Logo_Texto_Empresa;
+                }
+
                 $empresa->update([
                     'EMP_Nombre_Empresa' => $request->EMP_Nombre_Empresa,
                     'EMP_NIT_Empresa' => $request->EMP_NIT_Empresa,
                     'EMP_Telefono_Empresa' => $request->EMP_Telefono_Empresa,
                     'EMP_Direccion_Empresa' => $request->EMP_Direccion_Empresa,
                     'EMP_Correo_Empresa' => $request->EMP_Correo_Empresa,
-                    'EMP_Logo_Empresa' => $imagenComoBase64
+                    'EMP_Logo_Empresa' => $imagenComoBase64,
+                    'EMP_Logo_Texto_Empresa' => $textoLogoComoBase64
                 ]);
 
                 return redirect()->route('empresas')->with('mensaje', Lang::get('messages.Company').' '.$empresa->EMP_Nombre_Empresa.' '.Lang::get('messages.Updated'.'.'));

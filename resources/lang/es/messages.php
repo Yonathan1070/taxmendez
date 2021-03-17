@@ -354,6 +354,7 @@ return [
     'NIT' => 'NIT',
     'CompanyName' => 'Nombre',
     'Logo' => 'Logo',
+    'LogoText' => 'Logo de Texto',
     'CreatedCompany' => 'Empresa Creada',
     'CompanyExists' => 'Empresa Existe',
     'CompanyNotExists' => 'La Empresa No Existe',

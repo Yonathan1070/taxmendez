@@ -42,6 +42,7 @@
                             <th>{{Lang::get('messages.NIT')}}</th>
                             <th>{{Lang::get('messages.CompanyName')}}</th>
                             <th>{{Lang::get('messages.Logo')}}</th>
+                            <th>{{Lang::get('messages.LogoText')}}</th>
                             @if (can2('editar_empresa'))
                                 <th></th>
                             @endif
@@ -54,7 +55,12 @@
                                 <td>{{$empresa->EMP_Nombre_Empresa}}</td>
                                 <td>
                                     @if ($empresa->EMP_Logo_Empresa != null || $empresa->EMP_Logo_Empresa != '')
-                                        <img id="LogoCompany" src="data:image/png;base64, {{$empresa->EMP_Logo_Empresa}}" alt="{{'Logo '.$empresa->EMP_Nombre_Empresa}}" />
+                                        <img id="LogoCompany" src="data:image/png;base64, {{$empresa->EMP_Logo_Empresa}}" alt="{{'Logo '.$empresa->EMP_Nombre_Empresa}}" height="27" width="50" />
+                                    @endif
+                                </td>
+                                <td>
+                                    @if ($empresa->EMP_Logo_Texto_Empresa != null || $empresa->EMP_Logo_Texto_Empresa != '')
+                                        <img id="LogoTextCompany" src="data:image/png;base64, {{$empresa->EMP_Logo_Texto_Empresa}}" alt="{{'Logo Texto '.$empresa->EMP_Nombre_Empresa}}" height="29" width="148" />
                                     @endif
                                 </td>
                                 @if (can2('editar_empresa'))

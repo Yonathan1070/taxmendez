@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\Entity\Automovil;
+use App\Models\Entity\Empresa;
 use App\Models\Entity\Idioma;
 use App\Models\Entity\Usuarios;
 use Carbon\Carbon;
@@ -99,10 +100,17 @@ class AppServiceProvider extends ServiceProvider
         });
 
         View::composer("theme.back.top_header", function($view){
-            $automovilesFotos = Automovil::where('AUT_Foto_Automovil', '!=', null)->get();
+            if(session()->get('Rol_Nombre') == 'Super Administrador'){
+                $automovilesFotos = Automovil::where('AUT_Foto_Automovil', '!=', null)->get();
+            } else{
+                $automovilesFotos = Automovil::where('AUT_Empresa_Id', session()->get('Empresa_Id'))
+                    ->where('AUT_Foto_Automovil', '!=', null)->get();
+            }
             $idiomas = Idioma::get();
+            $empresa = Empresa::find(session()->get('Empresa_Id'));
             $view->with('automovilesFotos', $automovilesFotos)
-                ->with('idiomas', $idiomas);
+                ->with('idiomas', $idiomas)
+                ->with('empresa', $empresa);
         });
 
         //if(env('APP_ENV') !== 'local') { $url->forceScheme('https'); }

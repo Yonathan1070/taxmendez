@@ -57,7 +57,25 @@
                 <div class="form-group">
                     <h5>{{Lang::get('messages.Logo')}}</h5>
                     <div class="controls">
-                        <img id="logoEmpresa" src="data:image/png;base64, {{$empresa->EMP_Logo_Empresa}}" width="128" height="128" alt="{{'Logo empresa '.$empresa->EMP_Nombre_Empresa}}" />
+                        <img id="logoEmpresa" src="data:image/png;base64, {{$empresa->EMP_Logo_Empresa}}" width="50" height="27" alt="{{'Logo empresa '.$empresa->EMP_Nombre_Empresa}}" />
+                    </div>
+                </div>
+            </div>
+        @endif
+        <div class="col-md-4">
+            <div class="form-group">
+                <h5>{{Lang::get('messages.LogoText')}}</h5>
+                <div class="controls">
+                    <input type="file" id="EMP_Logo_Texto_Empresa" name="EMP_Logo_Texto_Empresa" class="dropify" />
+                </div>
+            </div>
+        </div>
+        @if (Route::currentRouteName() == 'editar_empresa' && ($empresa->EMP_Logo_Texto_Empresa != null || $empresa->EMP_Logo_Texto_Empresa != ''))
+            <div class="col-md-2">
+                <div class="form-group">
+                    <h5>{{Lang::get('messages.LogoText')}}</h5>
+                    <div class="controls">
+                        <img id="logoTextoEmpresa" src="data:image/png;base64, {{$empresa->EMP_Logo_Texto_Empresa}}" width="148" height="29" alt="{{'Logo Texto empresa '.$empresa->EMP_Nombre_Empresa}}" />
                     </div>
                 </div>
             </div>
