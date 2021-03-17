@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Entity\Empresa;
 use App\Models\Entity\Roles;
 use App\Models\Entity\UsuarioRol;
 use App\Models\Entity\Usuarios;
@@ -23,11 +24,21 @@ class UsuariosController extends Controller
     {
         can('usuarios');
 
-        $usuarios = DB::table('TBL_Usuario as u')
-            ->join('TBL_Rol_Usuario as ru', 'ru.USR_RL_Usuario_Id', 'u.id')
-            ->select('ru.*', 'u.*')
-            ->groupBy('u.id')
-            ->get();
+        if(session()->get('Rol_Nombre') == 'Super Administrador'){
+            $usuarios = DB::table('TBL_Usuario as u')
+                ->join('TBL_Rol_Usuario as ru', 'ru.USR_RL_Usuario_Id', 'u.id')
+                ->select('ru.*', 'u.*')
+                ->groupBy('u.id')
+                ->get();
+        }else{
+            $usuarios = DB::table('TBL_Usuario as u')
+                ->join('TBL_Rol_Usuario as ru', 'ru.USR_RL_Usuario_Id', 'u.id')
+                ->where('u.USR_Empresa_Id', session()->get('Empresa_Id'))
+                ->select('ru.*', 'u.*')
+                ->groupBy('u.id')
+                ->get();
+        }
+        
         return view('theme.back.usuarios.listar', compact('usuarios'));
     }
 
@@ -40,7 +51,8 @@ class UsuariosController extends Controller
     {
         can('crear_usuario');
         $roles = Roles::get();
-        return view('theme.back.usuarios.crear', compact('roles'));
+        $empresas = Empresa::get();
+        return view('theme.back.usuarios.crear', compact('roles', 'empresas'));
     }
 
     /**
@@ -63,7 +75,7 @@ class UsuariosController extends Controller
             'USR_Correo_Usuario' => $request->USR_Correo_Usuario,
             'USR_Nombre_Usuario' => $request->USR_Nombre_Usuario,
             'password' => Hash::make($request->USR_Nombre_Usuario),
-            'USR_Empresa_Id' => 1,
+            'USR_Empresa_Id' => $request->USR_Empresa_Id,
             'USR_Conductor_Fijo_Usuario' => $request->has('USR_Conductor_Fijo_Usuario')
         ]);
         UsuarioRol::create([
@@ -98,8 +110,9 @@ class UsuariosController extends Controller
             
             if($usuario){
                 $roles = Roles::get();
+                $empresas = Empresa::get();
                 
-                return view('theme.back.usuarios.editar', compact('usuario', 'roles'));
+                return view('theme.back.usuarios.editar', compact('usuario', 'roles', 'empresas'));
             }
             return redirect()->route('usuarios')->with('mensaje', Lang::get('messages.UserNotExists'));
 
@@ -133,6 +146,7 @@ class UsuariosController extends Controller
                     'USR_Telefono_Usuario' => $request->USR_Telefono_Usuario,
                     'USR_Correo_Usuario' => $request->USR_Correo_Usuario,
                     'USR_Nombre_Usuario' => $request->USR_Nombre_Usuario,
+                    'USR_Empresa_Id' => $request->USR_Empresa_Id,
                     'USR_Conductor_Fijo_Usuario' => $request->has('USR_Conductor_Fijo_Usuario')
                 ]);
 

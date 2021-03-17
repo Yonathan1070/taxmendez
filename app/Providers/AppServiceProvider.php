@@ -105,7 +105,7 @@ class AppServiceProvider extends ServiceProvider
                 ->with('idiomas', $idiomas);
         });
 
-        if(env('APP_ENV') !== 'local') { $url->forceScheme('https'); }
+        //if(env('APP_ENV') !== 'local') { $url->forceScheme('https'); }
     }
 
     private function obtenerDiasMes($mes, $anio)

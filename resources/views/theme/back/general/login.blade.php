@@ -49,12 +49,12 @@
                         <h3 class="box-title m-b-20">{{Lang::get('messages.Login')}}</h3>
                         <div class="form-group">
                             <div class="col-xs-12 controls">
-                                <input class="form-control" type="text" required placeholder="{{Lang::get('messages.UserName')}}" id="USR_Nombre_Usuario" name="USR_Nombre_Usuario" data-validation-required-message="{{Lang::get('messages.Required')}}" pattern="(?=.*?[a-z])([a-zA-Z0-9]{7,})" data-validation-pattern-message="{{Lang::get('messages.RegexUserName')}}">
+                                <input class="form-control" type="text" required placeholder="{{Lang::get('messages.UserName')}}" id="USR_Nombre_Usuario" name="USR_Nombre_Usuario" data-validation-required-message="{{Lang::get('messages.Required')}}" pattern="(?=.*?[a-z])([a-zA-Z0-9]{5,})" data-validation-pattern-message="{{Lang::get('messages.RegexUserName')}}">
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="col-xs-12 controls">
-                                <input class="form-control" type="password" required placeholder="{{Lang::get('messages.Password')}}" id="password" name="password" data-validation-required-message="{{Lang::get('messages.Required')}}" pattern="(?=.*?[a-z])([a-zA-Z0-9!#$%&/()=?¡\\¿¨´*+~{}^`,;.:_-]{7,})" data-validation-pattern-message="{{Lang::get('messages.RegexPassword')}}">
+                                <input class="form-control" type="password" required placeholder="{{Lang::get('messages.Password')}}" id="password" name="password" data-validation-required-message="{{Lang::get('messages.Required')}}" pattern="(?=.*?[a-z])([a-zA-Z0-9!#$%&/()=?¡\\¿¨´*+~{}^`,;.:_-]{5,})" data-validation-pattern-message="{{Lang::get('messages.RegexPassword')}}">
                             </div>
                         </div>
                         <div class="form-group">

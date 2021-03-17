@@ -345,4 +345,16 @@ return [
     'AddExpensesCar' => 'Agregar Gastos Automóvil ',
     'Cost' => 'Costo',
     'ExpenseAdded' => 'Gasto Agregado',
+
+    //Empresas
+    'Companies' => 'Empresas',
+    'CompanyList' => 'Lista de Empresas',
+    'AddCompany' => 'Agregar Empresa',
+    'EditCompany' => 'Editar Empresa',
+    'NIT' => 'NIT',
+    'CompanyName' => 'Nombre',
+    'Logo' => 'Logo',
+    'CreatedCompany' => 'Empresa Creada',
+    'CompanyExists' => 'Empresa Existe',
+    'CompanyNotExists' => 'La Empresa No Existe',
 ];

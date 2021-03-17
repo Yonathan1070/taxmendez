@@ -5,6 +5,7 @@ use App\Http\Controllers\Administracion\PerfilUsuarioController;
 use App\Http\Controllers\AutomovilController;
 use App\Http\Controllers\ConductorController;
 use App\Http\Controllers\DesinfeccionController;
+use App\Http\Controllers\EmpresasController;
 use App\Http\Controllers\IdiomaController;
 use App\Http\Controllers\PermisosController;
 use App\Http\Controllers\RolesController;
@@ -107,6 +108,13 @@ Route::group(['prefix' => '/desinfeccion', 'middleware' => ['auth']], function (
     Route::get('/editar/{id}', [DesinfeccionController::class, 'editar'])->name('editar_desinfeccion');
     Route::post('/crear', [DesinfeccionController::class, 'guardar'])->name('guardar_desinfeccion');
     Route::put('/editar/{id}', [DesinfeccionController::class, 'actualizar'])->name('actualizar_desinfeccion');
+});
+Route::group(['prefix' => '/empresas', 'middleware' => ['auth']], function () {
+    Route::get('', [EmpresasController::class, 'index'])->name('empresas');
+    Route::get('/crear', [EmpresasController::class, 'crear'])->name('crear_empresa');
+    Route::get('/editar/{id}', [EmpresasController::class, 'editar'])->name('editar_empresa');
+    Route::post('/crear', [EmpresasController::class, 'guardar'])->name('guardar_empresa');
+    Route::put('/editar/{id}', [EmpresasController::class, 'actualizar'])->name('actualizar_empresa');
 });
 
 Route::get('idioma/{idioma}', [IdiomaController::class, 'cambiar'])->name('cambiar_idioma');

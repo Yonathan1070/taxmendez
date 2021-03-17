@@ -44,7 +44,8 @@
                 <li class="nav-item hidden-sm-down search-box">
                     <a class="nav-link hidden-sm-down text-muted waves-effect waves-dark" href="javascript:void(0)"><i class="ti-search"></i></a>
                     <form class="app-search">
-                        <input type="text" class="form-control" placeholder="{{Lang::get('messages.Search')}}..." id="inputSearch" autocomplete="off"> <a class="srh-btn"><i class="ti-close"></i></a>
+                        <input type="text" class="form-control" placeholder="{{Lang::get('messages.Search')}}..." id="inputSearch" autocomplete="off" />
+                        <a class="srh-btn"><i class="ti-close"></i></a>
                         @include('theme.back.buscador')
                     </form>
                 </li>
@@ -52,7 +53,8 @@
                 <!-- ============================================================== -->
                 <!-- Messages -->
                 <!-- ============================================================== -->
-                <li class="nav-item dropdown mega-dropdown"> <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="mdi mdi-view-grid"></i></a>
+                <li class="nav-item dropdown mega-dropdown">
+                    <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="mdi mdi-view-grid"></i></a>
                     <div class="dropdown-menu scale-up-left">
                         <ul class="mega-dropdown-menu row">
                             <li class="col-lg-3 col-xlg-2 m-b-30">
@@ -218,7 +220,7 @@
                                         {{--<p class="text-muted"><a href="https://www.wrappixel.com/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="780e190a0d16381f15191114561b1715">[{{Lang::get('messages.EmailProtected')}}]</a></p>--}}
                                         <a href="{{route('perfil')}}" class="btn btn-rounded btn-danger btn-sm">{{Lang::get('messages.ViewProfile')}}</a>
                                         @if (can2('descargar_app'))
-                                            <a href='{{route(can4("descargar_app")->PRM_Accion_Permiso)}}' class="btn btn-rounded btn-danger btn-sm">
+                                            <a href='{{route(can4("descargar_app")->PRM_Accion_Permiso)}}' target="_blank" class="btn btn-rounded btn-danger btn-sm">
                                                 {{(Lang::get('messages.'.can4('descargar_app')->PRM_Slug_Permiso) == 'messages.'.can4('descargar_app')->PRM_Slug_Permiso) ? can4('descargar_app')->PRM_Nombre_Permiso : Lang::get('messages.'.can4('descargar_app')->PRM_Slug_Permiso)}}
                                             </a>
                                         @endif
@@ -262,16 +264,6 @@
                                         <i class="{{$idioma->IDM_Bandera_Idioma}}"></i> {{(Lang::get('messages.'.$idioma->IDM_Nick_Idioma) == 'messages.'.$idioma->IDM_Nick_Idioma) ? $idioma->IDM_Nombre_Idioma : Lang::get('messages.'.$idioma->IDM_Nick_Idioma)}}
                                     </a>
                                 @endforeach
-                                {{--<select
-                                    id="Select_Idioma"
-                                    class="form-control"
-                                >
-                                    @foreach (config('locale.languages') as $lang)
-                                        <option value="{{$lang[0]}}"  {{$lang[0] == session('locale') ? 'selected' : '' }}>
-                                            {{ $lang[1] }}
-                                        </option>
-                                    @endforeach
-                                </select>--}}
                             @endif
                         </div>
                     </li>

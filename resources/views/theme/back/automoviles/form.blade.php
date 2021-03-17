@@ -16,19 +16,23 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <h5>{{Lang::get('messages.Company')}}</h5>
-                <div class="controls">
-                    <select name="AUT_Empresa_Id" id="AUT_Empresa_Id" class="form-control" required data-validation-required-message="{{Lang::get('messages.Required')}}">
-                        <option value="">{{Lang::get('messages.SelectOption')}}</option>
-                        @foreach ($empresas as $empresa)
-                            <option value="{{$empresa->id}}" {{old("AUT_Empresa_Id", $automovil->AUT_Empresa_Id ?? "")==$empresa->id ? "selected" : ""}}>{{$empresa->EMP_Nombre_Empresa}}</option>
-                        @endforeach
-                    </select>
+        @if (session()->get('Rol_Nombre') == 'Super Administrador')
+            <div class="col-md-4">
+                <div class="form-group">
+                    <h5>{{Lang::get('messages.Company')}}</h5>
+                    <div class="controls">
+                        <select name="AUT_Empresa_Id" id="AUT_Empresa_Id" class="form-control" required data-validation-required-message="{{Lang::get('messages.Required')}}">
+                            <option value="">{{Lang::get('messages.SelectOption')}}</option>
+                            @foreach ($empresas as $empresa)
+                                <option value="{{$empresa->id}}" {{old("AUT_Empresa_Id", $automovil->AUT_Empresa_Id ?? "")==$empresa->id ? "selected" : ""}}>{{$empresa->EMP_Nombre_Empresa}}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
+        @else
+            <input type="hidden" id="AUT_Empresa_Id" name="AUT_Empresa_Id" value="{{session()->get('Empresa_Id')}}" />
+        @endif
     </div>
     <div class="row">
         <div class="col-md-4">

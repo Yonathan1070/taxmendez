@@ -1,5 +1,6 @@
 $(document).ready(function() {
     $('.myTable').DataTable({
+        responsive: false,
         oLanguage: {
             sEmptyTable:     $('#EmptyTable').val(),
             sInfo:           $('#Info').val(),

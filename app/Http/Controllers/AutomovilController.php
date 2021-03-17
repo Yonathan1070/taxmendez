@@ -31,10 +31,18 @@ class AutomovilController extends Controller
     {
         can('automoviles');
         session()->forget("FechaCalendario");
-        $automoviles = DB::table('TBL_Automovil as a')
-            ->join('TBL_Empresa as e', 'e.id', 'a.AUT_Empresa_Id')
-            ->select('e.*', 'a.*')
-            ->get();
+        if(session()->get('Rol_Nombre') == 'Super Administrador'){
+            $automoviles = DB::table('TBL_Automovil as a')
+                ->join('TBL_Empresa as e', 'e.id', 'a.AUT_Empresa_Id')
+                ->select('e.*', 'a.*')
+                ->get();
+        }else{
+            $automoviles = DB::table('TBL_Automovil as a')
+                ->join('TBL_Empresa as e', 'e.id', 'a.AUT_Empresa_Id')
+                ->where('a.AUT_Empresa_Id', session()->get('Empresa_Id'))
+                ->select('e.*', 'a.*')
+                ->get();
+        }
         
         $conductores = DB::table('TBL_Usuario as u')
             ->join('TBL_Rol_Usuario as ru', 'ru.USR_RL_Usuario_Id', 'u.id')

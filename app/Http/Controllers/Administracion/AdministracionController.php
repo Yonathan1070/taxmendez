@@ -50,7 +50,37 @@ class AdministracionController extends Controller
                 )
                 ->groupBy('a.AUT_Empresa_Id')
                 ->first();
-        } else{
+        } else if(session()->get('Rol_Nombre') == "Administrador"){
+            $generalUnMes = DB::table('TBL_Mensualidad as m')
+                ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaUnMes.'-01', $fechaUnMes.'-'.$cantidadDiasUnMes])
+                ->where('a.AUT_Empresa_Id', session()->get('Empresa_Id'))
+                ->select(
+                    'a.AUT_Numero_Interno_Automovil',
+                    DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                    DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                    DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                    DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                )
+                ->groupBy('a.id')
+                ->orderBy('a.AUT_Numero_Interno_Automovil')
+                ->get();
+
+            $generalDosMeses = DB::table('TBL_Mensualidad as m')
+                ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaDosMeses.'-01', $fechaDosMeses.'-'.$cantidadDiasDosMeses])
+                ->where('a.AUT_Empresa_Id', session()->get('Empresa_Id'))
+                ->select(
+                    'a.AUT_Numero_Interno_Automovil',
+                    DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                    DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                    DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                    DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                )
+                ->groupBy('a.id')
+                ->orderBy('a.AUT_Numero_Interno_Automovil')
+                ->get()->toArray();
+        }else{
             $generalUnMes = DB::table('TBL_Mensualidad as m')
                 ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
                 ->join('TBL_Automovil_Propietario as ap', 'ap.AUT_PRP_Automovil_Id', 'a.id')
@@ -163,11 +193,13 @@ class AdministracionController extends Controller
      */
     public function descargarApp()
     {
-        $fileName = 'TaxMobile.apk';
+        /*$fileName = 'TaxMobile.apk';
         $path = storage_path($fileName);
         $headers = array('Content-Type'=>'application/vnd.android.package-archive');
 
-        return response()->download($path, $fileName, $headers);
+        return response()->download($path, $fileName, $headers);*/
+
+        return redirect()->away('https://play.google.com/store/apps/details?id=com.company.taxmobile');
     }
 
     /**

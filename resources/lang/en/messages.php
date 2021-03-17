@@ -344,4 +344,16 @@ return [
     'AddExpensesCar' => 'Add Expenses Car ',
     'Cost' => 'Cost',
     'ExpenseAdded' => 'Expense Added',
+
+    //Companies
+    'Companies' => 'Companies',
+    'CompanyList' => 'Company List',
+    'AddCompany' => 'Add Company',
+    'EditCompany' => 'Edit Company',
+    'NIT' => 'NIT',
+    'CompanyName' => 'Name',
+    'Logo' => 'Logo',
+    'CreatedCompany' => 'Created Company',
+    'CompanyExists' => 'Company Exists',
+    'CompanyNotExists' => 'Company Not Exists',
 ];

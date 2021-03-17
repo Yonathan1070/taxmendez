@@ -10,10 +10,10 @@
 </div>
 @endsection
 @section('styles')
-    <link href="{{asset("assets/back/plugins/datatables/media/css/dataTables.bootstrap4.css")}}" rel="stylesheet">
+    
 @endsection
 @section('contenido')
-<div class="col-md-12 col-xlg-12">
+<div class="col-12">
     <div class="card">
         <div class="card-header">
             <div class="card-actions">
@@ -28,7 +28,7 @@
             </div>
             <h4 class="card-title m-b-0">{{Lang::get('messages.UsersList')}}</h4>
         </div>
-        <div class="card-body collapse show b-t">
+        <div class="card-body">
             @if ($errors->any())
                 <x-alert tipo="danger" :mensaje="$errors" />
             @endif
@@ -39,7 +39,6 @@
                 <table class="table table-bordered table-striped myTable">
                     <thead>
                         <tr>
-                            <th></th>
                             <th>{{Lang::get('messages.Name')}}</th>
                             <th>{{Lang::get('messages.LastName')}}</th>
                             <th>{{Lang::get('messages.Phone')}}</th>
@@ -49,6 +48,9 @@
                             @endif
                             @if (can2('roles_asignar'))
                                 <th>{{Lang::get('messages.Roles')}}</th>
+                            @endif
+                            @if (can2('editar_usuario'))
+                                <th></th>
                             @endif
                         </tr>
                     </thead>
@@ -95,7 +97,7 @@
 </div>
 @endsection
 @section('scriptsPlugins')
-    <script src="{{asset("assets/back/plugins/datatables/datatables.min.js")}}"></script>
+    
 @endsection
 @section('scripts')
     <script src="{{asset('assets/back/scripts/general.js')}}"></script>

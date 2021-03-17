@@ -14,11 +14,21 @@ class DesinfeccionController extends Controller
      */
     public function index()
     {
-        $tablaControl = ControlDesinfeccion::from('TBL_Control_Desinfeccion as cd')
-            ->join('TBL_Automovil as a', 'a.id', 'cd.CTD_Automovil_Id')
-            ->join('TBL_Usuario as u', 'u.id', 'cd.CTD_Usuario_Id')
-            ->select('a.*', 'u.*', 'cd.*')
-            ->get();
+        if(session()->get('Rol_Nombre') == 'Super Administrador'){
+            $tablaControl = ControlDesinfeccion::from('TBL_Control_Desinfeccion as cd')
+                ->join('TBL_Automovil as a', 'a.id', 'cd.CTD_Automovil_Id')
+                ->join('TBL_Usuario as u', 'u.id', 'cd.CTD_Usuario_Id')
+                ->select('a.*', 'u.*', 'cd.*')
+                ->get();
+        }else{
+            $tablaControl = ControlDesinfeccion::from('TBL_Control_Desinfeccion as cd')
+                ->join('TBL_Automovil as a', 'a.id', 'cd.CTD_Automovil_Id')
+                ->join('TBL_Usuario as u', 'u.id', 'cd.CTD_Usuario_Id')
+                ->where('u.USR_Empresa_Id', session()->get('Empresa_Id'))
+                ->where('a.AUT_Empresa_Id', session()->get('Empresa_Id'))
+                ->select('a.*', 'u.*', 'cd.*')
+                ->get();
+        }
         
         return view('theme.back.desinfeccion.listar', compact('tablaControl'));
     }
