@@ -21,8 +21,10 @@
                 </a>
                 <div class="dropdown-menu animated flipInY">
                     <a href="{{route('perfil')}}" class="dropdown-item"><i class="ti-user"></i> {{Lang::get('messages.MyProfile')}}</a>
-                    {{--<a href="#" class="dropdown-item"><i class="ti-wallet"></i> My Balance</a>
-                    <a href="#" class="dropdown-item"><i class="ti-email"></i> Inbox</a>
+                    @if (session()->get('Rol_Nombre') == 'Administrador')
+                        <a href="{{route('editar_empresa_usuario')}}" class="dropdown-item"><i class="mdi mdi-domain"></i>{{Lang::get('messages.Company')}}</a>
+                    @endif
+                    {{--<a href="#" class="dropdown-item"><i class="ti-email"></i> Inbox</a>
                     <div class="dropdown-divider"></div>
                     <a href="#" class="dropdown-item"><i class="ti-settings"></i> Account Setting</a>--}}
                     <div class="dropdown-divider"></div>

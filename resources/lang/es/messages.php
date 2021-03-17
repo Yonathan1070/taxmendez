@@ -358,4 +358,14 @@ return [
     'CreatedCompany' => 'Empresa Creada',
     'CompanyExists' => 'Empresa Existe',
     'CompanyNotExists' => 'La Empresa No Existe',
+
+    //Editar Empresa
+    'ChangeLogo' => 'Cambiar Logo',
+    'ChangeLogoTexto' => 'Cambiar Texto de Logo',
+    'updateCompany' => 'Actualizar',
+    'CompanyUpdated' => 'Empresa Actualizada',
+    'LogoUpdated' => 'Logo Actualizado',
+    'LogoRequired' => 'La imagen para el logo es requerida',
+    'TextLogoUpdated' => 'Logo de texto actualizado',
+    'TextLogoRequired' => 'La imagen para el logo de texto es requerida',
 ];

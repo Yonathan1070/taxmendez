@@ -115,6 +115,10 @@ Route::group(['prefix' => '/empresas', 'middleware' => ['auth']], function () {
     Route::get('/editar/{id}', [EmpresasController::class, 'editar'])->name('editar_empresa');
     Route::post('/crear', [EmpresasController::class, 'guardar'])->name('guardar_empresa');
     Route::put('/editar/{id}', [EmpresasController::class, 'actualizar'])->name('actualizar_empresa');
+    Route::get('/editar', [EmpresasController::class, 'editarEmpresa'])->name('editar_empresa_usuario');
+    Route::put('/editar-usuario', [EmpresasController::class, 'actualizarEmpresa'])->name('actualizar_empresa_usuario');
+    Route::post('logo', [EmpresasController::class, 'actualizarLogo'])->name('actualizar_logo_empresa');
+    Route::post('logo-texto', [EmpresasController::class, 'actualizarLogoTexto'])->name('actualizar_logo_texto_empresa');
 });
 
 Route::get('idioma/{idioma}', [IdiomaController::class, 'cambiar'])->name('cambiar_idioma');
