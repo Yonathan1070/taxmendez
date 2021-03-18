@@ -367,4 +367,9 @@ return [
     'LogoRequired' => 'The image for logo is required',
     'TextLogoUpdated' => 'Text Logo Updated',
     'TextLogoRequired' => 'The image for text logo is required',
+    
+    //Pdf
+    'Automobile' => 'Automobile',
+    'Taxi' => 'Taxi',
+    'Total' => 'Total',
 ];

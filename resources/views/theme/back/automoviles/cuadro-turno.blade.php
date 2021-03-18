@@ -1285,6 +1285,15 @@
                     </div>
                 </div>
             </div>
+            <div class="row button-group">
+                <div class="col-lg-3 col-md-4">
+                    <form action="{{route('balance_diario_pdf', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
+                        @csrf
+                        <input name="mesAnioTurnos" id="mesAnioTurnos" type="hidden" value="{{$fechaMes}}">
+                        <button type="submit" id="turnos" class="btn btn-block btn-success">{{Lang::get('messages.Cuadro_Turnos')}}</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

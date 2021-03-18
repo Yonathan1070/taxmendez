@@ -18,7 +18,8 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
-use Intervention\Image\Facades\Image;
+use Illuminate\Support\Str;
+use PDF;
 
 class AutomovilController extends Controller
 {
@@ -1005,6 +1006,137 @@ class AutomovilController extends Controller
                 $mesAnio = (sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos;
 
                 return view('theme.back.automoviles.gastos.agregar', compact('gastos', 'mesAnio', 'automovil'));
+            }
+            return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
+        } catch (DecryptException $e) {
+            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
+        }
+    }
+
+    public function pfdBalanceDiario(Request $request, $id){
+        try {
+            $automovilId = Crypt::decrypt($id);
+            $automovil = Automovil::findOrFail($automovilId);
+
+            if($automovil){
+                $fecha = explode("-", $request->mesAnioTurnos);
+                $cantidadDias = $this->obtenerDiasMes($fecha[0], $fecha[1]);
+                $cantidadFebrero = $this->obtenerDiasMes(02, $fecha[1]);
+
+                $fechaMes = $request->mesAnioTurnos;
+                //Conductores fijos
+                $conductoresFijos = $this->obtenerConductoresFijos($fecha, $cantidadDias, $automovil->id)->orderBy('u.id')
+                    ->get();
+                    
+                $conductorFijoUno = null;
+                $conductorFijoDos = null;
+                foreach ($conductoresFijos as $key => $conductor) {
+                    $contador = $key+1;
+                    $conductorFijoUno = ($conductoresFijos->count() <= $contador) ? $conductor : $conductoresFijos[$contador];
+                    $conductorFijoDos = $conductor;
+                    break;
+                }
+                
+                $dias = [];
+                for($i = 1; $i <= $cantidadDias; $i++){
+                    $turnosDia = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                        ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                        ->join('TBL_Usuario as u', 'u.id', 'uat.TRN_AUT_Usuario_Turno_Id')
+                        ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                        ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-'.$i)
+                        ->select(
+                            'u.USR_Nombres_Usuario',
+                            'uat.TRN_AUT_Fecha_Turno',
+                            'uat.TRN_AUT_Producido_Turno',
+                            'uat.TRN_AUT_Kilometros_Andados_Turno'
+                        )
+                        ->orderBy('TRN_AUT_Fecha_Turno')
+                        ->orderBy('u.USR_Nombres_Usuario')
+                        ->get();
+                    
+                    array_push($dias, $turnosDia);
+                }
+
+
+                $mensual = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                    ->where('TRN_AUT_Fecha_Turno', '>=', $fecha[1].'-'.$fecha[0].'-01')
+                    ->where('TRN_AUT_Fecha_Turno', '<=', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
+                    ->select(
+                        DB::raw('SUM(uat.TRN_AUT_Producido_Turno) as Producido'),
+                        DB::raw('SUM(uat.TRN_AUT_Kilometros_Andados_Turno) as Kilometraje'),
+                        DB::raw('SUM(t.TRN_Valor_Turno)/2 as DiasTrabajados'),
+                        DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/SUM(uat.TRN_AUT_Kilometros_Andados_Turno)) as PromedioKilometraje'),
+                        DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/(SUM(t.TRN_Valor_Turno)/2)) as PromedioDia')
+                    )
+                    ->groupBy('uat.TRN_AUT_Automovil_Id')
+                    ->first();
+
+                $KM_Anterior = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                    ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-01')
+                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Dia%')
+                    ->select(
+                        DB::raw('(uat.TRN_AUT_Kilometraje_Turno - uat.TRN_AUT_Kilometros_Andados_Turno) as KM_Anterior')
+                    )
+                    ->first();
+                
+                $KM_Ultimo = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                    ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
+                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
+                    ->select(
+                        'uat.TRN_AUT_Kilometraje_Turno'
+                    )
+                    ->first();
+                
+                //Diferencia kms en el mes
+                $KMSTotales = ($KM_Ultimo) ? ($KM_Ultimo->TRN_AUT_Kilometraje_Turno - $KM_Anterior->KM_Anterior) : 0;
+                $diferencia = $KMSTotales - (($mensual) ? $mensual->Kilometraje : 0);
+                $cadaConductor = ($diferencia >= 0) ? ($diferencia / 2) : 0;
+                
+                $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+                    ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnioTurnos)->format('Y-m-d'))
+                    ->orderBy('id')
+                    ->get();
+
+                $pdf = PDF::loadView(
+                    'theme.back.automoviles.pdf.cuadro-turnos',
+                    compact(
+                        'automovil',
+                        'conductorFijoUno',
+                        'conductorFijoDos',
+                        'dias',
+                        'fechaMes',
+                        'cantidadFebrero',
+                        'cadaConductor',
+                        'gastos',
+                        'KM_Anterior'
+                    )
+                )->setPaper('A4', 'landscape');
+
+                $fileName = 'CuadroDiario-'.Str::upper(Lang::get('messages.'.Carbon::parse('01-'.$fechaMes)->format('F')).' '.Carbon::parse('01-'.$fechaMes)->format('Y')).Lang::get('messages.Taxi').$automovil->AUT_Numero_Interno_Automovil;
+        
+                //return $pdf->stream($fileName.'.pdf');
+                return $pdf->download($fileName.'.pdf');
+                
+                /*return view(
+                    'theme.back.automoviles.pdf.cuadro-turnos',
+                    compact(
+                        'automovil',
+                        'conductorFijoUno',
+                        'conductorFijoDos',
+                        'dias',
+                        'fechaMes',
+                        'cantidadFebrero',
+                        'cadaConductor',
+                        'gastos',
+                        'KM_Anterior'
+                    )
+                );*/
             }
             return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
         } catch (DecryptException $e) {
