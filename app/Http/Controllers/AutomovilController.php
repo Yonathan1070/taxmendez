@@ -1143,4 +1143,187 @@ class AutomovilController extends Controller
             return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
         }
     }
+
+    public function pfdBalanceMensual(Request $request, $id){
+        try {
+
+            $automovilId = Crypt::decrypt($id);
+            $automovil = Automovil::findOrFail($automovilId);
+
+            if($automovil){
+                //Mensualidad
+                $fecha = explode("-", $request->mesAnio);
+                $cantidadDias = $this->obtenerDiasMes($fecha[0], $fecha[1]);
+
+                $mensual = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                    ->where('TRN_AUT_Fecha_Turno', '>=', $fecha[1].'-'.$fecha[0].'-01')
+                    ->where('TRN_AUT_Fecha_Turno', '<=', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
+                    ->select(
+                        DB::raw('SUM(uat.TRN_AUT_Producido_Turno) as Producido'),
+                        DB::raw('SUM(uat.TRN_AUT_Kilometros_Andados_Turno) as Kilometraje'),
+                        DB::raw('SUM(t.TRN_Valor_Turno)/2 as DiasTrabajados'),
+                        DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/SUM(uat.TRN_AUT_Kilometros_Andados_Turno)) as PromedioKilometraje'),
+                        DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/(SUM(t.TRN_Valor_Turno)/2)) as PromedioDia')
+                    )
+                    ->groupBy('uat.TRN_AUT_Automovil_Id')
+                    ->first();
+                
+                $KM_Anterior = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                    ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-01')
+                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Dia%')
+                    ->select(
+                        DB::raw('(uat.TRN_AUT_Kilometraje_Turno - uat.TRN_AUT_Kilometros_Andados_Turno) as KM_Anterior')
+                    )
+                    ->first();
+                
+                $KM_Ultimo = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                    ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
+                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
+                    ->select(
+                        'uat.TRN_AUT_Kilometraje_Turno'
+                    )
+                    ->first();
+
+                //Balance Trabajadores
+                $conductores = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                    ->join('TBL_Usuario as u', 'u.id', 'uat.TRN_AUT_Usuario_Turno_Id')
+                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                    ->where('TRN_AUT_Fecha_Turno', '>=', $fecha[1].'-'.$fecha[0].'-01')
+                    ->where('TRN_AUT_Fecha_Turno', '<=', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
+                    ->select(
+                        'u.id',
+                        'u.USR_Nombres_Usuario',
+                        DB::raw('SUM(uat.TRN_AUT_Producido_Turno) as Producido'),
+                        DB::raw('SUM(uat.TRN_AUT_Kilometros_Andados_Turno) as Kilometraje'),
+                        DB::raw('SUM(t.TRN_Valor_Turno) as Turnos'),
+                        DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/SUM(uat.TRN_AUT_Kilometros_Andados_Turno)) as PromedioKilometraje'),
+                        DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/SUM(t.TRN_Valor_Turno)) as PromedioTurno'),
+                        DB::raw('null as turnosAsignados')
+                    )
+                    ->groupBy('u.id')
+                    ->get();
+
+                foreach ($conductores as $conductorTurno) {
+                    $turnosConductor = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                        ->join('TBL_Usuario as u', 'u.id', 'uat.TRN_AUT_Usuario_Turno_Id')
+                        ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                        ->where('TRN_AUT_Usuario_Turno_Id', $conductorTurno->id)
+                        ->where('TRN_AUT_Fecha_Turno', '>=', $fecha[1].'-'.$fecha[0].'-01')
+                        ->where('TRN_AUT_Fecha_Turno', '<=', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
+                        ->where(function($q) {
+                            $q->where('t.TRN_Slug_Turno', 'dia')
+                              ->orWhere('t.TRN_Slug_Turno', 'noche');
+                        })
+                        ->select('t.*')
+                        ->groupBy('t.id')
+                        ->get();
+                    
+                    $conductorTurno->turnosAsignados = $turnosConductor;
+                }
+
+                //Diferencia kms en el mes
+                $KMSTotales = $KM_Ultimo->TRN_AUT_Kilometraje_Turno - $KM_Anterior->KM_Anterior;
+                $diferencia = $KMSTotales - $mensual->Kilometraje;
+                
+                if($diferencia > 0){
+                    $mensual->Kilometraje = $KMSTotales;
+                    $mensual->PromedioKilometraje = round($mensual->Producido / $mensual->Kilometraje);
+                    $cadaConductor = round($diferencia/$conductores->count());
+                    foreach ($conductores as $conductor) {
+                        $conductor->Kilometraje = $conductor->Kilometraje + $cadaConductor;
+                        $conductor->PromedioKilometraje = round($conductor->Producido / $conductor->Kilometraje);
+                    }
+                }
+
+                $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+                    ->where('GST_Mes_Anio_Gasto', $fecha[1].'-'.$fecha[0].'-01')
+                    ->first();
+                
+                if(!$gastos){
+                    $gastos = Gastos::create([
+                        'GST_Automovil_Id' => $automovil->id,
+                        'GST_Mes_Anio_Gasto' => $fecha[1].'-'.$fecha[0].'-01',
+                        'GST_Costo_Gasto' => -1
+                    ]);
+                }
+                
+                $ganancia = $mensual->Producido - ((!$gastos || $gastos->GST_Costo_Gasto < 0) ? 0 : $gastos->GST_Costo_Gasto);
+
+                $propietarios = AutomovilPropietario::where('AUT_PRP_Automovil_Id', $automovil->id)
+                    ->get()->count();
+
+                $mensualDatos = Mensualidad::where('MNS_Automovil_Id', $automovil->id)
+                    ->where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnio)->format('Y-m-d'))
+                    ->first();
+
+                if(!$mensualDatos){
+                    Mensualidad::create([
+                        'MNS_Automovil_Id' => $automovil->id,
+                        'MNS_Producido_Mensualidad' => $mensual->Producido,
+                        'MNS_Gastos_Mensualidad' => $gastos->GST_Costo_Gasto,
+                        'MNS_Kilometraje_Mensualidad' => $mensual->Kilometraje,
+                        'MNS_Dias_Trabajados_Mensualidad' => $mensual->DiasTrabajados,
+                        'MNS_Mes_Anio_Mensualidad' => Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnio)->format('Y-m-d')
+                    ]);
+                } else {
+                    $mensualDatos->update([
+                        'MNS_Producido_Mensualidad' => $mensual->Producido,
+                        'MNS_Kilometraje_Mensualidad' => $mensual->Kilometraje,
+                        'MNS_Dias_Trabajados_Mensualidad' => $mensual->DiasTrabajados
+                    ]);
+                }
+                if($gastos->GST_Costo_Gasto >= 0 && $mensualDatos->MNS_Gastos_Mensualidad == -1){
+                    Mensualidad::where('MNS_Automovil_Id', $automovil->id)
+                        ->where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnio)->format('Y-m-d'))
+                        ->update([
+                            'MNS_Gastos_Mensualidad' => $gastos->GST_Costo_Gasto
+                        ]);
+                }
+                
+                $pdf = PDF::loadView(
+                    'theme.back.automoviles.pdf.cuadro-mes',
+                    compact(
+                        'automovil',
+                        'mensual',
+                        'conductores',
+                        'gastos',
+                        'fecha',
+                        'ganancia',
+                        'propietarios',
+                        'KMSTotales'
+                    )
+                )->setPaper('A4', 'landscape');
+
+                $fileName = 'CuadroMensual-'.Str::upper(Lang::get('messages.'.Carbon::parse('01-'.$fecha[0].'-'.$fecha[1])->format('F')).' '.Carbon::parse('01-'.$fecha[0].'-'.$fecha[1])->format('Y')).Lang::get('messages.Taxi').$automovil->AUT_Numero_Interno_Automovil;
+        
+                //return $pdf->stream($fileName.'.pdf');
+                return $pdf->download($fileName.'.pdf');
+                
+                /*return view(
+                    'theme.back.automoviles.pdf.cuadro-mes',
+                    compact(
+                        'automovil',
+                        'mensual',
+                        'conductores',
+                        'gastos',
+                        'fecha',
+                        'ganancia',
+                        'propietarios',
+                        'KMSTotales'
+                    )
+                );*/
+                //Fin Mensualidad
+            }
+            return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
+        } catch (DecryptException $e) {
+            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
+        }
+    }
 }

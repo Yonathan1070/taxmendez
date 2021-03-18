@@ -372,4 +372,5 @@ return [
     'Automobile' => 'Automobile',
     'Taxi' => 'Taxi',
     'Total' => 'Total',
+    'PdfGenerate' => 'Pdf Generate',
 ];

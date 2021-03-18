@@ -187,6 +187,15 @@
                 </div>
                 <!-- Row -->
             </div>
+            <div class="row button-group">
+                <div class="col-lg-3 col-md-4">
+                    <form action="{{route('balance_mensual_pdf', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
+                        @csrf
+                        <input name="mesAnio" id="mesAnio" type="hidden" value="{{$fecha[0].'-'.$fecha[1]}}">
+                        <button type="submit" id="turnos" class="btn btn-block btn-success">{{Lang::get('messages.PdfGenerate')}}</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

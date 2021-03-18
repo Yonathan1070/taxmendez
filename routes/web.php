@@ -94,6 +94,7 @@ Route::group(['prefix' => '/automoviles', 'middleware' => ['auth']], function ()
         Route::post('/balance-diario', [AutomovilController::class, 'balanceDiario'])->name('balance_diario');
         Route::put('/editar-datos/{idTurno}', [AutomovilController::class, 'actualizarDatos'])->name('actualizar_datos');
         Route::post('/balance-diario/pdf', [AutomovilController::class, 'pfdBalanceDiario'])->name('balance_diario_pdf');
+        Route::post('/balance-mensual/pdf', [AutomovilController::class, 'pfdBalanceMensual'])->name('balance_mensual_pdf');
     });
 });
 Route::group(['prefix' => '/turnos', 'middleware' => ['auth']], function () {
