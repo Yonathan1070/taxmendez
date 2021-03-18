@@ -1326,4 +1326,77 @@ class AutomovilController extends Controller
             return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
         }
     }
+
+    public function pdfBalanceAnual(Request $request, $id){
+        try {
+            $automovilId = Crypt::decrypt($id);
+            $automovil = Automovil::findOrFail($automovilId);
+
+            $anio = ($request->Anio) ? $request->Anio : Carbon::now()->format('Y');
+
+            if($automovil){
+                $anual = DB::table('TBL_Mensualidad as m')
+                    ->where('m.MNS_Automovil_Id', $automovil->id)
+                    ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [Carbon::createFromFormat('d-m-Y', '01-01-'.$request->Anio)->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', '31-12-'.$request->Anio)->format('Y-m-d')])
+                    ->select(
+                        'm.MNS_Producido_Mensualidad as Producido',
+                        DB::raw("IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad) as Gastos"),
+                        'm.MNS_Kilometraje_Mensualidad as Kilometraje',
+                        'm.MNS_Dias_Trabajados_Mensualidad as DiasTrabajados',
+                        DB::raw('ROUND(m.MNS_Producido_Mensualidad/m.MNS_Kilometraje_Mensualidad) as PromedioKilometraje'),
+                        DB::raw('ROUND(m.MNS_Producido_Mensualidad/m.MNS_Dias_Trabajados_Mensualidad) as PromedioDia'),
+                        'm.MNS_Mes_Anio_Mensualidad as MesAnio'
+                    )
+                    ->orderBy('MesAnio')
+                    ->get();
+
+                $totales = DB::table('TBL_Mensualidad as m')
+                    ->where('m.MNS_Automovil_Id', $automovil->id)
+                    ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [Carbon::createFromFormat('d-m-Y', '01-01-'.$request->Anio)->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', '31-12-'.$request->Anio)->format('Y-m-d')])
+                    ->select(
+                        DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                        DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                        DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                        DB::raw('SUM(m.MNS_Dias_Trabajados_Mensualidad) as DiasTrabajados'),
+                        DB::raw('ROUND(SUM(m.MNS_Producido_Mensualidad)/SUM(m.MNS_Kilometraje_Mensualidad)) as PromedioKilometraje'),
+                        DB::raw('ROUND(SUM(m.MNS_Producido_Mensualidad)/SUM(m.MNS_Dias_Trabajados_Mensualidad)) as PromedioDia')
+                    )
+                    ->groupBy('m.MNS_Automovil_Id')
+                    ->first();
+                
+                $propietarios = AutomovilPropietario::where('AUT_PRP_Automovil_Id', $automovil->id)
+                    ->get()->count();
+
+                $pdf = PDF::loadView(
+                    'theme.back.automoviles.pdf.cuadro-anual',
+                    compact(
+                        'automovil',
+                        'anual',
+                        'totales',
+                        'propietarios',
+                        'anio'
+                    )
+                )->setPaper('A4', 'landscape');
+
+                $fileName = 'CuadroMensual-'.Str::upper(Carbon::parse('01-01-'.$anio)->format('Y')).Lang::get('messages.Taxi').$automovil->AUT_Numero_Interno_Automovil;
+            
+                //return $pdf->stream($fileName.'.pdf');
+                return $pdf->download($fileName.'.pdf');
+                    
+                /*return view(
+                    'theme.back.automoviles.pdf.cuadro-anual',
+                    compact(
+                        'automovil',
+                        'anual',
+                        'totales',
+                        'propietarios',
+                        'anio'
+                    )
+                );*/
+            }
+            return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
+        } catch (DecryptException $e) {
+            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
+        }
+    }
 }

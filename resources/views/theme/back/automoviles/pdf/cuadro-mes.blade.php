@@ -9,7 +9,7 @@
 </head>
 <body>
     <center>
-        <table style="width: 100% text-align:center;" cellpadding="0" cellspacing="0">
+        <table style="width: 100%; text-align:center;" cellpadding="0" cellspacing="0">
             <tbody>
                 <tr>
                     <td style="width: 11%"></td>

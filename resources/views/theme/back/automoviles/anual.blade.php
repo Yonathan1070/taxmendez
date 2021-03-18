@@ -95,6 +95,16 @@
                     <!-- Row -->
                 </div>
             @endif
+
+            <div class="row button-group">
+                <div class="col-lg-3 col-md-4">
+                    <form action="{{route('balance_anual_pdf', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
+                        @csrf
+                        <input name="Anio" id="Anio" type="hidden" value="{{$anio}}">
+                        <button type="submit" id="anual" class="btn btn-block btn-success">{{Lang::get('messages.GenerateAnnualBalance')}}</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
