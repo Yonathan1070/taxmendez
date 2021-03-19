@@ -1378,7 +1378,7 @@ class AutomovilController extends Controller
                     )
                 )->setPaper('A4', 'landscape');
 
-                $fileName = 'CuadroMensual-'.Str::upper(Carbon::parse('01-01-'.$anio)->format('Y')).Lang::get('messages.Taxi').$automovil->AUT_Numero_Interno_Automovil;
+                $fileName = 'CuadroAnual-'.Str::upper(Carbon::parse('01-01-'.$anio)->format('Y')).Lang::get('messages.Taxi').$automovil->AUT_Numero_Interno_Automovil;
             
                 //return $pdf->stream($fileName.'.pdf');
                 return $pdf->download($fileName.'.pdf');

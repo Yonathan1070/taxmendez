@@ -49,5 +49,22 @@
             </tr>
         </tbody>
     </table>
+
+    <table style="width: 50%;">
+        <tbody>
+            <tr>
+                <td style="width: 10%; text-align: right;">
+                    <h4 style="color: red;">
+                        {{Lang::get('messages.Gain')}}:
+                    </h4>
+                </td>
+                <td style="width: 40%; text-align: left;">
+                    <h4>
+                        {{($propietarios > 1 ) ? (Lang::get('messages.Divided').' '.$propietarios.' =  $ '.number_format(((!$totales) ? 0 : ($totales->Producido - $totales->Gastos))/$propietarios, 0, ',', '.').' '.Lang::get('messages.CU')) : ('$ '.number_format((!$totales) ? 0 : ($totales->Producido - $totales->Gastos), 0, ',', '.'))}}
+                    </h4>
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </body>
 </html>
