@@ -22,6 +22,7 @@ class UsuariosController extends BaseController
             ->with('empresa')
             ->with('roles')
             ->where('r.RL_Slug_Rol', 'conductor')
+            ->where('ru.USR_RL_Estado', 1)
             ->orderBy('u.USR_Nombres_Usuario')
             ->get();
         return $this->sendResponse($conductores, 'Completado correctamente.');

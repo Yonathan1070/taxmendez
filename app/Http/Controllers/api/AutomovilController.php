@@ -5,6 +5,7 @@ use App\Http\Controllers\api\BaseController as BaseController;
 use Illuminate\Http\Request;
 use App\Http\Requests\api\BalanceRequest;
 use App\Models\Entity\Automovil;
+use App\Models\Entity\Mensualidad;
 use App\Models\Entity\UsuarioAutomovilTurno;
 use App\Models\Entity\Usuarios;
 use Carbon\Carbon;
@@ -158,27 +159,32 @@ class AutomovilController extends BaseController
             $balance = UsuarioAutomovilTurno::where('id', $idBalance)
                 ->where('TRN_AUT_Automovil_Id', $id)->first();
             if($balance){
-                $validacion = new BalanceRequest();
-                $validator = Validator::make($datos, $validacion->rules($request->Conductor), $validacion->messages());
-                if($validator->passes()){
-                    $balance->update([
-                        'TRN_AUT_Automovil_Id' => $id,
-                        'TRN_AUT_Kilometraje_Turno' => $request->Kilometraje_Total,
-                        'TRN_AUT_Kilometros_Andados_Turno' => $request->Kilometraje_Turno,
-                        'TRN_AUT_Producido_Turno' => $request->Producido,
-                        'TRN_AUT_Usuario_Turno_Id' => $request->Conductor,
-                        'TRN_AUT_Fecha_Turno' => $request->Fecha,
-                        'TRN_AUT_Turno_Id' => $request->Turno,
-                        'TRN_AUT_Observacion_Turno_Seleccionado' => $request->Observaciones
-                    ]);
+                $mensualidad = Mensualidad::where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('Y-m-d', $request->Fecha)->format('Y-m').'-01')
+                    ->get();
+                if(!$mensualidad){
+                    $validacion = new BalanceRequest();
+                    $validator = Validator::make($datos, $validacion->rules($request->Conductor), $validacion->messages());
+                    if($validator->passes()){
+                        $balance->update([
+                            'TRN_AUT_Automovil_Id' => $id,
+                            'TRN_AUT_Kilometraje_Turno' => $request->Kilometraje_Total,
+                            'TRN_AUT_Kilometros_Andados_Turno' => $request->Kilometraje_Turno,
+                            'TRN_AUT_Producido_Turno' => $request->Producido,
+                            'TRN_AUT_Usuario_Turno_Id' => $request->Conductor,
+                            'TRN_AUT_Fecha_Turno' => $request->Fecha,
+                            'TRN_AUT_Turno_Id' => $request->Turno,
+                            'TRN_AUT_Observacion_Turno_Seleccionado' => $request->Observaciones
+                        ]);
 
-                    $balance->automovil;
-                    $balance->conductor;
-                    $balance->turno;
+                        $balance->automovil;
+                        $balance->conductor;
+                        $balance->turno;
 
-                    return $this->sendResponse($balance, 'Turno actualizado correctamente.');
+                        return $this->sendResponse($balance, 'Turno actualizado correctamente.');
+                    }
+                    return $this->sendError($validator->errors()->first(), 200);
                 }
-                return $this->sendError($validator->errors()->first(), 200);
+                return $this->sendError('Ya se ha generado la mensualidad, no es posible editar el turno', 200);
             }
             return $this->sendError('El turno no existe!', 200);
         }
