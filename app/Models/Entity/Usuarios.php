@@ -47,6 +47,16 @@ class Usuarios extends Authenticatable
         )->withPivot('USR_RL_Usuario_Id', 'USR_RL_Rol_Id');
     }
 
+    public function canales()
+    {
+        return $this->belongsToMany(
+            CanalNotificacion::class,
+            'TBL_Usuario_Canal_Notificacion',
+            'USR_CNT_Usuario_Id',
+            'USR_CNT_Canal_Id'
+        )->withPivot('USR_CNT_Usuario_Id', 'USR_CNT_Canal_Id');
+    }
+
     public function empresa()
     {
         return $this->hasOne(Empresa::class, 'id', 'USR_Empresa_Id');

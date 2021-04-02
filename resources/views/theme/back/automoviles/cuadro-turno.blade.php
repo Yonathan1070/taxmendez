@@ -1261,7 +1261,7 @@
                                                             {{($item->GST_Descripcion_Gasto == null) ? Lang::get('messages.GeneralExpenses') :$item->GST_Descripcion_Gasto}}
                                                         </td>
                                                         <td style="width: 25%">
-                                                            {{$item->GST_Costo_Gasto}}
+                                                            {{'$ '.number_format($item->GST_Costo_Gasto, 0, ',', '.')}}
                                                         </td>
                                                     </tr>
                                                     <?php $totalGastos = $totalGastos + $item->GST_Costo_Gasto ?>
@@ -1273,7 +1273,7 @@
                                                 <tr>
                                                     <td style="width: 75%"></td>
                                                     <td style="width: 25%">
-                                                        {{$totalGastos}}
+                                                        {{'$ '.number_format($totalGastos, 0, ',', '.')}}
                                                     </td>
                                                 </tr>
                                             </tbody>

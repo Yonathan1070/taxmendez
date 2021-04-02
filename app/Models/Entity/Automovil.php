@@ -24,4 +24,14 @@ class Automovil extends Model
     public function empresa(){
         return $this->hasOne(Empresa::class, 'id', 'AUT_Empresa_Id');
     }
+
+    public function propietarios()
+    {
+        return $this->belongsToMany(
+            Usuarios::class,
+            'TBL_Automovil_Propietario',
+            'AUT_PRP_Automovil_Id',
+            'AUT_PRP_Propietario_Id'
+        )->withPivot('AUT_PRP_Automovil_Id', 'AUT_PRP_Propietario_Id');
+    }
 }

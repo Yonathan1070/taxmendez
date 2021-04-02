@@ -70,6 +70,7 @@
                 <li class="nav-item"> <a class="nav-link active" data-toggle="tab" href="#profile" role="tab">{{Lang::get('messages.Profile')}}</a> </li>
                 <li class="nav-item"> <a class="nav-link" data-toggle="tab" href="#edit" role="tab">{{Lang::get('messages.EditProfile')}}</a> </li>
                 <li class="nav-item"> <a class="nav-link" data-toggle="tab" href="#password" role="tab">{{Lang::get('messages.ChangePassword')}}</a> </li>
+                <li class="nav-item"> <a class="nav-link" data-toggle="tab" href="#alerts" role="tab">{{Lang::get('messages.Alerts')}}</a> </li>
             </ul>
             <!-- Tab panes -->
             <div class="tab-content">
@@ -189,6 +190,31 @@
                                 <div class="col-sm-12">
                                     <button class="btn btn-success">{{Lang::get('messages.updatePassword')}}</button>
                                 </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- alerts tab -->
+                <div class="tab-pane" id="alerts" role="tabpanel">
+                    <div class="card-body">
+                        <form class="form-horizontal form-material" action="{{route('guardar_alertas_usuario')}}" method="POST" novalidate>
+                            @csrf
+                            <div class="demo-checkbox">
+                                @foreach ($canalesAsignados as $canal)
+                                    <input type="checkbox" id="cbx_{{$canal->id}}" name="cbx_{{$canal->id}}" checked />
+                                    <label for="cbx_{{$canal->id}}">
+                                        {{(Lang::get('messages.'.$canal->CNT_Nick_Canal_Notificacion) == 'messages.'.$canal->CNT_Nick_Canal_Notificacion) ? $canal->CNT_Nombre_Canal_Notificacion : Lang::get('messages.'.$canal->CNT_Nick_Canal_Notificacion)}}
+                                    </label>
+                                @endforeach
+                                @foreach ($canalesNoAsignados as $canal)
+                                    <input type="checkbox" id="cbx_{{$canal->id}}" name="cbx_{{$canal->id}}" />
+                                    <label for="cbx_{{$canal->id}}">
+                                        {{(Lang::get('messages.'.$canal->CNT_Nick_Canal_Notificacion) == 'messages.'.$canal->CNT_Nick_Canal_Notificacion) ? $canal->CNT_Nombre_Canal_Notificacion : Lang::get('messages.'.$canal->CNT_Nick_Canal_Notificacion)}}
+                                    </label>
+                                @endforeach
+                            </div>
+                            <div class="text-xs-right">
+                                <button type="submit" class="btn btn-info">{{Lang::get('messages.Save')}}</button>
                             </div>
                         </form>
                     </div>

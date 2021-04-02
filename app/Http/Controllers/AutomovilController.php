@@ -7,8 +7,10 @@ use App\Models\Entity\AutomovilPropietario;
 use App\Models\Entity\Empresa;
 use App\Models\Entity\Gastos;
 use App\Models\Entity\Mensualidad;
+use App\Models\Entity\Notificacion;
 use App\Models\Entity\Turno;
 use App\Models\Entity\UsuarioAutomovilTurno;
+use App\Models\Entity\Usuarios;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -430,6 +432,41 @@ class AutomovilController extends Controller
                     session()->forget("FechaCalendario");
                 }
 
+                $cantidadTurnos = UsuarioAutomovilTurno::where('TRN_AUT_Automovil_Id', $automovil->id)
+                    ->where('TRN_AUT_Fecha_Turno', $fechaDecript)
+                    ->get()
+                    ->count();
+                
+                if($cantidadTurnos >= ($cantidadDias*2)){
+                    $slugTurno = Turno::find($request->TRN_AUT_Turno_Id)->TRN_Slug_Turno;
+                    if(Str::contains($slugTurno, 'Noche') || Str::contains($slugTurno, 'noche')){
+                        $propietarios = $automovil->propietarios;
+                        $informacion = [
+                            'icono' => 'ico',
+                            'titulo' => 'Cuadro Mensual',
+                            'mensaje' => 'El cuadro por turnos está listo para verse.',
+                            'tipo' => 'post',
+                            'nombreParametro' => 'id',
+                            'valorParametro' => $automovil->id,
+                            'atributos' => json_encode([
+                                'mesAnioTurnos' => Carbon::createFromFormat('Y-m-d', $fechaDecript)->format('m-Y')
+                            ])
+                        ];
+                        foreach ($propietarios as $propietario) {
+                            $canales = $propietario->canales;
+                            foreach ($canales as $canal) {
+                                if((Str::contains($canal->CNT_Nombre_Canal_Notificacion, 'Web') || Str::contains($canal->CNT_Nombre_Canal_Notificacion, 'web')) && $canal->CNT_Habilitado_Canal_Notificacion){
+                                    Notificacion::enviarNotificacion(
+                                        Usuarios::find(session()->get('Usuario_Id')),
+                                        $propietario,
+                                        $informacion
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+
                 return redirect()->route('balance', ['id'=>Crypt::encrypt($automovil->id)])->with('mensaje', Lang::get('messages.TurnAdded'));
             } else {
                 return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
@@ -535,6 +572,111 @@ class AutomovilController extends Controller
                     session()->forget("FechaCalendario");
                 }
 
+                $cantidadTurnos = UsuarioAutomovilTurno::where('TRN_AUT_Automovil_Id', $automovil->id)
+                    ->where('TRN_AUT_Fecha_Turno', '>=', Carbon::createFromFormat('Y-m-d', $turnoAutomovil->TRN_AUT_Fecha_Turno)->format('Y-m').'-01')
+                    ->where('TRN_AUT_Fecha_Turno', '<=', Carbon::createFromFormat('Y-m-d', $turnoAutomovil->TRN_AUT_Fecha_Turno)->format('Y-m').'-'.$cantidadDias)
+                    ->get()
+                    ->count();
+                
+                if($cantidadTurnos >= ($cantidadDias*2)){
+                    $slugTurno = Turno::find($request->TRN_AUT_Turno_Id)->TRN_Slug_Turno;
+                    
+                    if((Str::contains($slugTurno, 'Noche') || Str::contains($slugTurno, 'noche')) || (Str::contains($slugTurno, 'dia') || Str::contains($slugTurno, 'dia'))){
+                        $propietarios = $automovil->propietarios;
+                        $informacion = [
+                            'icono' => 'mdi mdi-cached',
+                            'titulo' => 'MonthlyTable',
+                            'mensaje' => 'MonthlyTableMessage',
+                            'tipo' => 'post',
+                            'ruta' => 'balance_diario',
+                            'nombreParametro' => 'id',
+                            'valorParametro' => $automovil->id,
+                            'atributos' => json_encode([
+                                'mesAnioTurnos' => Carbon::createFromFormat('Y-m-d', $turnoAutomovil->TRN_AUT_Fecha_Turno)->format('m-Y')
+                            ])
+                        ];
+                        foreach ($propietarios as $propietario) {
+                            $canales = $propietario->canales;
+                            foreach ($canales as $canal) {
+                                if((Str::contains($canal->CNT_Nombre_Canal_Notificacion, 'Web') || Str::contains($canal->CNT_Nombre_Canal_Notificacion, 'web')) && $canal->CNT_Habilitado_Canal_Notificacion){
+                                    Notificacion::enviarNotificacion(
+                                        Usuarios::find(session()->get('Usuario_Id')),
+                                        $propietario,
+                                        $informacion
+                                    );
+                                }
+                            }
+                        }
+
+                        $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+                            ->where('GST_Mes_Anio_Gasto', '01-'.Carbon::createFromFormat('Y-m-d', $turnoAutomovil->TRN_AUT_Fecha_Turno)->format('m-Y'))
+                            ->get();
+
+                        $sumaGastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+                            ->where('GST_Mes_Anio_Gasto', '01-'.Carbon::createFromFormat('Y-m-d', $turnoAutomovil->TRN_AUT_Fecha_Turno)->format('m-Y'))
+                            ->select(
+                                DB::raw('SUM(TBL_Gastos.GST_Costo_Gasto) as Gastos'),
+                            )->groupBy('GST_Automovil_Id')
+                            ->get();
+                    
+                        if($gastos->count() <= 0 || $sumaGastos->Gastos <= 0){
+                            $propietarios = $automovil->propietarios;
+                            $informacion = [
+                                'icono' => 'mdi mdi-cash-multiple',
+                                'titulo' => 'AddExpenses',
+                                'mensaje' => 'AddExpensesMessage',
+                                'tipo' => 'post',
+                                'ruta' => 'agregar_gastos',
+                                'nombreParametro' => 'id',
+                                'valorParametro' => $automovil->id,
+                                'atributos' => json_encode([
+                                    'mesAnioGastos' => Carbon::createFromFormat('Y-m-d', $turnoAutomovil->TRN_AUT_Fecha_Turno)->format('m-Y')
+                                ])
+                            ];
+                            foreach ($propietarios as $propietario) {
+                                $canales = $propietario->canales;
+                                foreach ($canales as $canal) {
+                                    if((Str::contains($canal->CNT_Nombre_Canal_Notificacion, 'Web') || Str::contains($canal->CNT_Nombre_Canal_Notificacion, 'web')) && $canal->CNT_Habilitado_Canal_Notificacion){
+                                        Notificacion::enviarNotificacion(
+                                            Usuarios::find(session()->get('Usuario_Id')),
+                                            $propietario,
+                                            $informacion
+                                        );
+                                    }
+                                }
+                            }
+                        }
+
+                        if($cantidadTurnos == ($cantidadDias*2)){
+                            $propietarios = $automovil->propietarios;
+                            $informacion = [
+                                'icono' => 'mdi mdi-chart-histogram',
+                                'titulo' => 'MonthlyGenerate',
+                                'mensaje' => 'MonthlyGenerateMessage',
+                                'tipo' => 'post',
+                                'ruta' => 'generar_balance',
+                                'nombreParametro' => 'id',
+                                'valorParametro' => $automovil->id,
+                                'atributos' => json_encode([
+                                    'mesAnio' => Carbon::createFromFormat('Y-m-d', $turnoAutomovil->TRN_AUT_Fecha_Turno)->format('m-Y')
+                                ])
+                            ];
+                            foreach ($propietarios as $propietario) {
+                                $canales = $propietario->canales;
+                                foreach ($canales as $canal) {
+                                    if((Str::contains($canal->CNT_Nombre_Canal_Notificacion, 'Web') || Str::contains($canal->CNT_Nombre_Canal_Notificacion, 'web')) && $canal->CNT_Habilitado_Canal_Notificacion){
+                                        Notificacion::enviarNotificacion(
+                                            Usuarios::find(session()->get('Usuario_Id')),
+                                            $propietario,
+                                            $informacion
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 return redirect()->route('balance', ['id'=>Crypt::encrypt($automovil->id)])->with('mensaje', 'Datos del turno actualizados satisfactoriamente.');
             } else {
                 return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
@@ -584,6 +726,12 @@ class AutomovilController extends Controller
             $automovil = Automovil::findOrFail($automovilId);
 
             if($automovil){
+                if($request->has('notificacion') && $request->notificacion == true){
+                    Notificacion::find($request->notificacionId)->update([
+                        'NTF_Visto_Notificacion' => 1
+                    ]);
+                }
+                
                 //Mensualidad
                 $fecha = explode("-", $request->mesAnio);
                 $cantidadDias = $this->obtenerDiasMes($fecha[0], $fecha[1]);
@@ -677,6 +825,9 @@ class AutomovilController extends Controller
 
                 $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
                     ->where('GST_Mes_Anio_Gasto', $fecha[1].'-'.$fecha[0].'-01')
+                    ->select(
+                        DB::raw('SUM(GST_Costo_Gasto) as GST_Costo_Gasto'),
+                    )
                     ->first();
                 
                 if(!$gastos){
@@ -697,7 +848,7 @@ class AutomovilController extends Controller
                     ->first();
 
                 if(!$mensualDatos){
-                    Mensualidad::create([
+                    $mensualDatos = Mensualidad::create([
                         'MNS_Automovil_Id' => $automovil->id,
                         'MNS_Producido_Mensualidad' => $mensual->Producido,
                         'MNS_Gastos_Mensualidad' => $gastos->GST_Costo_Gasto,
@@ -709,7 +860,8 @@ class AutomovilController extends Controller
                     $mensualDatos->update([
                         'MNS_Producido_Mensualidad' => $mensual->Producido,
                         'MNS_Kilometraje_Mensualidad' => $mensual->Kilometraje,
-                        'MNS_Dias_Trabajados_Mensualidad' => $mensual->DiasTrabajados
+                        'MNS_Dias_Trabajados_Mensualidad' => $mensual->DiasTrabajados,
+                        'MNS_Gastos_Mensualidad' => $gastos->GST_Costo_Gasto
                     ]);
                 }
                 if($gastos->GST_Costo_Gasto >= 0 && $mensualDatos->MNS_Gastos_Mensualidad == -1){
@@ -889,6 +1041,9 @@ class AutomovilController extends Controller
             $automovil = Automovil::findOrFail($automovilId);
 
             if($automovil){
+                if(session()->get('Automovil_Id') == null || session()->get('Automovil_Id') != $automovil->id){
+                    Session::put(['Automovil_Id' => $automovil->id]);
+                }
                 $fecha = explode("-", $request->mesAnioTurnos);
                 $cantidadDias = $this->obtenerDiasMes($fecha[0], $fecha[1]);
                 $cantidadFebrero = $this->obtenerDiasMes(02, $fecha[1]);
@@ -973,6 +1128,11 @@ class AutomovilController extends Controller
                     ->orderBy('id')
                     ->get();
                 
+                if($request->has('notificacion') && $request->notificacion == true){
+                    Notificacion::find($request->notificacionId)->update([
+                        'NTF_Visto_Notificacion' => 1
+                    ]);
+                }
                 return view(
                     'theme.back.automoviles.cuadro-turno',
                     compact(
@@ -999,6 +1159,12 @@ class AutomovilController extends Controller
             $automovil = Automovil::findOrFail($automovilId);
 
             if($automovil){
+                if($request->has('notificacion') && $request->notificacion == true){
+                    Notificacion::find($request->notificacionId)->update([
+                        'NTF_Visto_Notificacion' => 1
+                    ]);
+                }
+
                 $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
                     ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.((sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos))->format('Y-m-d'))
                     ->get();
@@ -1007,6 +1173,7 @@ class AutomovilController extends Controller
 
                 return view('theme.back.automoviles.gastos.agregar', compact('gastos', 'mesAnio', 'automovil'));
             }
+
             return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
         } catch (DecryptException $e) {
             return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
@@ -1116,7 +1283,7 @@ class AutomovilController extends Controller
                         'gastos',
                         'KM_Anterior'
                     )
-                )->setPaper('A4', 'landscape');
+                )->setPaper('legal', 'landscape');
 
                 $fileName = 'CuadroDiario-'.Str::upper(Lang::get('messages.'.Carbon::parse('01-'.$fechaMes)->format('F')).' '.Carbon::parse('01-'.$fechaMes)->format('Y')).Lang::get('messages.Taxi').$automovil->AUT_Numero_Interno_Automovil;
         
@@ -1244,6 +1411,9 @@ class AutomovilController extends Controller
 
                 $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
                     ->where('GST_Mes_Anio_Gasto', $fecha[1].'-'.$fecha[0].'-01')
+                    ->select(
+                        DB::raw('SUM(GST_Costo_Gasto) as GST_Costo_Gasto'),
+                    )
                     ->first();
                 
                 if(!$gastos){
@@ -1299,7 +1469,7 @@ class AutomovilController extends Controller
                         'propietarios',
                         'KMSTotales'
                     )
-                )->setPaper('A4', 'landscape');
+                )->setPaper('legal', 'landscape');
 
                 $fileName = 'CuadroMensual-'.Str::upper(Lang::get('messages.'.Carbon::parse('01-'.$fecha[0].'-'.$fecha[1])->format('F')).' '.Carbon::parse('01-'.$fecha[0].'-'.$fecha[1])->format('Y')).Lang::get('messages.Taxi').$automovil->AUT_Numero_Interno_Automovil;
         
@@ -1376,7 +1546,7 @@ class AutomovilController extends Controller
                         'propietarios',
                         'anio'
                     )
-                )->setPaper('A4', 'landscape');
+                )->setPaper('legal', 'landscape');
 
                 $fileName = 'CuadroAnual-'.Str::upper(Carbon::parse('01-01-'.$anio)->format('Y')).Lang::get('messages.Taxi').$automovil->AUT_Numero_Interno_Automovil;
             

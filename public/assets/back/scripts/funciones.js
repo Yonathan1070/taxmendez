@@ -13,3 +13,20 @@ var taxmendez = function (){
         },
     }
 }();
+
+function formHref(ruta, atributos, token, notificacionId){
+    var parametros = JSON.parse(atributos);
+    var hidden = '';
+    for (var key in parametros) {
+        hidden += '<input type="hidden" name="'+key+'" value="' + parametros[key] + '" />';
+    }
+    
+    var formulario = $('<form action="' + ruta + '" method="post">' +
+        '<input type="hidden" name="_token" value="' + token + '" />'+
+        '<input type="hidden" name="notificacion" value="true" />'+
+        '<input type="hidden" name="notificacionId" value="'+ notificacionId +'" />'+
+        hidden +
+    '</form>');
+    $('body').append(formulario);
+    formulario.submit();
+}

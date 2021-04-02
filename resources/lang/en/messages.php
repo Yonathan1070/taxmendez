@@ -295,6 +295,9 @@ return [
     'Mimes' => 'The image must be in formats (jpeg,png,jpg,gif,svg)',
     'ImageUpdated' => 'Profile Image Updated',
     'HeightEqualsWidth' => 'The width and height of the image must be equal.',
+    //Tab Alertas
+    'Alerts' => 'Alerts',
+    'AssignedChannels' => 'Alerts Assigned',
 
     //Cropper
     'CropDimention' => 'Image dimensions in Height and Width must be equal',
@@ -373,4 +376,27 @@ return [
     'Taxi' => 'Taxi',
     'Total' => 'Total',
     'PdfGenerate' => 'Pdf Generate',
+
+    //Notification Channel
+    'NotificationChannel' => 'Channel Notification',
+    'AddNotificationChannel' => 'Add Notification Cahnnel',
+    'NotificationChannelList' => 'Notification Channel List',
+    'ChannelName' => 'Name',
+    'ChannelDescription' => 'Description',
+    'NotificationChannelAdded' => 'Notification Channel Added',
+    'NotificationChannelExists' => 'Channel notification exists',
+    'ChannelNotExists' => 'Channel not exists',
+    'NotificationChannelUpdated' => 'Channel notification updated',
+
+    //Notifications
+    'Notifications' => 'Notifications',
+    'AllNotifications' => 'Check all notifications',
+    'Seconds' => 'Seconds',
+    'Minuts' => 'Minuts',
+    'Hours' => 'Hours',
+    'MonthlyTable' => 'Monthly Table',
+    'MonthlyTableMessage' => 'The turn-by-turn table is ready to be seen.',
+    'AddExpensesMessage' => 'Add monthly expenses',
+    'MonthlyGenerate' => 'Generate Monthly',
+    'MonthlyGenerateMessage' => 'You can now generate the table of the month.',
 ];

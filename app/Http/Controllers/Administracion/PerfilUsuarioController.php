@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Administracion;
 
 use App\Http\Controllers\Controller;
+use App\Models\Entity\CanalNotificacion;
+use App\Models\Entity\UsuarioCanalNotificacion;
 use App\Models\Entity\Usuarios;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Validator;
@@ -20,7 +23,25 @@ class PerfilUsuarioController extends Controller
     public function index()
     {
         $datosUsuario = Usuarios::find(session()->get('Usuario_Id'));
-        return view('theme.back.administracion.perfil', compact('datosUsuario'));
+        $canalesAsignados = DB::table('TBL_Canal_Notificacion as cn')
+            ->join('TBL_Usuario_Canal_Notificacion as ucn', 'ucn.USR_CNT_Canal_Id', 'cn.id')
+            ->join('TBL_Usuario as u', 'u.id', 'ucn.USR_CNT_Usuario_Id')
+            ->where('u.id', $datosUsuario->id)
+            ->select('ucn.*', 'cn.*')
+            ->orderBy('cn.created_at')
+            ->get();
+
+        $canales = CanalNotificacion::where('CNT_Habilitado_Canal_Notificacion', 1)->get();
+
+        $canalesNoAsignados = [];
+        foreach ($canales as $canal) {
+            if(!$canalesAsignados->contains('id', $canal->id)) {
+                array_push($canalesNoAsignados, $canal);
+            }
+        }
+        
+        
+        return view('theme.back.administracion.perfil', compact('datosUsuario', 'canalesAsignados', 'canalesNoAsignados'));
     }
 
     /**
@@ -171,15 +192,43 @@ class PerfilUsuarioController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
+    public function guardarAlertas(Request $request)
     {
-        //
+        $usuario = Usuarios::find(session()->get('Usuario_Id'));
+
+        if($usuario){
+            $canales = CanalNotificacion::where('CNT_Habilitado_Canal_Notificacion', 1)->get();
+            foreach ($canales as $canal) {
+                if($request->has('cbx_'.$canal->id)) {
+                    if(!$this->verificarCanal($usuario->id, $canal->id)){
+                        UsuarioCanalNotificacion::create([
+                            'USR_CNT_Usuario_Id' => $usuario->id,
+                            'USR_CNT_Canal_Id' => $canal->id
+                        ]);
+                    }
+                } else {
+                    if($this->verificarCanal($usuario->id, $canal->id)){
+                        $usuario->canales()->detach($canal->id);
+                    }
+                }
+            }
+                
+            return redirect()
+                ->route('perfil')
+                ->with('mensaje', Lang::get('messages.AssignedChannels'));
+        }
+        return redirect()->route('perfil')->with('mensaje', Lang::get('messages.UserNotExists'));
+    }
+
+    private function verificarCanal($usuarioId, $canalId){
+        $canal = UsuarioCanalNotificacion::where('USR_CNT_Usuario_Id', $usuarioId)
+            ->where('USR_CNT_Canal_Id', $canalId)
+            ->first();
+        
+        if($canal){
+            return true;
+        }
+        return false;
     }
 
     /**

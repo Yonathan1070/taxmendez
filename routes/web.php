@@ -3,6 +3,7 @@
 use App\Http\Controllers\Administracion\AdministracionController;
 use App\Http\Controllers\Administracion\PerfilUsuarioController;
 use App\Http\Controllers\AutomovilController;
+use App\Http\Controllers\CanalNotificacionController;
 use App\Http\Controllers\ConductorController;
 use App\Http\Controllers\DesinfeccionController;
 use App\Http\Controllers\EmpresasController;
@@ -39,6 +40,7 @@ Route::group(['prefix' => '/administracion', 'middleware' => ['auth']], function
     Route::post('cambiar-pswd', [PerfilUsuarioController::class, 'cambiarContrasena'])->name('actualizar_contrasena');
     Route::get('/obtenermensuales', [AdministracionController::class, 'datosMensuales'])->name('obtener_datos_mensuales');
     Route::get('descargar-app', [AdministracionController::class, 'descargarApp'])->name('descargar_app');
+    Route::post('/canal-notificacion', [PerfilUsuarioController::class, 'guardarAlertas'])->name('guardar_alertas_usuario');
 });
 Route::group(['prefix' => '/roles', 'middleware' => ['auth']], function () {
     Route::get('', [RolesController::class, 'index'])->name('roles');
@@ -122,6 +124,13 @@ Route::group(['prefix' => '/empresas', 'middleware' => ['auth']], function () {
     Route::put('/editar-usuario', [EmpresasController::class, 'actualizarEmpresa'])->name('actualizar_empresa_usuario');
     Route::post('logo', [EmpresasController::class, 'actualizarLogo'])->name('actualizar_logo_empresa');
     Route::post('logo-texto', [EmpresasController::class, 'actualizarLogoTexto'])->name('actualizar_logo_texto_empresa');
+});
+Route::group(['prefix' => '/canal-notificacion', 'middleware' => ['auth']], function () {
+    Route::get('', [CanalNotificacionController::class, 'index'])->name('canal_notificacion');
+    Route::get('/crear', [CanalNotificacionController::class, 'crear'])->name('crear_canal_notificacion');
+    Route::get('/editar/{id}', [CanalNotificacionController::class, 'editar'])->name('editar_canal_notificacion');
+    Route::post('/crear', [CanalNotificacionController::class, 'guardar'])->name('guardar_canal_notificacion');
+    Route::put('/editar/{id}', [CanalNotificacionController::class, 'actualizar'])->name('actualizar_canal_notificacion');
 });
 
 Route::get('idioma/{idioma}', [IdiomaController::class, 'cambiar'])->name('cambiar_idioma');

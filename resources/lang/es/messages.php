@@ -296,6 +296,9 @@ return [
     'Mimes' => 'La imagen debe estar en formatos (jpeg,png,jpg,gif,svg)',
     'ImageUpdated' => 'Foto de Perfil Actualizada',
     'HeightEqualsWidth' => 'El ancho y el alto de la imagen deben ser iguales.',
+    //Alertas
+    'Alerts' => 'Alertas',
+    'AssignedChannels' => 'Alertas asignadas',
 
     //Cropper
     'CropDimention' => 'Las dimensiones de la imagen en Alto y Ancho deben ser iguales',
@@ -374,4 +377,27 @@ return [
     'Taxi' => 'Taxi',
     'Total' => 'Total',
     'PdfGenerate' => 'Generar Pdf',
+
+    //Notification Channel
+    'NotificationChannel' => 'Canal de Notificación',
+    'AddNotificationChannel' => 'Agregar Canal de Notificación',
+    'NotificationChannelList' => 'Lista de Canales de Notificación',
+    'ChannelName' => 'Nombre',
+    'ChannelDescription' => 'Descripción',
+    'NotificationChannelAdded' => 'Canal de notificación agregado',
+    'NotificationChannelExists' => 'Canal de notificación ya existe',
+    'ChannelNotExists' => 'Canal no existe',
+    'NotificationChannelUpdated' => 'Canal de notificación actualizado',
+
+    //Notifications
+    'Notifications' => 'Notificaciones',
+    'AllNotifications' => 'Ver todas las notificaciones',
+    'Seconds' => 'Segundos',
+    'Minuts' => 'Minutos',
+    'Hours' => 'Horas',
+    'MonthlyTable' => 'Cuadro Mensual',
+    'MonthlyTableMessage' => 'El cuadro por turnos está listo para verse.',
+    'AddExpensesMessage' => 'Agrega los gastos del mes',
+    'MonthlyGenerate' => 'Generar Mensualidad',
+    'MonthlyGenerateMessage' => 'Ya puede generar el cuadro del mes',
 ];

@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Models\Entity\Automovil;
 use App\Models\Entity\Empresa;
 use App\Models\Entity\Idioma;
+use App\Models\Entity\Notificacion;
 use App\Models\Entity\Usuarios;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -108,9 +109,22 @@ class AppServiceProvider extends ServiceProvider
             }
             $idiomas = Idioma::get();
             $empresa = Empresa::find(session()->get('Empresa_Id'));
+            $canales = Usuarios::find(session()->get('Usuario_Id'))->canales;
+            $notificaciones = Notificacion::where('NTF_Para_Notificacion', session()->get('Usuario_Id'))
+                ->orderBy('created_at', 'desc')
+                ->orderBy('NTF_Visto_Notificacion')
+                ->orderBy('id')
+                ->take(20)
+                ->get();
+            $notificaciones_no_vistas = Notificacion::where('NTF_Para_Notificacion', session()->get('Usuario_Id'))
+                ->where('NTF_Visto_Notificacion', 0)
+                ->get();
             $view->with('automovilesFotos', $automovilesFotos)
                 ->with('idiomas', $idiomas)
-                ->with('empresa', $empresa);
+                ->with('empresa', $empresa)
+                ->with('canales', $canales)
+                ->with('notificaciones', $notificaciones)
+                ->with('notificaciones_no_vistas', $notificaciones_no_vistas);
         });
 
         //if(env('APP_ENV') !== 'local') { $url->forceScheme('https'); }
