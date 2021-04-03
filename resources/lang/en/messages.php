@@ -399,4 +399,17 @@ return [
     'AddExpensesMessage' => 'Add monthly expenses',
     'MonthlyGenerate' => 'Generate Monthly',
     'MonthlyGenerateMessage' => 'You can now generate the table of the month.',
+
+    //Server Email
+    'DriverEmail' => 'Driver',
+    'Host' => 'Host',
+    'Port' => 'Port',
+    'UserOrEmail' => 'Username or Email',
+    'Encryption' => 'Encryption',
+    'FromAddress' => 'From Address',
+    'FromEmail' => 'From Name',
+    'updateServidor' => 'Update Server Email',
+    'EditServerEmail' => 'Edit server email',
+    'ServerEmailUpdated' => 'Server Email Updated',
+    'ServerEmailCreated' => 'Server Email Created',
 ];

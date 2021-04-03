@@ -69,6 +69,9 @@
             <!-- Nav tabs -->
             <ul class="nav nav-tabs profile-tab" role="tablist">
                 <li class="nav-item"> <a class="nav-link active" data-toggle="tab" href="#edit" role="tab">{{Lang::get('messages.EditCompany')}}</a> </li>
+                @if ($canalCorreo && $canalCorreo->CNT_Habilitado_Canal_Notificacion)
+                    <li class="nav-item"> <a class="nav-link" data-toggle="tab" href="#edit_server" role="tab">{{Lang::get('messages.EditServerEmail')}}</a> </li>
+                @endif
             </ul>
             <!-- Tab panes -->
             <div class="tab-content">
@@ -116,6 +119,70 @@
                         </form>
                     </div>
                 </div>
+                @if ($canalCorreo && $canalCorreo->CNT_Habilitado_Canal_Notificacion)
+                    <!-- edit server email tab -->
+                    <div class="tab-pane" id="edit_server" role="tabpanel">
+                        <div class="card-body">
+                            <form class="form-horizontal form-material" action="{{route('actualizar_servidor_correo')}}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <div class="form-group">
+                                    <label class="col-md-12">{{Lang::get('messages.DriverEmail')}}</label>
+                                    <div class="col-md-12">
+                                        <input type="text" placeholder="{{($servidor) ? $servidor->SRC_Driver_Servidor : ''}}" class="form-control form-control-line" id="SRC_Driver_Servidor" name="SRC_Driver_Servidor">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">{{Lang::get('messages.Host')}}</label>
+                                    <div class="col-md-12">
+                                        <input type="text" placeholder="{{($servidor) ? $servidor->SRC_Host_Servidor : ''}}" class="form-control form-control-line" id="SRC_Host_Servidor" name="SRC_Host_Servidor">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="example-email" class="col-md-12">{{Lang::get('messages.Port')}}</label>
+                                    <div class="col-md-12">
+                                        <input type="text" placeholder="{{($servidor) ? $servidor->SRC_Puerto_Servidor : ''}}" class="form-control form-control-line" id="SRC_Puerto_Servidor" name="SRC_Puerto_Servidor">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">{{Lang::get('messages.UserOrEmail')}}</label>
+                                    <div class="col-md-12">
+                                        <input type="text" placeholder="{{($servidor) ? $servidor->SRC_Nombre_Usuario_Servidor : ''}}" class="form-control form-control-line" id="SRC_Nombre_Usuario_Servidor" name="SRC_Nombre_Usuario_Servidor">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">{{Lang::get('messages.Password')}}</label>
+                                    <div class="col-md-12">
+                                        <input type="text" placeholder="{{($servidor) ? $servidor->SRC_Password_Servidor : ''}}" class="form-control form-control-line" id="SRC_Password_Servidor" name="SRC_Password_Servidor">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">{{Lang::get('messages.Encryption')}}</label>
+                                    <div class="col-md-12">
+                                        <input type="text" placeholder="{{($servidor) ? $servidor->SRC_Encriptacion_Servidor : ''}}" class="form-control form-control-line" id="SRC_Encriptacion_Servidor" name="SRC_Encriptacion_Servidor">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">{{Lang::get('messages.FromAddress')}}</label>
+                                    <div class="col-md-12">
+                                        <input type="text" placeholder="{{($servidor) ? $servidor->SRC_Direccion_De_Servidor : ''}}" class="form-control form-control-line" id="SRC_Direccion_De_Servidor" name="SRC_Direccion_De_Servidor">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">{{Lang::get('messages.FromEmail')}}</label>
+                                    <div class="col-md-12">
+                                        <input type="text" placeholder="{{($servidor) ? $servidor->SRC_Nombre_De_Servidor : ''}}" class="form-control form-control-line" id="SRC_Nombre_De_Servidor" name="SRC_Nombre_De_Servidor">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-12">
+                                        <button class="btn btn-success">{{Lang::get('messages.updateServidor')}}</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
         <div id="modal-editor" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" style="display: none;">

@@ -124,6 +124,7 @@ Route::group(['prefix' => '/empresas', 'middleware' => ['auth']], function () {
     Route::put('/editar-usuario', [EmpresasController::class, 'actualizarEmpresa'])->name('actualizar_empresa_usuario');
     Route::post('logo', [EmpresasController::class, 'actualizarLogo'])->name('actualizar_logo_empresa');
     Route::post('logo-texto', [EmpresasController::class, 'actualizarLogoTexto'])->name('actualizar_logo_texto_empresa');
+    Route::put('/editar-servidor-correo', [EmpresasController::class, 'actualizarServidorCorreo'])->name('actualizar_servidor_correo');
 });
 Route::group(['prefix' => '/canal-notificacion', 'middleware' => ['auth']], function () {
     Route::get('', [CanalNotificacionController::class, 'index'])->name('canal_notificacion');

@@ -400,4 +400,17 @@ return [
     'AddExpensesMessage' => 'Agrega los gastos del mes',
     'MonthlyGenerate' => 'Generar Mensualidad',
     'MonthlyGenerateMessage' => 'Ya puede generar el cuadro del mes',
+
+    //Server Email
+    'DriverEmail' => 'Cotrolador',
+    'Host' => 'Host',
+    'Port' => 'Puerto',
+    'UserOrEmail' => 'Nombre de Usuario o Correo',
+    'Encryption' => 'Encriptación',
+    'FromAddress' => 'Dirección de',
+    'FromEmail' => 'Nombre de',
+    'updateServidor' => 'Actualizar Servidor de Correo',
+    'EditServerEmail' => 'Editar Servidor de Correos',
+    'ServerEmailUpdated' => 'Servidor de Correo Actualizado',
+    'ServerEmailCreated' => 'Servidor de Correo Creado',
 ];

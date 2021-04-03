@@ -137,7 +137,12 @@ class AutomovilController extends BaseController
             $balance->turno;
             
             if($balance){
-                return $this->sendResponse($balance, 'Completado correctamente.');
+                $mensualidad = Mensualidad::where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('Y-m-d', $balance->TRN_AUT_Fecha_Turno)->format('Y-m').'-01')
+                    ->first();
+                if(!$mensualidad){
+                    return $this->sendResponse($balance, 'Completado correctamente.');
+                }
+                return $this->sendError('Ya se ha generado la mensualidad, no es posible editar el turno', 200);
             }
             return $this->sendError('El turno no existe!', 200);
         }
@@ -160,7 +165,7 @@ class AutomovilController extends BaseController
                 ->where('TRN_AUT_Automovil_Id', $id)->first();
             if($balance){
                 $mensualidad = Mensualidad::where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('Y-m-d', $request->Fecha)->format('Y-m').'-01')
-                    ->get();
+                    ->first();
                 if(!$mensualidad){
                     $validacion = new BalanceRequest();
                     $validator = Validator::make($datos, $validacion->rules($request->Conductor), $validacion->messages());

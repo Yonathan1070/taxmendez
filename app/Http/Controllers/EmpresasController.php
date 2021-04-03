@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Entity\CanalNotificacion;
 use App\Models\Entity\Empresa;
+use App\Models\Entity\ServidorCorreo;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -164,9 +166,11 @@ class EmpresasController extends Controller
     public function editarEmpresa()
     {
         $empresa = Empresa::find(session()->get('Empresa_Id'));
-
+        $servidor = ServidorCorreo::where('SRC_Empresa_Servidor', session()->get('Empresa_Id'))->first();
+        $canalCorreo = CanalNotificacion::where('CNT_Nick_Canal_Notificacion', 'like', '%correo%')->first();
+        
         if($empresa){
-            return view('theme.back.administracion.empresa', compact('empresa'));
+            return view('theme.back.administracion.empresa', compact('empresa', 'servidor', 'canalCorreo'));
         } else {
             return redirect()->route('administracion')->withErrors(Lang::get('messages.CompanyNotExists'));
         }
@@ -348,6 +352,64 @@ class EmpresasController extends Controller
                     'title' => Lang::get('TaxMendez'),
                     'type' => 'error'
                 ]);
+        }
+    }
+
+    public function actualizarServidorCorreo(Request $request){
+        $servidor = ServidorCorreo::where('SRC_Empresa_Servidor', session()->get('Empresa_Id'))->first();
+
+        if($servidor){
+            if($request->SRC_Driver_Servidor == null){
+                $request->SRC_Driver_Servidor = $servidor->SRC_Driver_Servidor;
+            }
+            if($request->SRC_Host_Servidor == null){
+                $request->SRC_Host_Servidor = $servidor->SRC_Host_Servidor;
+            }
+            if($request->SRC_Puerto_Servidor == null){
+                $request->SRC_Puerto_Servidor = $servidor->SRC_Puerto_Servidor;
+            }
+            if($request->SRC_Nombre_Usuario_Servidor == null){
+                $request->SRC_Nombre_Usuario_Servidor = $servidor->SRC_Nombre_Usuario_Servidor;
+            }
+            if($request->SRC_Password_Servidor == null){
+                $request->SRC_Password_Servidor = $servidor->SRC_Password_Servidor;
+            }
+            if($request->SRC_Encriptacion_Servidor == null){
+                $request->SRC_Encriptacion_Servidor = $servidor->SRC_Encriptacion_Servidor;
+            }
+            if($request->SRC_Direccion_De_Servidor == null){
+                $request->SRC_Direccion_De_Servidor = $servidor->SRC_Direccion_De_Servidor;
+            }
+            if($request->SRC_Nombre_De_Servidor == null){
+                $request->SRC_Nombre_De_Servidor = $servidor->SRC_Nombre_De_Servidor;
+            }
+
+            $servidor->update([
+                'SRC_Driver_Servidor' => $request->SRC_Driver_Servidor,
+                'SRC_Host_Servidor' => $request->SRC_Host_Servidor,
+                'SRC_Puerto_Servidor' => $request->SRC_Puerto_Servidor,
+                'SRC_Nombre_Usuario_Servidor' => $request->SRC_Nombre_Usuario_Servidor,
+                'SRC_Password_Servidor' => $request->SRC_Password_Servidor,
+                'SRC_Encriptacion_Servidor' => $request->SRC_Encriptacion_Servidor,
+                'SRC_Direccion_De_Servidor' => $request->SRC_Direccion_De_Servidor,
+                'SRC_Nombre_De_Servidor' => $request->SRC_Nombre_De_Servidor
+            ]);
+
+            return redirect()->route('editar_empresa_usuario')->with('mensaje', Lang::get('messages.ServerEmailUpdated'));
+        } else {
+            ServidorCorreo::create([
+                'SRC_Driver_Servidor' => $request->SRC_Driver_Servidor,
+                'SRC_Host_Servidor' => $request->SRC_Host_Servidor,
+                'SRC_Puerto_Servidor' => $request->SRC_Puerto_Servidor,
+                'SRC_Nombre_Usuario_Servidor' => $request->SRC_Nombre_Usuario_Servidor,
+                'SRC_Password_Servidor' => $request->SRC_Password_Servidor,
+                'SRC_Encriptacion_Servidor' => $request->SRC_Encriptacion_Servidor,
+                'SRC_Direccion_De_Servidor' => $request->SRC_Direccion_De_Servidor,
+                'SRC_Nombre_De_Servidor' => $request->SRC_Nombre_De_Servidor,
+                'SRC_Empresa_Servidor' => session()->get('Empresa_Id')
+            ]);
+
+            return redirect()->route('editar_empresa_usuario')->with('mensaje', Lang::get('messages.ServerEmailCreated'));
         }
     }
 }
