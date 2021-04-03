@@ -823,6 +823,17 @@ class AutomovilController extends Controller
                     }
                 }
 
+                $gastosAgregados = Gastos::where('GST_Automovil_Id', $automovil->id)
+                    ->where('GST_Mes_Anio_Gasto', $fecha[1].'-'.$fecha[0].'-01')
+                    ->get();
+                
+                foreach ($gastosAgregados as $gasto) {
+                    if($gasto->GST_Costo_Gasto == -1){
+                        $gasto->delete();
+                        break;
+                    }
+                }
+
                 $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
                     ->where('GST_Mes_Anio_Gasto', $fecha[1].'-'.$fecha[0].'-01')
                     ->select(
@@ -929,6 +940,17 @@ class AutomovilController extends Controller
                     
                     return response()->json(['mensaje' => 'ok', 'propietarios' => $propietarios]);
                 } else {
+                    $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+                        ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnioGastos)->format('Y-m-d'))
+                        ->get();
+                    
+                    foreach ($gastos as $gasto) {
+                        if($gasto->GST_Costo_Gasto == -1){
+                            $gasto->delete();
+                            break;
+                        }
+                    }
+
                     Gastos::create([
                         'GST_Automovil_Id' => $automovil->id,
                         'GST_Mes_Anio_Gasto' => Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnioGastos)->format('Y-m-d'),
@@ -1406,6 +1428,17 @@ class AutomovilController extends Controller
                     foreach ($conductores as $conductor) {
                         $conductor->Kilometraje = $conductor->Kilometraje + $cadaConductor;
                         $conductor->PromedioKilometraje = round($conductor->Producido / $conductor->Kilometraje);
+                    }
+                }
+
+                $gastosAgregados = Gastos::where('GST_Automovil_Id', $automovil->id)
+                    ->where('GST_Mes_Anio_Gasto', $fecha[1].'-'.$fecha[0].'-01')
+                    ->get();
+                
+                foreach ($gastosAgregados as $gasto) {
+                    if($gasto->GST_Costo_Gasto == -1){
+                        $gasto->delete();
+                        break;
                     }
                 }
 
