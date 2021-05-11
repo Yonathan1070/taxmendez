@@ -11,6 +11,7 @@ use App\Models\Entity\Notificacion;
 use App\Models\Entity\Turno;
 use App\Models\Entity\UsuarioAutomovilTurno;
 use App\Models\Entity\Usuarios;
+use App\Models\Utility;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\Encryption\DecryptException;
@@ -840,8 +841,8 @@ class AutomovilController extends Controller
                         DB::raw('SUM(GST_Costo_Gasto) as GST_Costo_Gasto'),
                     )
                     ->first();
-                
-                if(!$gastos){
+
+                if(!$gastos || !$gastos->GST_Costo_Gasto){
                     $gastos = Gastos::create([
                         'GST_Automovil_Id' => $automovil->id,
                         'GST_Mes_Anio_Gasto' => $fecha[1].'-'.$fecha[0].'-01',
@@ -1095,7 +1096,9 @@ class AutomovilController extends Controller
                             'u.USR_Nombres_Usuario',
                             'uat.TRN_AUT_Fecha_Turno',
                             'uat.TRN_AUT_Producido_Turno',
-                            'uat.TRN_AUT_Kilometros_Andados_Turno'
+                            'uat.TRN_AUT_Kilometros_Andados_Turno',
+                            'uat.TRN_AUT_Observacion_Turno_Seleccionado',
+                            't.id as TurnoId'
                         )
                         ->orderBy('TRN_AUT_Fecha_Turno')
                         ->orderBy('u.USR_Nombres_Usuario')
@@ -1237,7 +1240,9 @@ class AutomovilController extends Controller
                             'u.USR_Nombres_Usuario',
                             'uat.TRN_AUT_Fecha_Turno',
                             'uat.TRN_AUT_Producido_Turno',
-                            'uat.TRN_AUT_Kilometros_Andados_Turno'
+                            'uat.TRN_AUT_Kilometros_Andados_Turno',
+                            'uat.TRN_AUT_Observacion_Turno_Seleccionado',
+                            't.id as TurnoId'
                         )
                         ->orderBy('TRN_AUT_Fecha_Turno')
                         ->orderBy('u.USR_Nombres_Usuario')
@@ -1292,6 +1297,9 @@ class AutomovilController extends Controller
                     ->orderBy('id')
                     ->get();
 
+                $utilitario = new Utility();
+                $utilitario->festivos($fecha[1]);
+
                 $pdf = PDF::loadView(
                     'theme.back.automoviles.pdf.cuadro-turnos',
                     compact(
@@ -1303,7 +1311,8 @@ class AutomovilController extends Controller
                         'cantidadFebrero',
                         'cadaConductor',
                         'gastos',
-                        'KM_Anterior'
+                        'KM_Anterior',
+                        'utilitario'
                     )
                 )->setPaper('legal', 'landscape');
 
@@ -1323,7 +1332,8 @@ class AutomovilController extends Controller
                         'cantidadFebrero',
                         'cadaConductor',
                         'gastos',
-                        'KM_Anterior'
+                        'KM_Anterior',
+                        'utilitario'
                     )
                 );*/
             }

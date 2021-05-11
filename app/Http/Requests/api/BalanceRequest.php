@@ -27,7 +27,7 @@ class BalanceRequest extends FormRequest
     {
         return [
             'Fecha' => 'required|max:10|date|before:'.Carbon::now()->format('Y-m-d'),
-            'Kilometraje_Total' => 'required|max:10|regex:/^[0-9]+$/u',
+            //'Kilometraje_Total' => 'required|max:10|regex:/^[0-9]+$/u',
             'Kilometraje_Turno' => 'required|max:4|regex:/^[0-9]+$/u',
             'Producido' => 'required|max:6|regex:/^[0-9]+$/u',
             'Conductor' => 'required|regex:/^[0-9]+$/u|exists:TBL_Usuario,id',
@@ -43,9 +43,9 @@ class BalanceRequest extends FormRequest
             'Fecha.max' => 'La fecha excede el limite de :max carácteres.',
             'Fecha.date' => 'Digite una fecha válida.',
             'Fecha.before' => 'La fecha no debe ser superior a la fecha actual.',
-            'Kilometraje_Total.required' => 'El kilometraje total es requerido.',
+            /*'Kilometraje_Total.required' => 'El kilometraje total es requerido.',
             'Kilometraje_Total.max' => 'El kilometraje total excede el limite de :max caracteres.',
-            'Kilometraje_Total.regex' => 'El kilometraje no debe contener letras ni caracteres especiales',
+            'Kilometraje_Total.regex' => 'El kilometraje no debe contener letras ni caracteres especiales',*/
             'Kilometraje_Turno.required' => 'Los kilometros andados es requerido.',
             'Kilometraje_Turno.max' => 'El campo de los kilometros andados excede el limite de :max caracteres.',
             'Kilometraje_Turno.regex' => 'Los kilometros andados no debe contener letras ni caracteres especiales.',
