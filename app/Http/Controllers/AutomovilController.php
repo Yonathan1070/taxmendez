@@ -752,13 +752,15 @@ class AutomovilController extends Controller
                     ->groupBy('uat.TRN_AUT_Automovil_Id')
                     ->first();
                 
+                $ultimoDiaMesAnterior = Carbon::createFromFormat('Y-m-d', $fecha[1].'-'.$fecha[0].'-01')->subDay()->format('Y-m-d');
+                
                 $KM_Anterior = DB::table('TBL_Usuario_Automovil_Turno as uat')
                     ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
                     ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
-                    ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-01')
-                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Dia%')
+                    ->where('TRN_AUT_Fecha_Turno', $ultimoDiaMesAnterior)
+                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
                     ->select(
-                        DB::raw('(uat.TRN_AUT_Kilometraje_Turno - uat.TRN_AUT_Kilometros_Andados_Turno) as KM_Anterior')
+                        DB::raw('(uat.TRN_AUT_Kilometraje_Turno) as KM_Anterior')
                     )
                     ->first();
                 
@@ -1123,13 +1125,15 @@ class AutomovilController extends Controller
                     ->groupBy('uat.TRN_AUT_Automovil_Id')
                     ->first();
 
+                $ultimoDiaMesAnterior = Carbon::createFromFormat('Y-m-d', $fecha[1].'-'.$fecha[0].'-01')->subDay()->format('Y-m-d');
+                
                 $KM_Anterior = DB::table('TBL_Usuario_Automovil_Turno as uat')
                     ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
                     ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
-                    ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-01')
-                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Dia%')
+                    ->where('TRN_AUT_Fecha_Turno', $ultimoDiaMesAnterior)
+                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
                     ->select(
-                        DB::raw('(uat.TRN_AUT_Kilometraje_Turno - uat.TRN_AUT_Kilometros_Andados_Turno) as KM_Anterior')
+                        DB::raw('(uat.TRN_AUT_Kilometraje_Turno) as KM_Anterior')
                     )
                     ->first();
                 
@@ -1267,13 +1271,15 @@ class AutomovilController extends Controller
                     ->groupBy('uat.TRN_AUT_Automovil_Id')
                     ->first();
 
+                $ultimoDiaMesAnterior = Carbon::createFromFormat('Y-m-d', $fecha[1].'-'.$fecha[0].'-01')->subDay()->format('Y-m-d');
+                
                 $KM_Anterior = DB::table('TBL_Usuario_Automovil_Turno as uat')
                     ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
                     ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
-                    ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-01')
-                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Dia%')
+                    ->where('TRN_AUT_Fecha_Turno', $ultimoDiaMesAnterior)
+                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
                     ->select(
-                        DB::raw('(uat.TRN_AUT_Kilometraje_Turno - uat.TRN_AUT_Kilometros_Andados_Turno) as KM_Anterior')
+                        DB::raw('(uat.TRN_AUT_Kilometraje_Turno) as KM_Anterior')
                     )
                     ->first();
                 
@@ -1369,13 +1375,15 @@ class AutomovilController extends Controller
                     ->groupBy('uat.TRN_AUT_Automovil_Id')
                     ->first();
                 
+                $ultimoDiaMesAnterior = Carbon::createFromFormat('Y-m-d', $fecha[1].'-'.$fecha[0].'-01')->subDay()->format('Y-m-d');
+                
                 $KM_Anterior = DB::table('TBL_Usuario_Automovil_Turno as uat')
                     ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
                     ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
-                    ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-01')
-                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Dia%')
+                    ->where('TRN_AUT_Fecha_Turno', $ultimoDiaMesAnterior)
+                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
                     ->select(
-                        DB::raw('(uat.TRN_AUT_Kilometraje_Turno - uat.TRN_AUT_Kilometros_Andados_Turno) as KM_Anterior')
+                        DB::raw('(uat.TRN_AUT_Kilometraje_Turno) as KM_Anterior')
                     )
                     ->first();
                 

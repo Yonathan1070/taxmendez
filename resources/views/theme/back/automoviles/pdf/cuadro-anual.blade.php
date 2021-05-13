@@ -29,12 +29,12 @@
                 <tr style="height:45px;">
                     <td style="border:1px solid red; color: red; height:45px;">{{Str::upper(Lang::get('messages.'.Carbon\Carbon::parse($mes->MesAnio)->format('F')))}}</td>
                     <td style="border:1px solid red; height:45px;">{{'$ '.number_format($mes->Producido, 0, ',', '.')}}</td>
-                    <td style="border:1px solid red; height:45px;">{{'$ '.number_format($mes->Gastos, 0, ',', '.')}}</td>
+                    <td style="border:1px solid red; height:45px;">{{'$ '.number_format(((!$mes->Gastos) ? 0 : $mes->Gastos), 0, ',', '.')}}</td>
                     <td style="border:1px solid red; height:45px;">{{number_format($mes->Kilometraje, 0, ',', '.')}}</td>
                     <td style="border:1px solid red; height:45px;">{{$mes->DiasTrabajados}}</td>
                     <td style="border:1px solid red; height:45px;">{{'$ '.number_format($mes->PromedioDia, 0, ',', '.')}}</td>
                     <td style="border:1px solid red; height:45px;">{{number_format($mes->PromedioKilometraje, 0, ',', '.')}}</td>
-                    <td style="border:1px solid red; height:45px;">{{'$ '.number_format(($mes->Producido - $mes->Gastos), 0, ',', '.')}}</td>
+                    <td style="border:1px solid red; height:45px;">{{'$ '.number_format(($mes->Producido - ((!$mes->Gastos) ? 0 : $mes->Gastos)), 0, ',', '.')}}</td>
                 </tr style="height:45px;">
             @endforeach
             <tr style="height:45px;">

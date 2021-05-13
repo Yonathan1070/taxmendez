@@ -54,12 +54,12 @@
                             <tr>
                                 <td>{{Str::upper(Lang::get('messages.'.Carbon\Carbon::parse($mes->MesAnio)->format('F')))}}</td>
                                 <td>{{'$ '.number_format($mes->Producido, 0, ',', '.')}}</td>
-                                <td>{{'$ '.number_format($mes->Gastos, 0, ',', '.')}}</td>
+                                <td>{{'$ '.number_format(((!$mes->Gastos) ? 0 : $mes->Gastos), 0, ',', '.')}}</td>
                                 <td>{{number_format($mes->Kilometraje, 0, ',', '.')}}</td>
                                 <td>{{$mes->DiasTrabajados}}</td>
                                 <td>{{'$ '.number_format($mes->PromedioDia, 0, ',', '.')}}</td>
                                 <td>{{number_format($mes->PromedioKilometraje, 0, ',', '.')}}</td>
-                                <td>{{'$ '.number_format(($mes->Producido - $mes->Gastos), 0, ',', '.')}}</td>
+                                <td>{{'$ '.number_format(($mes->Producido - ((!$mes->Gastos) ? 0 : $mes->Gastos)), 0, ',', '.')}}</td>
                             </tr>
                         @endforeach
                         <tr>

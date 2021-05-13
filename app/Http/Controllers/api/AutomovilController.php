@@ -108,7 +108,7 @@ class AutomovilController extends BaseController
                 }
                 UsuarioAutomovilTurno::create([
                     'TRN_AUT_Automovil_Id' => $id,
-                    'TRN_AUT_Kilometraje_Turno' => $request->Kilometraje_Total,
+                    'TRN_AUT_Kilometraje_Turno' => (!$request->Kilometraje_Total || $request->Kilometraje_Total == '') ? '' : $request->Kilometraje_Total,
                     'TRN_AUT_Kilometros_Andados_Turno' => $request->Kilometraje_Turno,
                     'TRN_AUT_Producido_Turno' => $request->Producido,
                     'TRN_AUT_Usuario_Turno_Id' => $request->Conductor,
@@ -152,9 +152,10 @@ class AutomovilController extends BaseController
             
             if($balance){
                 $mensualidad = Mensualidad::where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('Y-m-d', $balance->TRN_AUT_Fecha_Turno)->format('Y-m').'-01')
+                    ->where('MNS_Automovil_Id', $id)
                     ->first();
                 
-                $balance['mensualidad'] = ($mensualidad) ? true : false;
+                $balance['mensualidad'] = (!$mensualidad) ? false : true;
                 return $this->sendResponse($balance, 'Completado correctamente.');
             }
             return $this->sendError('El turno no existe!', 200);

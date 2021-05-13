@@ -1400,12 +1400,8 @@
                                                                                     (
                                                                                         (sizeof($dias) > $cantidadFebrero) ? (
                                                                                             ((sizeof($dias[28]) == 0) ? 0 : $dias[28][0]->TRN_AUT_Producido_Turno) +
-                                                                                            (
-                                                                                                (sizeof($dias) > 30) ? (
-                                                                                                    ((sizeof($dias[29]) == 0) ? 0 : $dias[29][0]->TRN_AUT_Producido_Turno) + 
-                                                                                                    ((sizeof($dias[30]) == 0) ? 0 : $dias[30][0]->TRN_AUT_Producido_Turno)
-                                                                                                ) : 0
-                                                                                            )
+                                                                                            ((sizeof($dias[29]) == 0) ? 0 : $dias[29][0]->TRN_AUT_Producido_Turno) + 
+                                                                                            ((sizeof($dias) > 30) ? (((sizeof($dias[30]) == 0) ? 0 : $dias[30][0]->TRN_AUT_Producido_Turno)) : 0)
                                                                                         ) : 0
                                                                                     )
                                                                                 )
@@ -1438,12 +1434,8 @@
                                                                                     (
                                                                                         (sizeof($dias) > $cantidadFebrero) ? (
                                                                                             ((sizeof($dias[28]) == 0) ? 0 : $dias[28][1]->TRN_AUT_Producido_Turno) +
-                                                                                            (
-                                                                                                (sizeof($dias) > 30) ? (
-                                                                                                    ((sizeof($dias[29]) == 0) ? 0 : $dias[29][1]->TRN_AUT_Producido_Turno) + 
-                                                                                                    ((sizeof($dias[30]) == 0) ? 0 : $dias[30][1]->TRN_AUT_Producido_Turno)
-                                                                                                ) : 0
-                                                                                            )
+                                                                                            ((sizeof($dias[29]) == 0) ? 0 : $dias[29][1]->TRN_AUT_Producido_Turno) + 
+                                                                                            ((sizeof($dias) > 30) ? (((sizeof($dias[30]) == 0) ? 0 : $dias[30][1]->TRN_AUT_Producido_Turno)) : 0)
                                                                                         ) : 0
                                                                                     )
                                                                                 )
@@ -1484,12 +1476,8 @@
                                                                                     (
                                                                                         (sizeof($dias) > $cantidadFebrero) ? (
                                                                                             ((sizeof($dias[28]) == 0) ? 0 : $dias[28][0]->TRN_AUT_Kilometros_Andados_Turno) +
-                                                                                            (
-                                                                                                (sizeof($dias) > 30) ? (
-                                                                                                    ((sizeof($dias[29]) == 0) ? 0 : $dias[29][0]->TRN_AUT_Kilometros_Andados_Turno) + 
-                                                                                                    ((sizeof($dias[30]) == 0) ? 0 : $dias[30][0]->TRN_AUT_Kilometros_Andados_Turno)
-                                                                                                ) : 0
-                                                                                            )
+                                                                                            ((sizeof($dias[29]) == 0) ? 0 : $dias[29][0]->TRN_AUT_Kilometros_Andados_Turno) + 
+                                                                                            ((sizeof($dias) > 30) ? (((sizeof($dias[30]) == 0) ? 0 : $dias[30][0]->TRN_AUT_Kilometros_Andados_Turno)) : 0)
                                                                                         ) : 0
                                                                                     )
                                                                                 ) + (($cadaConductor == 0) ? 0 : $cadaConductor)
@@ -1521,12 +1509,8 @@
                                                                                     (
                                                                                         (sizeof($dias) > $cantidadFebrero) ? (
                                                                                             ((sizeof($dias[28]) == 0) ? 0 : $dias[28][1]->TRN_AUT_Kilometros_Andados_Turno) +
-                                                                                            (
-                                                                                                (sizeof($dias) > 30) ? (
-                                                                                                    ((sizeof($dias[29]) == 0) ? 0 : $dias[29][1]->TRN_AUT_Kilometros_Andados_Turno) + 
-                                                                                                    ((sizeof($dias[30]) == 0) ? 0 : $dias[30][1]->TRN_AUT_Kilometros_Andados_Turno)
-                                                                                                ) : 0
-                                                                                            )
+                                                                                            ((sizeof($dias[29]) == 0) ? 0 : $dias[29][1]->TRN_AUT_Kilometros_Andados_Turno) + 
+                                                                                            ((sizeof($dias) > 30) ? (((sizeof($dias[30]) == 0) ? 0 : $dias[30][1]->TRN_AUT_Kilometros_Andados_Turno)) : 0)
                                                                                         ) : 0
                                                                                     ) + (($cadaConductor == 0) ? 0 : $cadaConductor)
                                                                                 )
