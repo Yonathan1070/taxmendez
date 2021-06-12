@@ -44,8 +44,12 @@ Route::group(['prefix' => '/administracion', 'middleware' => ['auth']], function
 });
 Route::group(['prefix' => '/roles', 'middleware' => ['auth']], function () {
     Route::get('', [RolesController::class, 'index'])->name('roles');
-    Route::get('/crear', [RolesController::class, 'crear'])->name('crear_rol');
-    Route::post('/crear', [RolesController::class, 'guardar'])->name('guardar_rol');
+    Route::get('page', [RolesController::class, 'page'])->name('page_roles');
+    Route::post('/crear', [RolesController::class, 'crear'])->name('crear_rol');
+    Route::put('/{id}/editar', [RolesController::class, 'editar'])->name('editar_rol');
+    Route::post('', [RolesController::class, 'guardar'])->name('guardar_rol');
+    Route::put('/{id}', [RolesController::class, 'actualizar'])->name('actualizar_rol');
+    Route::delete('/{id}/eliminar', [RolesController::class, 'eliminar'])->name('eliminar_rol');
 });
 Route::group(['prefix' => '/usuarios', 'middleware' => ['auth']], function () {
     Route::get('', [UsuariosController::class, 'index'])->name('usuarios');
@@ -91,6 +95,7 @@ Route::group(['prefix' => '/automoviles', 'middleware' => ['auth']], function ()
             Route::post('/agregar', [AutomovilController::class, 'agregarGastos'])->name('agregar_gastos');
             Route::get('/agregar-gastos', [AutomovilController::class, 'agregarGastos'])->name('agregar_gastos_sesion');
             Route::post('/guardar', [AutomovilController::class, 'guardarGastos'])->name('guardar_gastos');
+            Route::post('/editar/{idGasto}', [AutomovilController::class, 'editarGastos'])->name('editar_gastos');
         });
         Route::post('/balance-anual', [AutomovilController::class, 'balanceAnual'])->name('balance_anual');
         Route::post('/balance-diario', [AutomovilController::class, 'balanceDiario'])->name('balance_diario');
@@ -116,10 +121,13 @@ Route::group(['prefix' => '/desinfeccion', 'middleware' => ['auth']], function (
 });
 Route::group(['prefix' => '/empresas', 'middleware' => ['auth']], function () {
     Route::get('', [EmpresasController::class, 'index'])->name('empresas');
-    Route::get('/crear', [EmpresasController::class, 'crear'])->name('crear_empresa');
-    Route::get('/editar/{id}', [EmpresasController::class, 'editar'])->name('editar_empresa');
-    Route::post('/crear', [EmpresasController::class, 'guardar'])->name('guardar_empresa');
-    Route::put('/editar/{id}', [EmpresasController::class, 'actualizar'])->name('actualizar_empresa');
+    Route::get('page', [EmpresasController::class, 'page'])->name('page_empresas');
+    Route::post('/crear', [EmpresasController::class, 'crear'])->name('crear_empresa');
+    Route::put('/{id}/editar', [EmpresasController::class, 'editar'])->name('editar_empresa');
+    Route::post('', [EmpresasController::class, 'guardar'])->name('guardar_empresa');
+    Route::put('/{id}', [EmpresasController::class, 'actualizar'])->name('actualizar_empresa');
+    //Route::delete('/{id}/eliminar', [RolesController::class, 'eliminar'])->name('eliminar_rol');
+
     Route::get('/editar', [EmpresasController::class, 'editarEmpresa'])->name('editar_empresa_usuario');
     Route::put('/editar-usuario', [EmpresasController::class, 'actualizarEmpresa'])->name('actualizar_empresa_usuario');
     Route::post('logo', [EmpresasController::class, 'actualizarLogo'])->name('actualizar_logo_empresa');

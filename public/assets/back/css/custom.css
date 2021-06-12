@@ -37,3 +37,12 @@
 .sorting_asc{
     display: none;
 }
+
+.btn-accion-tabla{
+    cursor: pointer;
+    border: none;
+    background: 0;
+    padding: 0 0 0 5px;
+    font-size: 1rem !important;
+    line-height: 1.5;
+}

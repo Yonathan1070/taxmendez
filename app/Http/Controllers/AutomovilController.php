@@ -1209,6 +1209,39 @@ class AutomovilController extends Controller
         }
     }
 
+    public function editarGastos(Request $request, $id, $idGasto){
+        try {
+            $automovilId = Crypt::decrypt($id);
+            $automovil = Automovil::findOrFail($automovilId);
+
+            if($automovil){
+                $gastoId = Crypt::decrypt($idGasto);
+                $gasto = Gastos::findOrFail($gastoId);
+                
+                if($automovil){
+                    if($request->has('notificacion') && $request->notificacion == true){
+                        Notificacion::find($request->notificacionId)->update([
+                            'NTF_Visto_Notificacion' => 1
+                        ]);
+                    }
+
+                    $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+                        ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.((sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos))->format('Y-m-d'))
+                        ->get();
+                    
+                    $mesAnio = (sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos;
+
+                    return view('theme.back.automoviles.gastos.agregar', compact('gastos', 'mesAnio', 'automovil'));
+                }
+                return redirect()->route('agregar_gastos', ['id'=>Crypt::encrypt($automovil->id)])->withErrors(Lang::get('messages.ExpenseNotExists'));
+            }
+
+            return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
+        } catch (DecryptException $e) {
+            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
+        }
+    }
+
     public function pfdBalanceDiario(Request $request, $id){
         try {
             $automovilId = Crypt::decrypt($id);

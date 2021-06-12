@@ -1,7 +1,8 @@
 <div class="card">
     <div class="card-body">
-        <h4 class="card-title">{{Lang::get('messages.AddRol')}}</h4>
-        <form action="{{route('guardar_rol')}}" class="m-t-40" method="POST" novalidate id="form-general">
+        <h4 class="card-title m-b-0">{{Lang::get('messages.EditRol').$rol->RL_Nombre_Rol}}</h4>
+        <form action="{{route('actualizar_rol', ['id'=>$rol->id])}}" class="m-t-40" method="POST" novalidate id="form-general">
+            @method('put')
             @include('theme.back.roles.form')
             <div class="border-top">
                 <div class="card-body">

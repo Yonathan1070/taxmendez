@@ -49,6 +49,17 @@
 
     <input type="hidden" id="cropDimention" value="{{Lang::get('messages.CropDimention')}}" />
     <input type="hidden" id="cropCut" value="{{Lang::get('messages.CropCut')}}" />
+
+    <input type="hidden" id="SwalTitleWarning" value="{{Lang::get('messages.SwalTitleWarning')}}">
+    <input type="hidden" id="SwalDescWarning" value="{{Lang::get('messages.SwalDescWarning')}}">
+    <input type="hidden" id="SwalTypeWarning" value="{{Lang::get('messages.SwalTypeWarning')}}">
+    <input type="hidden" id="SwalAcceptWarning" value="{{Lang::get('messages.Accept')}}">
+    <input type="hidden" id="SwalCancelWarning" value="{{Lang::get('messages.Cancel')}}">
+
+    <input type="hidden" id="DropifyDefault" value="{{Lang::get('messages.DropifyDefault')}}">
+    <input type="hidden" id="DropifyReplace" value="{{Lang::get('messages.DropifyReplace')}}">
+    <input type="hidden" id="DropifyRemove" value="{{Lang::get('messages.DropifyRemove')}}">
+    <input type="hidden" id="DropifyError" value="{{Lang::get('messages.DropifyError')}}">
     <!-- ============================================================== -->
     <!-- Preloader - style you can find in spinners.css -->
     <!-- ============================================================== -->

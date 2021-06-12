@@ -12,6 +12,10 @@ return [
     'AccessDenied' => 'You don\'t have permissions to access',
     //Id invalid
     'IdNotValid' => 'Invalid Id',
+    //Alerts
+    'NotificationTypeSuccess'=>'success',
+    'NotificationTypeDanger'=>'danger',
+    'NotificationTypeError'=>'error',
 
     //Login
     'Login' => 'Login',
@@ -74,6 +78,18 @@ return [
     //Agregar Rol
     'RolName' => 'Rol',
     'CreatedRol' => 'Rol Created.',
+    'ExistingRol' => 'El rol ya se encuentra registrado.',
+    //Editar Rol
+    'EditRol' => 'Edit Rol ',
+    'UpdatedRol' => 'Rol Updated.',
+    //Eliminar Rol
+    'SwalTitleWarning' => 'Do you want to delete this record?',
+    'SwalDescWarning' => 'Confirm action!',
+    'SwalTypeWarning' => 'warning',
+    'Accept' => 'Accept',
+    'Cancel' => 'Cancel',
+    'DeletedRol' => 'Rol Deleted.',
+    'RolNotDelete' => 'The rol could not be deleted, it is being used by another resource.',
 
     //Turnos
     'Turns' => 'Turns',
@@ -207,6 +223,7 @@ return [
     'Search' => 'Search',
     'EmptyTable' => 'No data available in table',
     'Info' => 'Showing _START_ to _END_ of _TOTAL_ entries',
+    'Info2' => 'Showing _START_ to _TOTAL_ entries',
     'InfoEmpty' => 'Showing 0 to 0 of 0 entries',
     'InfoFiltered' => '(filtered from _MAX_ total entries)',
     'InfoPostFix' => '',
@@ -218,6 +235,8 @@ return [
     'SearchPlaceholder' => '',
     'Url' => '',
     'ZeroRecords' => 'No matching records found',
+    'Next' => 'Next >',
+    'Previous' => '< Previous',
 
     //Dropify
     'DropifyDefault' => 'Drag and drop a file here or click',

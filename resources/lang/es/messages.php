@@ -12,6 +12,10 @@ return [
     'AccessDenied' => 'No tiene permisos para acceder',
     //Id invalid
     'IdNotValid' => 'Identificador no es válido',
+    //Alerts
+    'NotificationTypeSuccess'=>'success',
+    'NotificationTypeDanger'=>'danger',
+    'NotificationTypeError'=>'error',
 
     //Login
     'Login' => 'Iniciar Sesión',
@@ -74,6 +78,18 @@ return [
     //Agregar Rol
     'RolName' => 'Rol',
     'CreatedRol' => 'Rol Creado.',
+    'ExistingRol' => 'El rol ya se encuentra registrado.',
+    //Editar Rol
+    'EditRol' => 'Editar Rol ',
+    'UpdatedRol' => 'Rol Actualizado.',
+    //Eliminar Rol
+    'SwalTitleWarning' => '¿Desea eliminar este registro?',
+    'SwalDescWarning' => 'Confirmar acción!',
+    'SwalTypeWarning' => 'warning',
+    'Accept' => 'Aceptar',
+    'Cancel' => 'Cancelar',
+    'DeletedRol' => 'Rol Eliminado',
+    'RolNotDelete' => 'El rol no se pudo eliminar, está siendo usado por otro recurso.',
 
     //Turnos
     'Turns' => 'Turnos',
@@ -208,6 +224,7 @@ return [
     'Search' => 'Buscar',
     'EmptyTable' => 'No hay datos que mostrar',
     'Info' => 'Mostrando _START_ de _END_ a _TOTAL_ entradas',
+    'Info2' => 'Mostrando _START_ de _TOTAL_ entradas',
     'InfoEmpty' => 'Mostrando 0 de 0 a 0 entradas',
     'InfoFiltered' => '(filtrado de _MAX_ entradas totales)',
     'InfoPostFix' => '',
@@ -219,6 +236,8 @@ return [
     'SearchPlaceholder' => '',
     'Url' => '',
     'ZeroRecords' => 'No se encontraron registros coincidentes',
+    'Next' => 'Siguiente >',
+    'Previous' => '< Anterior',
 
     //Dropify
     'DropifyDefault' => 'Arrastre y suelte un archivo o haga clic',

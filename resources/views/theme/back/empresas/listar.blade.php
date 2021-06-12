@@ -3,7 +3,8 @@
     {{Lang::get('messages.Companies')}}
 @endsection
 @section('styles')
-    
+    <link href="{{asset('assets/back/plugins/sweetalert/sweetalert.css')}}" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="{{asset('assets/back/plugins/dropify/dist/css/dropify.min.css')}}">
 @endsection
 @section('content')
 <div class="row page-titles">
@@ -18,11 +19,8 @@
         <div class="card-header">
             <div class="card-actions">
                 @if (can2('crear_empresa'))
-                    <a class="mytooltip" href="{{route('crear_empresa')}}">
+                    <a href="{{route('crear_empresa')}}" id="nuevo-registro" data-modal="accion-empresa">
                         <i class="ti-plus"></i>
-                        <span class="tooltip-content3">
-                            {{Lang::get('messages.AddCompany')}}
-                        </span>
                     </a>
                 @endif
             </div>
@@ -36,55 +34,34 @@
                 <x-alert tipo="success" :mensaje="session('mensaje')" />
             @endif
             <div class="table-responsive m-t-40">
-                <table class="table table-bordered table-striped myTable">
-                    <thead>
-                        <tr>
-                            <th>{{Lang::get('messages.NIT')}}</th>
-                            <th>{{Lang::get('messages.CompanyName')}}</th>
-                            <th>{{Lang::get('messages.Logo')}}</th>
-                            <th>{{Lang::get('messages.LogoText')}}</th>
-                            @if (can2('editar_empresa'))
-                                <th></th>
-                            @endif
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($empresas as $empresa)
-                            <tr>
-                                <td>{{$empresa->EMP_NIT_Empresa}}</td>
-                                <td>{{$empresa->EMP_Nombre_Empresa}}</td>
-                                <td>
-                                    @if ($empresa->EMP_Logo_Empresa != null || $empresa->EMP_Logo_Empresa != '')
-                                        <img id="LogoCompany" src="data:image/png;base64, {{$empresa->EMP_Logo_Empresa}}" alt="{{'Logo '.$empresa->EMP_Nombre_Empresa}}" height="27" width="50" />
-                                    @endif
-                                </td>
-                                <td>
-                                    @if ($empresa->EMP_Logo_Texto_Empresa != null || $empresa->EMP_Logo_Texto_Empresa != '')
-                                        <img id="LogoTextCompany" src="data:image/png;base64, {{$empresa->EMP_Logo_Texto_Empresa}}" alt="{{'Logo Texto '.$empresa->EMP_Nombre_Empresa}}" height="29" width="148" />
-                                    @endif
-                                </td>
-                                @if (can2('editar_empresa'))
-                                    <td>
-                                        <a class="mytooltip" href="{{route('editar_empresa', ['id'=>Crypt::encrypt($empresa->id)])}}">
-                                            <i class="ti-pencil"></i>
-                                            <span class="tooltip-content3">
-                                                {{Lang::get('messages.EditCompany')}} {{$empresa->EMP_Nombre_Empresa}}
-                                            </span>
-                                        </a>
-                                    </td>
-                                @endif
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                @include('theme.back.empresas.table-data')
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="accion-empresa" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel1">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-body"></div>
         </div>
     </div>
 </div>
 @endsection
 @section('scriptsPlugins')
-    
+    <!-- jQuery file upload -->
+    <script src="{{asset('assets/back/plugins/dropify/dist/js/dropify.min.js')}}"></script>
+    <script src="{{asset('assets/back/plugins/sweetalert/sweetalert.min.js')}}"></script>
 @endsection
 @section('scripts')
-    <script src="{{asset('assets/back/scripts/general.js')}}"></script>
+    <script src="{{asset('assets/back/scripts/ajax.js')}}"></script>
+        
+    <script src="{{asset('assets/back/js/validation.js')}}"></script>
+
+    <script>
+        ! function(window, document, $) {
+            "use strict";
+            $("input,select,textarea").not("[type=submit]").jqBootstrapValidation()
+        }(window, document, jQuery);
+    </script>
 @endsection

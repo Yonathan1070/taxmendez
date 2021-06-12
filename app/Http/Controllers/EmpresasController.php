@@ -21,7 +21,9 @@ class EmpresasController extends Controller
      */
     public function index()
     {
-        $empresas = Empresa::get();
+        can('roles');
+
+        $empresas = Empresa::orderBy('id')->paginate(10);
 
         return view('theme.back.empresas.listar', compact('empresas'));
     }
@@ -31,9 +33,14 @@ class EmpresasController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function crear()
+    public function crear(Request $request)
     {
-        return view('theme.back.empresas.crear');
+        if($request->ajax()){
+            can2('crear_rol');
+            
+            return view('theme.back.empresas.crear');
+        }
+        abort(404);
     }
 
     /**
@@ -44,38 +51,42 @@ class EmpresasController extends Controller
      */
     public function guardar(Request $request)
     {
-        $empresa = Empresa::where('EMP_Nit_Empresa', $request->EMP_Nit_Empresa)
-            ->orWhere('EMP_Nombre_Empresa', $request->EMP_Nombre_Empresa)
-            ->first();
-        
-        if($empresa){
-            return redirect()->route('crear_empresa')->withErrors(Lang::get('messages.CompanyExists'))
-                ->withInput();
+        if($request->ajax()){
+            if(can2('crear_empresa')){
+                $empresa = Empresa::where('EMP_Nit_Empresa', $request->EMP_Nit_Empresa)
+                    ->orWhere('EMP_Nombre_Empresa', $request->EMP_Nombre_Empresa)
+                    ->first();
+                
+                if(!$empresa){
+                    $imagenComoBase64 = null;
+                    if($request->EMP_Logo_Empresa){
+                        $contenidoBinario = file_get_contents($request->EMP_Logo_Empresa);
+                        $imagenComoBase64 = base64_encode($contenidoBinario);
+                    }
+
+                    $textoLogoComoBase64 = null;
+                    if($request->EMP_Logo_Texto_Empresa){
+                        $contenidoBinario = file_get_contents($request->EMP_Logo_Texto_Empresa);
+                        $textoLogoComoBase64 = base64_encode($contenidoBinario);
+                    }
+
+                    Empresa::create([
+                        'EMP_Nombre_Empresa' => $request->EMP_Nombre_Empresa,
+                        'EMP_NIT_Empresa' => $request->EMP_NIT_Empresa,
+                        'EMP_Telefono_Empresa' => $request->EMP_Telefono_Empresa,
+                        'EMP_Direccion_Empresa' => $request->EMP_Direccion_Empresa,
+                        'EMP_Correo_Empresa' => $request->EMP_Correo_Empresa,
+                        'EMP_Logo_Empresa' => $imagenComoBase64,
+                        'EMP_Logo_Texto_Empresa' => $textoLogoComoBase64
+                    ]);
+
+                    return $this->vista(Lang::get('messages.CreatedCompany'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                }
+                return response()->json(['mensaje'=>Lang::get('messages.CompanyExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
-
-        $imagenComoBase64 = null;
-        if($request->EMP_Logo_Empresa){
-            $contenidoBinario = file_get_contents($request->EMP_Logo_Empresa);
-            $imagenComoBase64 = base64_encode($contenidoBinario);
-        }
-
-        $textoLogoComoBase64 = null;
-        if($request->EMP_Logo_Texto_Empresa){
-            $contenidoBinario = file_get_contents($request->EMP_Logo_Texto_Empresa);
-            $textoLogoComoBase64 = base64_encode($contenidoBinario);
-        }
-
-        Empresa::create([
-            'EMP_Nombre_Empresa' => $request->EMP_Nombre_Empresa,
-            'EMP_NIT_Empresa' => $request->EMP_NIT_Empresa,
-            'EMP_Telefono_Empresa' => $request->EMP_Telefono_Empresa,
-            'EMP_Direccion_Empresa' => $request->EMP_Direccion_Empresa,
-            'EMP_Correo_Empresa' => $request->EMP_Correo_Empresa,
-            'EMP_Logo_Empresa' => $imagenComoBase64,
-            'EMP_Logo_Texto_Empresa' => $textoLogoComoBase64
-        ]);
-
-        return redirect()->route('empresas')->with('mensaje', Lang::get('messages.CreatedCompany'));
+        abort(404);
     }
 
     /**
@@ -209,6 +220,12 @@ class EmpresasController extends Controller
         } else {
             return redirect()->route('administracion')->withErrors(Lang::get('messages.CompanyNotExists'));
         }
+    }
+
+    private function vista($mensaje=null, $titulo, $tipo)
+    {
+        $empresas = Empresa::orderBy('id')->paginate(10);
+        return response()->json(['view'=>view('theme.back.empresas.table-data')->with('empresas', $empresas)->render(), 'mensaje'=>$mensaje, 'titulo'=>$titulo, 'tipo'=>$tipo]);
     }
 
     public function actualizarLogo(Request $request)
@@ -410,6 +427,14 @@ class EmpresasController extends Controller
             ]);
 
             return redirect()->route('editar_empresa_usuario')->with('mensaje', Lang::get('messages.ServerEmailCreated'));
+        }
+    }
+
+    function page(Request $request)
+    {
+        if($request->ajax()){
+            $empresas = Empresa::orderBy('id')->paginate(10);
+            return view('theme.back.empresas.table-data', compact('empresas'))->render();
         }
     }
 }
