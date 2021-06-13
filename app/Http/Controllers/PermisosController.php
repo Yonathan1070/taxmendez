@@ -69,7 +69,7 @@ class PermisosController extends Controller
             $permisos = DB::table('TBL_Permiso as p')
                 ->join('TBL_Categoria as c', 'c.id', 'p.PRM_Categoria_Permiso')
                 ->select('c.*', 'p.*')
-                ->get();
+                ->paginate(10);
 
             return view('theme.back.permisos.listado', compact('permisos'));
         } else{
@@ -245,6 +245,26 @@ class PermisosController extends Controller
             }
         } catch (DecryptException $e) {
             return redirect()->route('permisos')->withErrors(Lang::get('messages.IdNotValid'));
+        }
+    }
+
+    private function vista($mensaje=null, $titulo, $tipo)
+    {
+        $permisos = $permisos = DB::table('TBL_Permiso as p')
+            ->join('TBL_Categoria as c', 'c.id', 'p.PRM_Categoria_Permiso')
+            ->select('c.*', 'p.*')
+            ->paginate(10);
+        return response()->json(['view'=>view('theme.back.permisos.table-data')->with('permisos', $permisos)->render(), 'mensaje'=>$mensaje, 'titulo'=>$titulo, 'tipo'=>$tipo]);
+    }
+
+    function page(Request $request)
+    {
+        if($request->ajax()){
+            $permisos = $permisos = DB::table('TBL_Permiso as p')
+                ->join('TBL_Categoria as c', 'c.id', 'p.PRM_Categoria_Permiso')
+                ->select('c.*', 'p.*')
+                ->paginate(10);
+            return view('theme.back.permisos.table-data', compact('permisos'))->render();
         }
     }
 

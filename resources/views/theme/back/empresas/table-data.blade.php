@@ -36,6 +36,6 @@
     </tbody>
 </table>
 <div id="paginador">
-    <a href="{{$empresas->previousPageUrl()}}" class="btn waves-effect waves-light btn-success {{($empresas->previousPageUrl() == '') ? 'disabled' : ''}} pagination">{{Lang::get('messages.Previous')}}</a>
-    <a href="{{$empresas->nextPageUrl()}}" class="btn waves-effect waves-light btn-success {{($empresas->nextPageUrl() == '') ? 'disabled' : ''}} pagination">{{Lang::get('messages.Next')}}</a>
+    <a href="{{$empresas->previousPageUrl()}}" class="btn waves-effect waves-light btn-success {{($empresas->previousPageUrl() == '') ? 'disabled' : ''}} pagination" data-url="{{route('page_empresas')}}">{{Lang::get('messages.Previous')}}</a>
+    <a href="{{$empresas->nextPageUrl()}}" class="btn waves-effect waves-light btn-success {{($empresas->nextPageUrl() == '') ? 'disabled' : ''}} pagination" data-url="{{route('page_empresas')}}">{{Lang::get('messages.Next')}}</a>
 </div>

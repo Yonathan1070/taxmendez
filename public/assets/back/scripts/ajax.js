@@ -110,7 +110,8 @@ function inicializarPaginador(){
         event.preventDefault(); 
         $(".preloader").fadeIn();
         var page = $(this).attr('href').split('page=')[1];
-        pagination(page);
+        var url = $(this).attr('data-url');
+        pagination(page, url);
     });
 }
 
@@ -130,9 +131,9 @@ function tablaData(respuesta, modal){
     $('#'+modal).modal('hide');
 }
 
-function pagination(page){
+function pagination(page, url){
     $.ajax({
-        url:"roles/page?page="+page,
+        url:url+"?page="+page,
         success:function(data){
             $('#paginador').remove();
             $('#data-table').html(data);

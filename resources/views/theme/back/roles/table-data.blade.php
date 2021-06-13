@@ -33,6 +33,6 @@
     </tbody>
 </table>
 <div id="paginador">
-    <a href="{{$roles->previousPageUrl()}}" class="btn waves-effect waves-light btn-success {{($roles->previousPageUrl() == '') ? 'disabled' : ''}} pagination">{{Lang::get('messages.Previous')}}</a>
-    <a href="{{$roles->nextPageUrl()}}" class="btn waves-effect waves-light btn-success {{($roles->nextPageUrl() == '') ? 'disabled' : ''}} pagination">{{Lang::get('messages.Next')}}</a>
+    <a href="{{$roles->previousPageUrl()}}" class="btn waves-effect waves-light btn-success {{($roles->previousPageUrl() == '') ? 'disabled' : ''}} pagination" data-url="{{route('page_roles')}}">{{Lang::get('messages.Previous')}}</a>
+    <a href="{{$roles->nextPageUrl()}}" class="btn waves-effect waves-light btn-success {{($roles->nextPageUrl() == '') ? 'disabled' : ''}} pagination" data-url="{{route('page_roles')}}">{{Lang::get('messages.Next')}}</a>
 </div>

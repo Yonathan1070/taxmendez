@@ -61,16 +61,19 @@ Route::group(['prefix' => '/usuarios', 'middleware' => ['auth']], function () {
     Route::put('/editar/{id}', [UsuariosController::class, 'actualizar'])->name('actualizar_usuario');
 });
 Route::group(['prefix' => '/permisos', 'middleware' => ['auth']], function () {
-    Route::get('/asignar/{id}', [PermisosController::class, 'index'])->name('permisos_usuario');
     Route::get('/listado', [PermisosController::class, 'listar'])->name('permisos');
-    Route::get('/crear', [PermisosController::class, 'crear'])->name('crear_permiso');
-    Route::get('/editar/{id}', [PermisosController::class, 'editar'])->name('editar_permiso');
+    Route::get('page', [PermisosController::class, 'page'])->name('page_permisos');
+    Route::post('/crear', [PermisosController::class, 'crear'])->name('crear_permiso');
+    Route::put('/{id}/editar', [PermisosController::class, 'editar'])->name('editar_permiso');
+    Route::post('', [PermisosController::class, 'guardar'])->name('guardar_permiso');
+    Route::put('/{id}', [PermisosController::class, 'actualizar'])->name('actualizar_permiso');
+    Route::delete('/{id}/eliminar', [PermisosController::class, 'eliminar'])->name('eliminar_permiso');
+
+    Route::get('/asignar/{id}', [PermisosController::class, 'index'])->name('permisos_usuario');
     Route::get('/ordenarmenu', [PermisosController::class, 'ordenarMenu'])->name('ordenar_menu');
     Route::get('iconos', [PermisosController::class, 'iconos'])->name('iconos');
     Route::post('/{id}/guardar', [PermisosController::class, 'guardarPermiso'])->name('guardar_permisos_usuario');
-    Route::post('/crear', [PermisosController::class, 'guardar'])->name('guardar_permiso');
     Route::post('/guardarorden', [PermisosController::class, 'guardarOrden'])->name('guardar_orden');
-    Route::put('/editar/{id}', [PermisosController::class, 'actualizar'])->name('actualizar_permiso');
 });
 Route::group(['prefix' => '/automoviles', 'middleware' => ['auth']], function () {
     Route::get('', [AutomovilController::class, 'index'])->name('automoviles');
