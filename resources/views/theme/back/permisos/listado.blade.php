@@ -44,7 +44,7 @@
 </div>
 
 <div class="modal fade" id="accion-permiso" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel1">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-body"></div>
         </div>
@@ -58,4 +58,13 @@
     <script src="{{asset('assets/back/scripts/ajax.js')}}"></script>
         
     <script src="{{asset('assets/back/js/validation.js')}}"></script>
+    
+    <script>
+        function icono() {
+            var x = document.getElementById("PRM_Icono_Permiso");
+            var i = document.getElementById("mostrar-icono");
+            i.removeAttribute("class");
+            i.className = x.value;
+        }
+    </script>
 @endsection

@@ -53,6 +53,10 @@ return [
     'EditPermission' => 'Editar Permiso',
     'Permission' => 'Permiso',
     'Category' => 'Categoría',
+    'IconRequired' => 'El icono del permiso es requerido.',
+    'ExistingPermission' => 'El permiso ya se encuentra registrado.',
+    'PermissionNoDelete' => 'El permiso está siendo usado por otro recurso, no es posible eliminarlo.',
+    'PermissionDelete' => 'Permiso eliminado.',
     //Ordenar Menú
     'Menu' => 'Menú',
     'MenuModified' => 'Menú Modificado',

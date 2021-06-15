@@ -8,16 +8,20 @@
     </thead>
     <tbody>
         @foreach ($permisos as $permiso)
-            <tr>
+            <tr id="row{{$permiso->id}}">
                 <td>{{$permiso->PRM_Nombre_Permiso}} <i class="{{$permiso->PRM_Icono_Permiso}}"></i></td>
                 <td>{{(Lang::get('messages.'.$permiso->CAT_Nick_Categoria) == 'messages.'.$permiso->CAT_Nick_Categoria) ? $permiso->CAT_Nombre_Categoria : Lang::get('messages.'.$permiso->CAT_Nick_Categoria) }}</td>
                 <td>
-                    <a class="mytooltip" href="{{route('editar_permiso', ['id'=>Crypt::encrypt($permiso->id)])}}">
+                    <a href="{{route('editar_permiso', $permiso->id)}}" class="editar-registro">
                         <i class="ti-pencil"></i>
-                        <span class="tooltip-content3">
-                            {{Lang::get('messages.EditPermission')}} {{$permiso->PRM_Nombre_Permiso}}
-                        </span>
                     </a>
+                    <form action="{{route('eliminar_permiso', $permiso->id)}}" class="eliminar-registro d-inline" method="POST">
+                        @csrf
+                        @method('delete')
+                        <button type="submit" class="btn-accion-tabla">
+                            <i class="ti-trash text-danger"></i>
+                        </button>
+                    </form>
                 </td>
             </tr>
         @endforeach

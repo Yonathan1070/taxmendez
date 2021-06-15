@@ -1,63 +1,17 @@
-@extends('theme.back.layout')
-@section('title')
-    {{Lang::get('messages.Permissions')}}
-@endsection
-@section('styles')
-    
-@endsection
-@section('content')
-<div class="row page-titles">
-    <div class="col-md-5 col-8 align-self-center">
-        <h3 class="text-themecolor m-b-0 m-t-0">{{Lang::get('messages.Permissions')}}</h3>
-    </div>
-</div>
-@endsection
-@section('contenido')
-<div class="col-md-12 col-xlg-12">
-    <div class="card">
-        <div class="card-header">
-            <div class="card-actions">
-                <a class="mytooltip" href="{{route('permisos')}}">
-                    <i class="ti-arrow-left"></i>
-                    <span class="tooltip-content3">
-                        {{Lang::get('messages.Back')}}
-                    </span>
-                </a>
+<div class="card">
+    <div class="card-body">
+        <h4 class="card-title m-b-0">{{Lang::get('messages.EditPermission')}} {{$permiso->PRM_Nombre_Permiso}}</h4>
+        <form action="{{route('actualizar_permiso', ['id'=>$permiso->id])}}" class="m-t-40" method="POST" novalidate id="form-general">
+            @method('PUT')
+            @include('theme.back.permisos.form')
+            <div class="border-top">
+                <div class="card-body">
+                    <div class="row">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">{{Lang::get('messages.Close')}}</button>
+                        <button type="submit" class="btn btn-info">{{Lang::get('messages.Save')}}</button>
+                    </div>
+                </div>
             </div>
-            <h4 class="card-title m-b-0">{{Lang::get('messages.EditPermission')}} {{$permiso->PRM_Nombre_Permiso}}</h4>
-        </div>
-        <div class="card-body collapse show b-t">
-            @if ($errors->any())
-                <x-alert tipo="danger" :mensaje="$errors" />
-            @endif
-            @if (session('mensaje'))
-                <x-alert tipo="success" :mensaje="session('mensaje')" />
-            @endif
-            <form action="{{route('actualizar_permiso', ['id'=>Crypt::encrypt($permiso->id)])}}" method="POST" novalidate>
-                @method('PUT')
-                @include('theme.back.permisos.form')
-            </form>
-        </div>
+        </form>
     </div>
 </div>
-@endsection
-@section('scriptsPlugins')
-    
-@endsection
-@section('scripts')
-    <script src="{{asset("assets/back/js/validation.js")}}"></script>
-    <script>
-        ! function(window, document, $) {
-            "use strict";
-            $("input,select,textarea").not("[type=submit]").jqBootstrapValidation()
-        }(window, document, jQuery);
-    </script>
-    <script>
-        function icono() {
-            var x = document.getElementById("PRM_Icono_Permiso");
-            var i = document.getElementById("mostrar-icono");
-            i.removeAttribute("class");
-            i.className = x.value;
-        }
-    </script>
-@endsection

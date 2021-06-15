@@ -53,6 +53,10 @@ return [
     'EditPermission' => 'Edit Permission',
     'Permission' => 'Permission',
     'Category' => 'Category',
+    'IconRequired' => 'The permission icon is required.',
+    'ExistingPermission' => 'The permission is already registered.',
+    'PermissionNoDelete' => 'The permission is being used by another resource, it is not possible to delete it.',
+    'PermissionDelete' => 'Permission deleted.',
     //Ordenar Menú
     'Menu' => 'Menu',
     'MenuModified' => 'Menu Modified',
