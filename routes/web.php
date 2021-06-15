@@ -139,10 +139,12 @@ Route::group(['prefix' => '/empresas', 'middleware' => ['auth']], function () {
 });
 Route::group(['prefix' => '/canal-notificacion', 'middleware' => ['auth']], function () {
     Route::get('', [CanalNotificacionController::class, 'index'])->name('canal_notificacion');
-    Route::get('/crear', [CanalNotificacionController::class, 'crear'])->name('crear_canal_notificacion');
-    Route::get('/editar/{id}', [CanalNotificacionController::class, 'editar'])->name('editar_canal_notificacion');
-    Route::post('/crear', [CanalNotificacionController::class, 'guardar'])->name('guardar_canal_notificacion');
-    Route::put('/editar/{id}', [CanalNotificacionController::class, 'actualizar'])->name('actualizar_canal_notificacion');
+    Route::get('page', [CanalNotificacionController::class, 'page'])->name('page_canales');
+    Route::post('/crear', [CanalNotificacionController::class, 'crear'])->name('crear_canal_notificacion');
+    Route::put('/{id}/editar', [CanalNotificacionController::class, 'editar'])->name('editar_canal_notificacion');
+    Route::post('', [CanalNotificacionController::class, 'guardar'])->name('guardar_canal_notificacion');
+    Route::put('/{id}', [CanalNotificacionController::class, 'actualizar'])->name('actualizar_canal_notificacion');
+    Route::delete('/{id}/eliminar', [CanalNotificacionController::class, 'eliminar'])->name('eliminar_canal_notificacion');
 });
 
 Route::get('idioma/{idioma}', [IdiomaController::class, 'cambiar'])->name('cambiar_idioma');

@@ -411,6 +411,8 @@ return [
     'NotificationChannelExists' => 'Canal de notificación ya existe',
     'ChannelNotExists' => 'Canal no existe',
     'NotificationChannelUpdated' => 'Canal de notificación actualizado',
+    'ChannelNotificationNotDelete' => 'El cannal de notificación está siendo usado por otro recurso.',
+    'DeletedChannelNotification' => 'Canal de notificacion eliminado',
 
     //Notifications
     'Notifications' => 'Notificaciones',

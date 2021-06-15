@@ -59,7 +59,7 @@ class RolesController extends Controller
         
                 return view('theme.back.roles.editar', compact('rol'));
             }
-            abort(404);
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
         abort(404);
     }

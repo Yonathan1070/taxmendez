@@ -108,7 +108,7 @@ class PermisosController extends Controller
         if($request->ajax()){
             $rol = Roles::findOrFail(session()->get('Usuario_Id'));
             if($rol && $rol->id == 1){
-                if(!($request->has('PRM_Menu_Permiso') && $request->PRM_Icono_Permiso)){
+                if(!($request->has('PRM_Menu_Permiso') && !$request->PRM_Icono_Permiso)){
                     $slugPermiso = Str::slug($request->PRM_Nombre_Permiso, '_');
                     $permiso = Permiso::where('PRM_Slug_Permiso',  $slugPermiso)
                         ->where('PRM_Menu_Permiso', $request->has('PRM_Menu_Permiso'))

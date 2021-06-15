@@ -410,6 +410,8 @@ return [
     'NotificationChannelExists' => 'Channel notification exists',
     'ChannelNotExists' => 'Channel not exists',
     'NotificationChannelUpdated' => 'Channel notification updated',
+    'ChannelNotificationNotDelete' => 'The notification channel is being used by another resource.',
+    'DeletedChannelNotification' => 'Notification channel deleted',
 
     //Notifications
     'Notifications' => 'Notifications',

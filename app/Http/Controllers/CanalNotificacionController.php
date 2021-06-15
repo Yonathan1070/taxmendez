@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Entity\CanalNotificacion;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Lang;
@@ -18,7 +19,9 @@ class CanalNotificacionController extends Controller
      */
     public function index()
     {
-        $canales = CanalNotificacion::get();
+        can('canal_notificacion');
+
+        $canales = CanalNotificacion::paginate(10);
         return view('theme.back.canal.listar', compact('canales'));
     }
 
@@ -27,9 +30,14 @@ class CanalNotificacionController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function crear()
+    public function crear(Request $request)
     {
-        return view('theme.back.canal.crear');
+        if($request->ajax()){
+            can2('crear_canal_notificacion');
+            
+            return view('theme.back.canal.crear');
+        }
+        abort(404);
     }
 
     /**
@@ -40,21 +48,26 @@ class CanalNotificacionController extends Controller
      */
     public function guardar(Request $request)
     {
-        $nick = Str::slug($request->CNT_Nombre_Canal_Notificacion, '_');
-        $canal = CanalNotificacion::where('CNT_Nick_Canal_Notificacion', $nick)->first();
+        if($request->ajax()){
+            if(can2('crear_canal_notificacion')){
+                $nick = Str::slug($request->CNT_Nombre_Canal_Notificacion, '_');
+                $canal = CanalNotificacion::where('CNT_Nick_Canal_Notificacion', $nick)->first();
 
-        if($canal){
-            return redirect()->route('crear_canal_notificacion')->withErrors(Lang::get('messages.NotificationChannelExists'))->withInput();
+                if(!$canal){
+                    CanalNotificacion::create([
+                        'CNT_Nombre_Canal_Notificacion' => $request->CNT_Nombre_Canal_Notificacion,
+                        'CNT_Descripcion_Canal_Notificacion' => $request->CNT_Descripcion_Canal_Notificacion,
+                        'CNT_Nick_Canal_Notificacion' => $nick,
+                        'CNT_Habilitado_Canal_Notificacion' => $request->has('CNT_Habilitado_Canal_Notificacion')
+                    ]);
+    
+                    return $this->vista(Lang::get('messages.NotificationChannelAdded'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                }
+                return response()->json(['mensaje'=>Lang::get('messages.NotificationChannelExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
-
-        CanalNotificacion::create([
-            'CNT_Nombre_Canal_Notificacion' => $request->CNT_Nombre_Canal_Notificacion,
-            'CNT_Descripcion_Canal_Notificacion' => $request->CNT_Descripcion_Canal_Notificacion,
-            'CNT_Nick_Canal_Notificacion' => $nick,
-            'CNT_Habilitado_Canal_Notificacion' => $request->has('CNT_Habilitado_Canal_Notificacion')
-        ]);
-
-        return redirect()->route('crear_canal_notificacion')->with('mensaje', Lang::get('messages.NotificationChannelAdded'));
+        abort(404);
     }
 
     /**
@@ -63,22 +76,20 @@ class CanalNotificacionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function editar($id)
+    public function editar(Request $request, $id)
     {
-        can('editar_canal_notificacion');
-        try {
-            $canalId = Crypt::decrypt($id);
-
-            $canal = CanalNotificacion::find($canalId);
-            
-            if($canal){
-                return view('theme.back.canal.editar', compact('canal'));
+        if($request->ajax()){
+            if(can2('editar_canal_notificacion')){
+                $canal = CanalNotificacion::find($id);
+        
+                if($canal){
+                    return view('theme.back.canal.editar', compact('canal'));
+                }
+                return response()->json(['mensaje'=>Lang::get('messages.ChannelNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
-            return redirect()->route('canal_notificacion')->with('mensaje', Lang::get('messages.ChannelNotExists'));
-
-        } catch (DecryptException $e) {
-            return redirect()->route('canal_notificacion')->withErrors(Lang::get('messages.IdNotValid'));
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
+        abort(404);
     }
 
     /**
@@ -90,33 +101,32 @@ class CanalNotificacionController extends Controller
      */
     public function actualizar(Request $request, $id)
     {
-        try {
-            $canalId = Crypt::decrypt($id);
-            
-            $canal = CanalNotificacion::find($canalId);
-
-            if($canal){
-                $nick = Str::slug($request->CNT_Nombre_Canal_Notificacion, '_');
-                $canalDisctintId = CanalNotificacion::where('id', '!=', $canalId)
-                    ->where('CNT_Nick_Canal_Notificacion', $nick)->first();
-
-                if($canalDisctintId){
-                    return redirect()->route('editar_canal_notificacion', ['id' => Crypt::encrypt($canal->id)])->withErrors(Lang::get('messages.NotificationChannelExists'))->withInput();
+        if($request->ajax()){
+            if(can2('editar_canal_notificacion')){
+                $canal = CanalNotificacion::find($id);
+        
+                if($canal){
+                    $nick = Str::slug($request->CNT_Nombre_Canal_Notificacion, '_');
+                    $canalDisctintId = CanalNotificacion::where('id', '!=', $id)
+                        ->where('CNT_Nick_Canal_Notificacion', $nick)->first();
+        
+                    if(!$canalDisctintId){
+                        $canal->update([
+                            'CNT_Nombre_Canal_Notificacion' => $request->CNT_Nombre_Canal_Notificacion,
+                            'CNT_Descripcion_Canal_Notificacion' => $request->CNT_Descripcion_Canal_Notificacion,
+                            'CNT_Nick_Canal_Notificacion' => $nick,
+                            'CNT_Habilitado_Canal_Notificacion' => $request->has('CNT_Habilitado_Canal_Notificacion')
+                        ]);
+        
+                        return $this->vista(Lang::get('messages.NotificationChannelUpdated'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                    }
+                    return response()->json(['mensaje'=>Lang::get('messages.NotificationChannelExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
                 }
-
-                $canal->update([
-                    'CNT_Nombre_Canal_Notificacion' => $request->CNT_Nombre_Canal_Notificacion,
-                    'CNT_Descripcion_Canal_Notificacion' => $request->CNT_Descripcion_Canal_Notificacion,
-                    'CNT_Nick_Canal_Notificacion' => $nick,
-                    'CNT_Habilitado_Canal_Notificacion' => $request->has('CNT_Habilitado_Canal_Notificacion')
-                ]);
-
-                return redirect()->route('canal_notificacion')->with('mensaje', Lang::get('messages.NotificationChannelUpdated'));
+                return response()->json(['mensaje'=>Lang::get('messages.ChannelNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
-            return redirect()->route('canal_notificacion')->withErrors(Lang::get('messages.ChannelNotExists'));
-        } catch (DecryptException $e) {
-            return redirect()->route('canal_notificacion')->withErrors(Lang::get('messages.IdNotValid'));
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
+        abort(404);
     }
 
     /**
@@ -125,8 +135,33 @@ class CanalNotificacionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function eliminar(Request $request, $id)
     {
-        //
+        if($request->ajax()){
+            if(can2('eliminar_canal_notificacion')){
+                try {
+                    CanalNotificacion::destroy($id);
+                } catch (QueryException $ex) {
+                    return response()->json(['mensaje'=>Lang::get('messages.ChannelNotificationNotDelete'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                }
+                return response()->json(['mensaje'=>Lang::get('messages.DeletedChannelNotification'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeSuccess'), 'row' => $id]);
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+        }
+        abort(404);
+    }
+
+    private function vista($mensaje=null, $titulo, $tipo)
+    {
+        $canales = CanalNotificacion::paginate(10);
+        return response()->json(['view'=>view('theme.back.canal.table-data')->with('canales', $canales)->render(), 'mensaje'=>$mensaje, 'titulo'=>$titulo, 'tipo'=>$tipo]);
+    }
+
+    function page(Request $request)
+    {
+        if($request->ajax()){
+            $canales = CanalNotificacion::paginate(10);
+            return view('theme.back.canal.table-data', compact('canales'))->render();
+        }
     }
 }
