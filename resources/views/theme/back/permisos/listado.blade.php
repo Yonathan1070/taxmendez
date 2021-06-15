@@ -4,6 +4,8 @@
 @endsection
 @section('styles')
     <link href="{{asset('assets/back/plugins/sweetalert/sweetalert.css')}}" rel="stylesheet" type="text/css">
+    <!--nestable CSS -->
+    <link href="{{asset('assets/back/plugins/nestable/nestable.css')}}" rel="stylesheet" type="text/css" />
 @endsection
 @section('content')
 <div class="row page-titles">
@@ -17,11 +19,8 @@
     <div class="card">
         <div class="card-header">
             <div class="card-actions">
-                <a class="mytooltip" href="{{route('ordenar_menu')}}">
+                <a href="{{route('ordenar_menu')}}" id="ordenar-menu" data-modal="accion-permiso">
                     <i class="ti-reload"></i>
-                    <span class="tooltip-content3">
-                        {{Lang::get('messages.ShortMenu')}}
-                    </span>
                 </a>
                 <a href="{{route('crear_permiso')}}" id="nuevo-registro" data-modal="accion-permiso">
                     <i class="ti-plus"></i>
@@ -53,13 +52,15 @@
 @endsection
 @section('scriptsPlugins')
     <script src="{{asset('assets/back/plugins/sweetalert/sweetalert.min.js')}}"></script>
+    <!--Nestable js -->
+    <script src="{{asset('assets/back/plugins/nestable/jquery.nestable.js')}}"></script>
 @endsection
 @section('scripts')
     <script src="{{asset('assets/back/scripts/ajax.js')}}"></script>
         
     <script src="{{asset('assets/back/js/validation.js')}}"></script>
-    
-    <script>
+
+    <script type="text/javascript">
         function icono() {
             var x = document.getElementById("PRM_Icono_Permiso");
             var i = document.getElementById("mostrar-icono");

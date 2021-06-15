@@ -90,6 +90,11 @@ function ajaxRequest(url, data, action, modal, form){
                 }
                 $(".preloader").fadeOut();
                 taxmendez.notificaciones(respuesta.mensaje, respuesta.titulo, respuesta.tipo, 5000);
+            }else if(action == 'ordenar-menu'){
+                $('#'+modal+' .modal-body').html(respuesta);
+                inicializarNestable();
+                $(".preloader").fadeOut();
+                $('#'+modal).modal('show');
             }
         },
         error: function(error){
@@ -153,4 +158,34 @@ function initDropify(){
             'error':   document.getElementById('DropifyError').value
         }
     });
+}
+
+//Nuevo Registro
+$('#ordenar-menu').on('click', function(event){
+    event.preventDefault();
+    $(".preloader").fadeIn();
+    const data = {
+        _token: $('input[name=_token]').val()
+    };
+    ajaxRequest($(this).attr('href'), data, 'ordenar-menu', $('#ordenar-menu').data('modal'));
+});
+
+function inicializarNestable(){
+    $('#nestable').nestable().on('change', function(){
+        const data = {
+            menu:window.JSON.stringify($('#nestable').nestable('serialize')),
+            _token: $('input[name=_token]').val()
+        };
+        $.ajax({
+            url:'guardarorden',
+            type:'POST',
+            dataType:'JSON',
+            data:data,
+            success:function(respuesta){
+                taxmendez.notificaciones(respuesta.mensaje, respuesta.TM, respuesta.type);
+            }
+        });
+    });
+
+    $('#nestable').nestable('expandAll');
 }

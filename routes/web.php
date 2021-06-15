@@ -68,12 +68,12 @@ Route::group(['prefix' => '/permisos', 'middleware' => ['auth']], function () {
     Route::post('', [PermisosController::class, 'guardar'])->name('guardar_permiso');
     Route::put('/{id}', [PermisosController::class, 'actualizar'])->name('actualizar_permiso');
     Route::delete('/{id}/eliminar', [PermisosController::class, 'eliminar'])->name('eliminar_permiso');
+    Route::post('/ordenarmenu', [PermisosController::class, 'ordenarMenu'])->name('ordenar_menu');
+    Route::get('iconos', [PermisosController::class, 'iconos'])->name('iconos');
+    Route::post('/guardarorden', [PermisosController::class, 'guardarOrden'])->name('guardar_orden');
 
     Route::get('/asignar/{id}', [PermisosController::class, 'index'])->name('permisos_usuario');
-    Route::get('/ordenarmenu', [PermisosController::class, 'ordenarMenu'])->name('ordenar_menu');
-    Route::get('iconos', [PermisosController::class, 'iconos'])->name('iconos');
     Route::post('/{id}/guardar', [PermisosController::class, 'guardarPermiso'])->name('guardar_permisos_usuario');
-    Route::post('/guardarorden', [PermisosController::class, 'guardarOrden'])->name('guardar_orden');
 });
 Route::group(['prefix' => '/automoviles', 'middleware' => ['auth']], function () {
     Route::get('', [AutomovilController::class, 'index'])->name('automoviles');

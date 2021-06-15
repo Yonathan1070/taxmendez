@@ -70,6 +70,7 @@ class PermisosController extends Controller
             $permisos = DB::table('TBL_Permiso as p')
                 ->join('TBL_Categoria as c', 'c.id', 'p.PRM_Categoria_Permiso')
                 ->select('c.*', 'p.*')
+                ->orderBy('p.PRM_Nombre_Permiso')
                 ->paginate(10);
 
             return view('theme.back.permisos.listado', compact('permisos'));
@@ -275,6 +276,7 @@ class PermisosController extends Controller
         $permisos = $permisos = DB::table('TBL_Permiso as p')
             ->join('TBL_Categoria as c', 'c.id', 'p.PRM_Categoria_Permiso')
             ->select('c.*', 'p.*')
+            ->orderBy('p.PRM_Nombre_Permiso')
             ->paginate(10);
         return response()->json(['view'=>view('theme.back.permisos.table-data')->with('permisos', $permisos)->render(), 'mensaje'=>$mensaje, 'titulo'=>$titulo, 'tipo'=>$tipo]);
     }
@@ -285,6 +287,7 @@ class PermisosController extends Controller
             $permisos = $permisos = DB::table('TBL_Permiso as p')
                 ->join('TBL_Categoria as c', 'c.id', 'p.PRM_Categoria_Permiso')
                 ->select('c.*', 'p.*')
+                ->orderBy('p.PRM_Nombre_Permiso')
                 ->paginate(10);
             return view('theme.back.permisos.table-data', compact('permisos'))->render();
         }
@@ -296,13 +299,20 @@ class PermisosController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function ordenarMenu()
+    public function ordenarMenu(Request $request)
     {
-        $menu = Permiso::where('PRM_Menu_Permiso', 1)
-            ->orderBy('PRM_Orden_Menu_Permiso')
-            ->get();
-        
-        return view('theme.back.permisos.orden', compact('menu'));
+        if($request->ajax()){
+            $rol = Roles::findOrFail(session()->get('Usuario_Id'));
+            if($rol && $rol->id == 1){
+                $menu = Permiso::where('PRM_Menu_Permiso', 1)
+                    ->orderBy('PRM_Orden_Menu_Permiso')
+                    ->get();
+                
+                return view('theme.back.permisos.orden', compact('menu'));
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+        }
+        abort(404);
     }
 
     public function guardarOrden(Request $request)
