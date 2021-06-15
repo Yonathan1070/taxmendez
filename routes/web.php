@@ -53,12 +53,15 @@ Route::group(['prefix' => '/roles', 'middleware' => ['auth']], function () {
 });
 Route::group(['prefix' => '/usuarios', 'middleware' => ['auth']], function () {
     Route::get('', [UsuariosController::class, 'index'])->name('usuarios');
-    Route::get('/crear', [UsuariosController::class, 'crear'])->name('crear_usuario');
-    Route::get('/editar/{id}', [UsuariosController::class, 'editar'])->name('editar_usuario');
+    Route::get('page', [UsuariosController::class, 'page'])->name('page_usuarios');
+    Route::post('/crear', [UsuariosController::class, 'crear'])->name('crear_usuario');
+    Route::put('/{id}/editar', [UsuariosController::class, 'editar'])->name('editar_usuario');
+    Route::post('', [UsuariosController::class, 'guardar'])->name('guardar_usuario');
+    Route::put('/{id}', [UsuariosController::class, 'actualizar'])->name('actualizar_usuario');
+    Route::delete('/{id}/eliminar', [UsuariosController::class, 'eliminar'])->name('eliminar_usuario');
+
     Route::get('/asignarroles/{id}', [UsuariosController::class, 'asignar'])->name('asignar_rol');
-    Route::post('/crear', [UsuariosController::class, 'guardar'])->name('guardar_usuario');
     Route::post('/asignarroles/{id}', [UsuariosController::class, 'guardarAsignar'])->name('guardar_asignar_rol');
-    Route::put('/editar/{id}', [UsuariosController::class, 'actualizar'])->name('actualizar_usuario');
 });
 Route::group(['prefix' => '/permisos', 'middleware' => ['auth']], function () {
     Route::get('/listado', [PermisosController::class, 'listar'])->name('permisos');

@@ -69,6 +69,9 @@ function ajaxRequest(url, data, action, modal, form){
                 if(modal == 'accion-empresa'){
                     initDropify();
                 }
+                if(modal == 'accion-usuario'){
+                    initDatePickerUser();
+                }
                 $(".preloader").fadeOut();
                 $('#'+modal).modal('show');
             }else if(action == 'guardar'){
@@ -188,4 +191,27 @@ function inicializarNestable(){
     });
 
     $('#nestable').nestable('expandAll');
+}
+
+function selectRol(sel) {
+    var conductor = 'Conductor';
+    if(sel.options[sel.selectedIndex].text.toLowerCase() == conductor.toLowerCase()){
+        document.getElementById('divConductorFijo').style.display = 'block';
+    }else{
+        document.getElementById('divConductorFijo').style.display = 'none';
+    }
+}
+
+function initDatePickerUser(){
+    $('#USR_Fecha_Vencimiento_Licencia_Usuario').bootstrapMaterialDatePicker({
+        weekStart: 0,
+        time: false,
+        format: 'YYYY-MM-DD',
+        locale: 'es'
+    });
+    $('#USR_Fecha_Nacimiento_Usuario').bootstrapMaterialDatePicker({
+        weekStart: 0,
+        time: false,
+        format: 'YYYY-MM-DD'
+    });
 }

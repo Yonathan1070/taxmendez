@@ -14,7 +14,7 @@ return [
     'IdNotValid' => 'Identificador no es válido',
     //Alerts
     'NotificationTypeSuccess'=>'success',
-    'NotificationTypeDanger'=>'danger',
+    'NotificationTypeWarning'=>'warning',
     'NotificationTypeError'=>'error',
 
     //Login
@@ -134,6 +134,10 @@ return [
     //Editar Usuario
     'UserNotExists' => 'Usuario no Existe',
     'User' => 'Usuario',
+    //Eliminar usuario
+    'UserNotDelete' => 'El usuario no se pudo eliminar, está siendo usado por otro recurso.',
+    'UserDeleted' => 'Usuario Eliminado.',
+    'UserInactive' => 'El usuario está siendo usado por otro recurso, se ha dejado inactivo.',
     //Asignar Permisos
     'AssignPermissions' => 'Asignar Permisos a',
     'AssignedPermissions' => 'Permisos Asignados',

@@ -14,7 +14,7 @@ return [
     'IdNotValid' => 'Invalid Id',
     //Alerts
     'NotificationTypeSuccess'=>'success',
-    'NotificationTypeDanger'=>'danger',
+    'NotificationTypeWarning'=>'warning',
     'NotificationTypeError'=>'error',
 
     //Login
@@ -134,6 +134,10 @@ return [
     //Editar Usuario
     'UserNotExists' => 'User not Exists',
     'User' => 'User',
+    //Eliminar usuario
+    'UserNotDelete' => 'The user could not be deleted, it is being used by another resource.',
+    'UserDeleted' => 'User deleted.',
+    'UserInactive' => 'The user is being used by another resource, it has been left inactive.',
     //Asignar Permisos
     'AssignPermissions' => 'Assign Permissions to',
     'AssignedPermissions' => 'Assigned Permissions',

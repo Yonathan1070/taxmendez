@@ -3,7 +3,7 @@
     {{Lang::get('messages.Turns')}}
 @endsection
 @section('styles')
-    
+    <link href="{{asset('assets/back/plugins/sweetalert/sweetalert.css')}}" rel="stylesheet" type="text/css">
 @endsection
 @section('content')
 <div class="row page-titles">
