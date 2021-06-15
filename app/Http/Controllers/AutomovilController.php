@@ -15,6 +15,7 @@ use App\Models\Utility;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -337,29 +338,23 @@ class AutomovilController extends Controller
     public function balance($id)
     {
         can('balance');
-        try {
-            $automovilId = Crypt::decrypt($id);
-            $automovil = Automovil::findOrFail($automovilId);
+        $automovil = Automovil::find($id);
 
-            if($automovil){
-                Session::put(['Automovil_Id' => $automovil->id]);
-                $mes = Carbon::now()->format('m');
-                $anio = Carbon::now()->format('Y');
+        if($automovil){
+            Session::put(['Automovil_Id' => $automovil->id]);
+            $mes = Carbon::now()->format('m');
+            $anio = Carbon::now()->format('Y');
 
-                $cantidadDias = $this->obtenerDiasMes($mes, $anio);
-                $turnosRegistrados = UsuarioAutomovilTurno::where('TRN_AUT_Fecha_Turno', '>=', $anio.'-'.$mes.'-01')
-                    ->where('TRN_AUT_Fecha_Turno', '<=', $anio.'-'.$mes.'-'.$cantidadDias)
-                    ->get()
-                    ->count();
+            $cantidadDias = $this->obtenerDiasMes($mes, $anio);
+            $turnosRegistrados = UsuarioAutomovilTurno::where('TRN_AUT_Fecha_Turno', '>=', $anio.'-'.$mes.'-01')
+                ->where('TRN_AUT_Fecha_Turno', '<=', $anio.'-'.$mes.'-'.$cantidadDias)
+                ->get()
+                ->count();
                 
-                $boton = (($turnosRegistrados/2) >= $cantidadDias) ? 'block' : 'none';
-                return view('theme.back.automoviles.balance', compact('automovil', 'boton'));
-            } else {
-                return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
-            }
-        } catch (DecryptException $e) {
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
+            $boton = (($turnosRegistrados/2) >= $cantidadDias) ? 'block' : 'none';
+            return view('theme.back.automoviles.balance', compact('automovil', 'boton'));
         }
+        return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
     }
 
     public function agregarDatos(Request $request, $id)
@@ -722,231 +717,235 @@ class AutomovilController extends Controller
     }
 
     public function generarBalance(Request $request, $id){
-        try {
-            $automovilId = Crypt::decrypt($id);
-            $automovil = Automovil::findOrFail($automovilId);
+        if($request->ajax()){
+            if(can2('balance')){
+                $automovil = Automovil::findOrFail($id);
 
-            if($automovil){
-                if($request->has('notificacion') && $request->notificacion == true){
-                    Notificacion::find($request->notificacionId)->update([
-                        'NTF_Visto_Notificacion' => 1
-                    ]);
-                }
-                
-                //Mensualidad
-                $fecha = explode("-", $request->mesAnio);
-                $cantidadDias = $this->obtenerDiasMes($fecha[0], $fecha[1]);
+                if($automovil){
+                    if($request->has('notificacion') && $request->notificacion == true){
+                        Notificacion::find($request->notificacionId)->update([
+                            'NTF_Visto_Notificacion' => 1
+                        ]);
+                    }
+                    
+                    //Mensualidad
+                    $fecha = explode("-", $request->mesAnio);
+                    $cantidadDias = $this->obtenerDiasMes($fecha[0], $fecha[1]);
 
-                $mensual = DB::table('TBL_Usuario_Automovil_Turno as uat')
-                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
-                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
-                    ->where('TRN_AUT_Fecha_Turno', '>=', $fecha[1].'-'.$fecha[0].'-01')
-                    ->where('TRN_AUT_Fecha_Turno', '<=', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
-                    ->select(
-                        DB::raw('SUM(uat.TRN_AUT_Producido_Turno) as Producido'),
-                        DB::raw('SUM(uat.TRN_AUT_Kilometros_Andados_Turno) as Kilometraje'),
-                        DB::raw('SUM(t.TRN_Valor_Turno)/2 as DiasTrabajados'),
-                        DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/SUM(uat.TRN_AUT_Kilometros_Andados_Turno)) as PromedioKilometraje'),
-                        DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/(SUM(t.TRN_Valor_Turno)/2)) as PromedioDia')
-                    )
-                    ->groupBy('uat.TRN_AUT_Automovil_Id')
-                    ->first();
-                
-                $ultimoDiaMesAnterior = Carbon::createFromFormat('Y-m-d', $fecha[1].'-'.$fecha[0].'-01')->subDay()->format('Y-m-d');
-                
-                $KM_Anterior = DB::table('TBL_Usuario_Automovil_Turno as uat')
-                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
-                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
-                    ->where('TRN_AUT_Fecha_Turno', $ultimoDiaMesAnterior)
-                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
-                    ->select(
-                        DB::raw('(uat.TRN_AUT_Kilometraje_Turno) as KM_Anterior')
-                    )
-                    ->first();
-                
-                $KM_Ultimo = DB::table('TBL_Usuario_Automovil_Turno as uat')
-                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
-                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
-                    ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
-                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
-                    ->select(
-                        'uat.TRN_AUT_Kilometraje_Turno'
-                    )
-                    ->first();
-
-                //Balance Trabajadores
-                $conductores = DB::table('TBL_Usuario_Automovil_Turno as uat')
-                    ->join('TBL_Usuario as u', 'u.id', 'uat.TRN_AUT_Usuario_Turno_Id')
-                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
-                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
-                    ->where('TRN_AUT_Fecha_Turno', '>=', $fecha[1].'-'.$fecha[0].'-01')
-                    ->where('TRN_AUT_Fecha_Turno', '<=', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
-                    ->select(
-                        'u.id',
-                        'u.USR_Nombres_Usuario',
-                        DB::raw('SUM(uat.TRN_AUT_Producido_Turno) as Producido'),
-                        DB::raw('SUM(uat.TRN_AUT_Kilometros_Andados_Turno) as Kilometraje'),
-                        DB::raw('SUM(t.TRN_Valor_Turno) as Turnos'),
-                        DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/SUM(uat.TRN_AUT_Kilometros_Andados_Turno)) as PromedioKilometraje'),
-                        DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/SUM(t.TRN_Valor_Turno)) as PromedioTurno'),
-                        DB::raw('null as turnosAsignados')
-                    )
-                    ->groupBy('u.id')
-                    ->get();
-
-                foreach ($conductores as $conductorTurno) {
-                    $turnosConductor = DB::table('TBL_Usuario_Automovil_Turno as uat')
-                        ->join('TBL_Usuario as u', 'u.id', 'uat.TRN_AUT_Usuario_Turno_Id')
+                    $mensual = DB::table('TBL_Usuario_Automovil_Turno as uat')
                         ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
-                        ->where('TRN_AUT_Usuario_Turno_Id', $conductorTurno->id)
+                        ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
                         ->where('TRN_AUT_Fecha_Turno', '>=', $fecha[1].'-'.$fecha[0].'-01')
                         ->where('TRN_AUT_Fecha_Turno', '<=', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
-                        ->where(function($q) {
-                            $q->where('t.TRN_Slug_Turno', 'dia')
-                              ->orWhere('t.TRN_Slug_Turno', 'noche');
-                        })
-                        ->select('t.*')
-                        ->groupBy('t.id')
+                        ->select(
+                            DB::raw('SUM(uat.TRN_AUT_Producido_Turno) as Producido'),
+                            DB::raw('SUM(uat.TRN_AUT_Kilometros_Andados_Turno) as Kilometraje'),
+                            DB::raw('SUM(t.TRN_Valor_Turno)/2 as DiasTrabajados'),
+                            DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/SUM(uat.TRN_AUT_Kilometros_Andados_Turno)) as PromedioKilometraje'),
+                            DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/(SUM(t.TRN_Valor_Turno)/2)) as PromedioDia')
+                        )
+                        ->groupBy('uat.TRN_AUT_Automovil_Id')
+                        ->first();
+                    
+                    $ultimoDiaMesAnterior = Carbon::createFromFormat('Y-m-d', $fecha[1].'-'.$fecha[0].'-01')->subDay()->format('Y-m-d');
+                    
+                    $KM_Anterior = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                        ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                        ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                        ->where('TRN_AUT_Fecha_Turno', $ultimoDiaMesAnterior)
+                        ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
+                        ->select(
+                            DB::raw('(uat.TRN_AUT_Kilometraje_Turno) as KM_Anterior')
+                        )
+                        ->first();
+                    
+                    $KM_Ultimo = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                        ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                        ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                        ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
+                        ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
+                        ->select(
+                            'uat.TRN_AUT_Kilometraje_Turno'
+                        )
+                        ->first();
+
+                    //Balance Trabajadores
+                    $conductores = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                        ->join('TBL_Usuario as u', 'u.id', 'uat.TRN_AUT_Usuario_Turno_Id')
+                        ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                        ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                        ->where('TRN_AUT_Fecha_Turno', '>=', $fecha[1].'-'.$fecha[0].'-01')
+                        ->where('TRN_AUT_Fecha_Turno', '<=', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
+                        ->select(
+                            'u.id',
+                            'u.USR_Nombres_Usuario',
+                            DB::raw('SUM(uat.TRN_AUT_Producido_Turno) as Producido'),
+                            DB::raw('SUM(uat.TRN_AUT_Kilometros_Andados_Turno) as Kilometraje'),
+                            DB::raw('SUM(t.TRN_Valor_Turno) as Turnos'),
+                            DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/SUM(uat.TRN_AUT_Kilometros_Andados_Turno)) as PromedioKilometraje'),
+                            DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/SUM(t.TRN_Valor_Turno)) as PromedioTurno'),
+                            DB::raw('null as turnosAsignados')
+                        )
+                        ->groupBy('u.id')
+                        ->get();
+
+                    foreach ($conductores as $conductorTurno) {
+                        $turnosConductor = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                            ->join('TBL_Usuario as u', 'u.id', 'uat.TRN_AUT_Usuario_Turno_Id')
+                            ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                            ->where('TRN_AUT_Usuario_Turno_Id', $conductorTurno->id)
+                            ->where('TRN_AUT_Fecha_Turno', '>=', $fecha[1].'-'.$fecha[0].'-01')
+                            ->where('TRN_AUT_Fecha_Turno', '<=', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
+                            ->where(function($q) {
+                                $q->where('t.TRN_Slug_Turno', 'dia')
+                                ->orWhere('t.TRN_Slug_Turno', 'noche');
+                            })
+                            ->select('t.*')
+                            ->groupBy('t.id')
+                            ->get();
+                        
+                        $conductorTurno->turnosAsignados = $turnosConductor;
+                    }
+
+                    //Diferencia kms en el mes
+                    $KMSTotales = $KM_Ultimo->TRN_AUT_Kilometraje_Turno - $KM_Anterior->KM_Anterior;
+                    $diferencia = $KMSTotales - $mensual->Kilometraje;
+                    
+                    if($diferencia > 0){
+                        $mensual->Kilometraje = $KMSTotales;
+                        $mensual->PromedioKilometraje = round($mensual->Producido / $mensual->Kilometraje);
+                        $cadaConductor = round($diferencia/$conductores->count());
+                        foreach ($conductores as $conductor) {
+                            $conductor->Kilometraje = $conductor->Kilometraje + $cadaConductor;
+                            $conductor->PromedioKilometraje = round($conductor->Producido / $conductor->Kilometraje);
+                        }
+                    }
+
+                    $gastosAgregados = Gastos::where('GST_Automovil_Id', $automovil->id)
+                        ->where('GST_Mes_Anio_Gasto', $fecha[1].'-'.$fecha[0].'-01')
                         ->get();
                     
-                    $conductorTurno->turnosAsignados = $turnosConductor;
-                }
-
-                //Diferencia kms en el mes
-                $KMSTotales = $KM_Ultimo->TRN_AUT_Kilometraje_Turno - $KM_Anterior->KM_Anterior;
-                $diferencia = $KMSTotales - $mensual->Kilometraje;
-                
-                if($diferencia > 0){
-                    $mensual->Kilometraje = $KMSTotales;
-                    $mensual->PromedioKilometraje = round($mensual->Producido / $mensual->Kilometraje);
-                    $cadaConductor = round($diferencia/$conductores->count());
-                    foreach ($conductores as $conductor) {
-                        $conductor->Kilometraje = $conductor->Kilometraje + $cadaConductor;
-                        $conductor->PromedioKilometraje = round($conductor->Producido / $conductor->Kilometraje);
+                    foreach ($gastosAgregados as $gasto) {
+                        if($gasto->GST_Costo_Gasto == -1){
+                            $gasto->delete();
+                            break;
+                        }
                     }
-                }
 
-                $gastosAgregados = Gastos::where('GST_Automovil_Id', $automovil->id)
-                    ->where('GST_Mes_Anio_Gasto', $fecha[1].'-'.$fecha[0].'-01')
-                    ->get();
-                
-                foreach ($gastosAgregados as $gasto) {
-                    if($gasto->GST_Costo_Gasto == -1){
-                        $gasto->delete();
-                        break;
+                    $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+                        ->where('GST_Mes_Anio_Gasto', $fecha[1].'-'.$fecha[0].'-01')
+                        ->select(
+                            DB::raw('SUM(GST_Costo_Gasto) as GST_Costo_Gasto'),
+                        )
+                        ->first();
+
+                    if(!$gastos || !$gastos->GST_Costo_Gasto){
+                        $gastos = Gastos::create([
+                            'GST_Automovil_Id' => $automovil->id,
+                            'GST_Mes_Anio_Gasto' => $fecha[1].'-'.$fecha[0].'-01',
+                            'GST_Costo_Gasto' => -1
+                        ]);
                     }
-                }
+                    
+                    $ganancia = $mensual->Producido - ((!$gastos || $gastos->GST_Costo_Gasto < 0) ? 0 : $gastos->GST_Costo_Gasto);
 
-                $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
-                    ->where('GST_Mes_Anio_Gasto', $fecha[1].'-'.$fecha[0].'-01')
-                    ->select(
-                        DB::raw('SUM(GST_Costo_Gasto) as GST_Costo_Gasto'),
-                    )
-                    ->first();
+                    $propietarios = AutomovilPropietario::where('AUT_PRP_Automovil_Id', $automovil->id)
+                        ->get()->count();
 
-                if(!$gastos || !$gastos->GST_Costo_Gasto){
-                    $gastos = Gastos::create([
-                        'GST_Automovil_Id' => $automovil->id,
-                        'GST_Mes_Anio_Gasto' => $fecha[1].'-'.$fecha[0].'-01',
-                        'GST_Costo_Gasto' => -1
-                    ]);
-                }
-                
-                $ganancia = $mensual->Producido - ((!$gastos || $gastos->GST_Costo_Gasto < 0) ? 0 : $gastos->GST_Costo_Gasto);
-
-                $propietarios = AutomovilPropietario::where('AUT_PRP_Automovil_Id', $automovil->id)
-                    ->get()->count();
-
-                $mensualDatos = Mensualidad::where('MNS_Automovil_Id', $automovil->id)
-                    ->where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnio)->format('Y-m-d'))
-                    ->first();
-
-                if(!$mensualDatos){
-                    $mensualDatos = Mensualidad::create([
-                        'MNS_Automovil_Id' => $automovil->id,
-                        'MNS_Producido_Mensualidad' => $mensual->Producido,
-                        'MNS_Gastos_Mensualidad' => $gastos->GST_Costo_Gasto,
-                        'MNS_Kilometraje_Mensualidad' => $mensual->Kilometraje,
-                        'MNS_Dias_Trabajados_Mensualidad' => $mensual->DiasTrabajados,
-                        'MNS_Mes_Anio_Mensualidad' => Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnio)->format('Y-m-d')
-                    ]);
-                } else {
-                    $mensualDatos->update([
-                        'MNS_Producido_Mensualidad' => $mensual->Producido,
-                        'MNS_Kilometraje_Mensualidad' => $mensual->Kilometraje,
-                        'MNS_Dias_Trabajados_Mensualidad' => $mensual->DiasTrabajados,
-                        'MNS_Gastos_Mensualidad' => $gastos->GST_Costo_Gasto
-                    ]);
-                }
-                if($gastos->GST_Costo_Gasto >= 0 && $mensualDatos->MNS_Gastos_Mensualidad == -1){
-                    Mensualidad::where('MNS_Automovil_Id', $automovil->id)
+                    $mensualDatos = Mensualidad::where('MNS_Automovil_Id', $automovil->id)
                         ->where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnio)->format('Y-m-d'))
-                        ->update([
+                        ->first();
+
+                    if(!$mensualDatos){
+                        $mensualDatos = Mensualidad::create([
+                            'MNS_Automovil_Id' => $automovil->id,
+                            'MNS_Producido_Mensualidad' => $mensual->Producido,
+                            'MNS_Gastos_Mensualidad' => $gastos->GST_Costo_Gasto,
+                            'MNS_Kilometraje_Mensualidad' => $mensual->Kilometraje,
+                            'MNS_Dias_Trabajados_Mensualidad' => $mensual->DiasTrabajados,
+                            'MNS_Mes_Anio_Mensualidad' => Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnio)->format('Y-m-d')
+                        ]);
+                    } else {
+                        $mensualDatos->update([
+                            'MNS_Producido_Mensualidad' => $mensual->Producido,
+                            'MNS_Kilometraje_Mensualidad' => $mensual->Kilometraje,
+                            'MNS_Dias_Trabajados_Mensualidad' => $mensual->DiasTrabajados,
                             'MNS_Gastos_Mensualidad' => $gastos->GST_Costo_Gasto
                         ]);
+                    }
+                    if($gastos->GST_Costo_Gasto >= 0 && $mensualDatos->MNS_Gastos_Mensualidad == -1){
+                        Mensualidad::where('MNS_Automovil_Id', $automovil->id)
+                            ->where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnio)->format('Y-m-d'))
+                            ->update([
+                                'MNS_Gastos_Mensualidad' => $gastos->GST_Costo_Gasto
+                            ]);
+                    }
+
+                    return view(
+                        'theme.back.automoviles.cuadro-mes', 
+                        compact(
+                            'automovil',
+                            'mensual',
+                            'conductores',
+                            'gastos',
+                            'fecha',
+                            'ganancia',
+                            'propietarios',
+                            'KMSTotales'
+                        )
+                    );
+                    //Fin Mensualidad
                 }
+                return response()->json(['mensaje'=>Lang::get('messages.CarNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
                 
-                return view(
-                    'theme.back.automoviles.cuadro-mes', 
-                    compact(
-                        'automovil',
-                        'mensual',
-                        'conductores',
-                        'gastos',
-                        'fecha',
-                        'ganancia',
-                        'propietarios',
-                        'KMSTotales'
-                    )
-                );
-                //Fin Mensualidad
             }
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
-        } catch (DecryptException $e) {
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
+        abort(404);
     }
 
     public function guardarGastos(Request $request, $id){
-        try {
-            $automovilId = Crypt::decrypt($id);
-            $automovil = Automovil::findOrFail($automovilId);
+        $automovil = Automovil::find($id);
 
-            if($automovil){
-                if($request->ajax()){
-                    if($request->Gastos == -1){
-                        return response()->json(['mensaje' => 'noGastos']);
-                    }
+        if($automovil){
+            if($request->ajax()){
+                if($request->GST_Costo_Gasto == -1){
+                    return response()->json(['mensaje'=>Lang::get('messages.NoExpenses'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                }
+                if(!$request->GST_Descripcion_Gasto || $request->GST_Descripcion_Gasto == ''){
                     $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
-                        ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.$request->MesAnio)->format('Y-m-d'))
+                        ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnioGastosMensualidad)->format('Y-m-d'))
                         ->first();
                     
                     if(!$gastos){
                         Gastos::create([
                             'GST_Automovil_Id' => $automovil->id,
-                            'GST_Mes_Anio_Gasto' => Carbon::createFromFormat('d-m-Y', '01-'.$request->MesAnio)->format('Y-m-d'),
-                            'GST_Costo_Gasto' => $request->Gastos
+                            'GST_Mes_Anio_Gasto' => Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnioGastosMensualidad)->format('Y-m-d'),
+                            'GST_Costo_Gasto' => $request->GST_Costo_Gasto
                         ]);
                     } else {
                         $gastos->update([
-                            'GST_Costo_Gasto' => $request->Gastos
+                            'GST_Costo_Gasto' => $request->GST_Costo_Gasto
                         ]);
                     }
                     Mensualidad::where('MNS_Automovil_Id', $automovil->id)
-                        ->where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('d-m-Y', '01-'.$request->MesAnio)->format('Y-m-d'))
+                        ->where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnioGastosMensualidad)->format('Y-m-d'))
                         ->first()->update([
-                            'MNS_Gastos_Mensualidad' => $request->Gastos
+                            'MNS_Gastos_Mensualidad' => $request->GST_Costo_Gasto
                         ]);
                     
                     $propietarios = AutomovilPropietario::where('AUT_PRP_Automovil_Id', $automovil->id)
                         ->get()->count();
-                    
-                    return response()->json(['mensaje' => 'ok', 'propietarios' => $propietarios]);
-                } else {
+
+                    return response()->json(['mensaje'=>Lang::get('messages.ExpensesAdded'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeSuccess'), 'propietarios' => $propietarios]);
+                }else{
+                    if($request->GST_Costo_Gasto <= 0){
+                        return response()->json(['mensaje'=>Lang::get('messages.NoExpenses'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                    }
                     $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
                         ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnioGastos)->format('Y-m-d'))
                         ->get();
-                    
+                        
                     foreach ($gastos as $gasto) {
                         if($gasto->GST_Costo_Gasto == -1){
                             $gasto->delete();
@@ -960,15 +959,21 @@ class AutomovilController extends Controller
                         'GST_Descripcion_Gasto' => $request->GST_Descripcion_Gasto,
                         'GST_Costo_Gasto' => $request->GST_Costo_Gasto
                     ]);
-                    Session::put(['FechaGastos' => $request->mesAnioGastos]);
 
-                    return redirect()->route('agregar_gastos_sesion', ['id'=>Crypt::encrypt($automovil->id)])->with('mensaje', Lang::get('messages.ExpenseAdded'));
+                    return $this->vistaGastos(Lang::get('messages.ExpensesAdded'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'), $automovil, $request->mesAnioGastos);
                 }
             }
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
-        } catch (DecryptException $e) {
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
         }
+        return response()->json(['mensaje'=>Lang::get('messages.CarNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+    }
+
+    private function vistaGastos($mensaje=null, $titulo, $tipo, $automovil, $fecha)
+    {
+        $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+            ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.$fecha)->format('Y-m-d'))
+            ->orderBy('updated_at')
+            ->get();
+        return response()->json(['view'=>view('theme.back.automoviles.gastos.table-data')->with('gastos', $gastos)->with('automovil', $automovil)->render(), 'mensaje'=>$mensaje, 'titulo'=>$titulo, 'tipo'=>$tipo]);
     }
 
     private function obtenerConductoresFijos($fecha, $cantidadDias, $id){
@@ -1013,179 +1018,180 @@ class AutomovilController extends Controller
     }
 
     public function balanceAnual(Request $request, $id){
-        try {
-            $automovilId = Crypt::decrypt($id);
-            $automovil = Automovil::findOrFail($automovilId);
+        if($request->ajax()){
+            if(can2('balance')){
+                $automovil = Automovil::find($id);
 
-            $anio = ($request->Anio) ? $request->Anio : Carbon::now()->format('Y');
+                $anio = ($request->Anio) ? $request->Anio : Carbon::now()->format('Y');
 
-            if($automovil){
-                $anual = DB::table('TBL_Mensualidad as m')
-                    ->where('m.MNS_Automovil_Id', $automovil->id)
-                    ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [Carbon::createFromFormat('d-m-Y', '01-01-'.$request->Anio)->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', '31-12-'.$request->Anio)->format('Y-m-d')])
-                    ->select(
-                        'm.MNS_Producido_Mensualidad as Producido',
-                        DB::raw("IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad) as Gastos"),
-                        'm.MNS_Kilometraje_Mensualidad as Kilometraje',
-                        'm.MNS_Dias_Trabajados_Mensualidad as DiasTrabajados',
-                        DB::raw('ROUND(m.MNS_Producido_Mensualidad/m.MNS_Kilometraje_Mensualidad) as PromedioKilometraje'),
-                        DB::raw('ROUND(m.MNS_Producido_Mensualidad/m.MNS_Dias_Trabajados_Mensualidad) as PromedioDia'),
-                        'm.MNS_Mes_Anio_Mensualidad as MesAnio'
-                    )
-                    ->orderBy('MesAnio')
-                    ->get();
+                if($automovil){
+                    $anual = DB::table('TBL_Mensualidad as m')
+                        ->where('m.MNS_Automovil_Id', $automovil->id)
+                        ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [Carbon::createFromFormat('d-m-Y', '01-01-'.$request->Anio)->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', '31-12-'.$request->Anio)->format('Y-m-d')])
+                        ->select(
+                            'm.MNS_Producido_Mensualidad as Producido',
+                            DB::raw("IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad) as Gastos"),
+                            'm.MNS_Kilometraje_Mensualidad as Kilometraje',
+                            'm.MNS_Dias_Trabajados_Mensualidad as DiasTrabajados',
+                            DB::raw('ROUND(m.MNS_Producido_Mensualidad/m.MNS_Kilometraje_Mensualidad) as PromedioKilometraje'),
+                            DB::raw('ROUND(m.MNS_Producido_Mensualidad/m.MNS_Dias_Trabajados_Mensualidad) as PromedioDia'),
+                            'm.MNS_Mes_Anio_Mensualidad as MesAnio'
+                        )
+                        ->orderBy('MesAnio')
+                        ->get();
 
-                $totales = DB::table('TBL_Mensualidad as m')
-                    ->where('m.MNS_Automovil_Id', $automovil->id)
-                    ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [Carbon::createFromFormat('d-m-Y', '01-01-'.$request->Anio)->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', '31-12-'.$request->Anio)->format('Y-m-d')])
-                    ->select(
-                        DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
-                        DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
-                        DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
-                        DB::raw('SUM(m.MNS_Dias_Trabajados_Mensualidad) as DiasTrabajados'),
-                        DB::raw('ROUND(SUM(m.MNS_Producido_Mensualidad)/SUM(m.MNS_Kilometraje_Mensualidad)) as PromedioKilometraje'),
-                        DB::raw('ROUND(SUM(m.MNS_Producido_Mensualidad)/SUM(m.MNS_Dias_Trabajados_Mensualidad)) as PromedioDia')
-                    )
-                    ->groupBy('m.MNS_Automovil_Id')
-                    ->first();
-                
-                $propietarios = AutomovilPropietario::where('AUT_PRP_Automovil_Id', $automovil->id)
-                    ->get()->count();
+                    $totales = DB::table('TBL_Mensualidad as m')
+                        ->where('m.MNS_Automovil_Id', $automovil->id)
+                        ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [Carbon::createFromFormat('d-m-Y', '01-01-'.$request->Anio)->format('Y-m-d'), Carbon::createFromFormat('d-m-Y', '31-12-'.$request->Anio)->format('Y-m-d')])
+                        ->select(
+                            DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                            DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                            DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                            DB::raw('SUM(m.MNS_Dias_Trabajados_Mensualidad) as DiasTrabajados'),
+                            DB::raw('ROUND(SUM(m.MNS_Producido_Mensualidad)/SUM(m.MNS_Kilometraje_Mensualidad)) as PromedioKilometraje'),
+                            DB::raw('ROUND(SUM(m.MNS_Producido_Mensualidad)/SUM(m.MNS_Dias_Trabajados_Mensualidad)) as PromedioDia')
+                        )
+                        ->groupBy('m.MNS_Automovil_Id')
+                        ->first();
+                    
+                    $propietarios = AutomovilPropietario::where('AUT_PRP_Automovil_Id', $automovil->id)
+                        ->get()->count();
 
-                return view('theme.back.automoviles.anual', compact('automovil', 'anual', 'totales', 'propietarios', 'anio'));
+                    return view('theme.back.automoviles.anual', compact('automovil', 'anual', 'totales', 'propietarios', 'anio'));
+                }
+                return response()->json(['mensaje'=>Lang::get('messages.CarNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
-        } catch (DecryptException $e) {
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
+        abort(404);
     }
 
     public function balanceDiario(Request $request, $id){
-        try {
-            $automovilId = Crypt::decrypt($id);
-            $automovil = Automovil::findOrFail($automovilId);
+        if($request->ajax()){
+            if(can2('balance')){
+                $automovil = Automovil::find($id);
 
-            if($automovil){
-                if(session()->get('Automovil_Id') == null || session()->get('Automovil_Id') != $automovil->id){
-                    Session::put(['Automovil_Id' => $automovil->id]);
-                }
-                $fecha = explode("-", $request->mesAnioTurnos);
-                $cantidadDias = $this->obtenerDiasMes($fecha[0], $fecha[1]);
-                $cantidadFebrero = $this->obtenerDiasMes(02, $fecha[1]);
+                if($automovil){
+                    if(session()->get('Automovil_Id') == null || session()->get('Automovil_Id') != $automovil->id){
+                        Session::put(['Automovil_Id' => $automovil->id]);
+                    }
+                    $fecha = explode("-", $request->mesAnioTurnos);
+                    $cantidadDias = $this->obtenerDiasMes($fecha[0], $fecha[1]);
+                    $cantidadFebrero = $this->obtenerDiasMes(02, $fecha[1]);
 
-                $fechaMes = $request->mesAnioTurnos;
-                //Conductores fijos
-                $conductoresFijos = $this->obtenerConductoresFijos($fecha, $cantidadDias, $automovil->id)->orderBy('u.id')
-                    ->get();
+                    $fechaMes = $request->mesAnioTurnos;
+                    //Conductores fijos
+                    $conductoresFijos = $this->obtenerConductoresFijos($fecha, $cantidadDias, $automovil->id)->orderBy('u.id')
+                        ->get();
+                        
+                    $conductorFijoUno = null;
+                    $conductorFijoDos = null;
+                    foreach ($conductoresFijos as $key => $conductor) {
+                        $contador = $key+1;
+                        $conductorFijoUno = ($conductoresFijos->count() <= $contador) ? $conductor : $conductoresFijos[$contador];
+                        $conductorFijoDos = $conductor;
+                        break;
+                    }
                     
-                $conductorFijoUno = null;
-                $conductorFijoDos = null;
-                foreach ($conductoresFijos as $key => $conductor) {
-                    $contador = $key+1;
-                    $conductorFijoUno = ($conductoresFijos->count() <= $contador) ? $conductor : $conductoresFijos[$contador];
-                    $conductorFijoDos = $conductor;
-                    break;
-                }
-                
-                $dias = [];
-                for($i = 1; $i <= $cantidadDias; $i++){
-                    $turnosDia = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                    $dias = [];
+                    for($i = 1; $i <= $cantidadDias; $i++){
+                        $turnosDia = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                            ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                            ->join('TBL_Usuario as u', 'u.id', 'uat.TRN_AUT_Usuario_Turno_Id')
+                            ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                            ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-'.$i)
+                            ->select(
+                                'u.USR_Nombres_Usuario',
+                                'uat.TRN_AUT_Fecha_Turno',
+                                'uat.TRN_AUT_Producido_Turno',
+                                'uat.TRN_AUT_Kilometros_Andados_Turno',
+                                'uat.TRN_AUT_Observacion_Turno_Seleccionado',
+                                't.id as TurnoId'
+                            )
+                            ->orderBy('TRN_AUT_Fecha_Turno')
+                            ->orderBy('u.USR_Nombres_Usuario')
+                            ->get();
+                        
+                        array_push($dias, $turnosDia);
+                    }
+
+
+                    $mensual = DB::table('TBL_Usuario_Automovil_Turno as uat')
                         ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
-                        ->join('TBL_Usuario as u', 'u.id', 'uat.TRN_AUT_Usuario_Turno_Id')
                         ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
-                        ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-'.$i)
+                        ->where('TRN_AUT_Fecha_Turno', '>=', $fecha[1].'-'.$fecha[0].'-01')
+                        ->where('TRN_AUT_Fecha_Turno', '<=', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
                         ->select(
-                            'u.USR_Nombres_Usuario',
-                            'uat.TRN_AUT_Fecha_Turno',
-                            'uat.TRN_AUT_Producido_Turno',
-                            'uat.TRN_AUT_Kilometros_Andados_Turno',
-                            'uat.TRN_AUT_Observacion_Turno_Seleccionado',
-                            't.id as TurnoId'
+                            DB::raw('SUM(uat.TRN_AUT_Producido_Turno) as Producido'),
+                            DB::raw('SUM(uat.TRN_AUT_Kilometros_Andados_Turno) as Kilometraje'),
+                            DB::raw('SUM(t.TRN_Valor_Turno)/2 as DiasTrabajados'),
+                            DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/SUM(uat.TRN_AUT_Kilometros_Andados_Turno)) as PromedioKilometraje'),
+                            DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/(SUM(t.TRN_Valor_Turno)/2)) as PromedioDia')
                         )
-                        ->orderBy('TRN_AUT_Fecha_Turno')
-                        ->orderBy('u.USR_Nombres_Usuario')
+                        ->groupBy('uat.TRN_AUT_Automovil_Id')
+                        ->first();
+
+                    $ultimoDiaMesAnterior = Carbon::createFromFormat('Y-m-d', $fecha[1].'-'.$fecha[0].'-01')->subDay()->format('Y-m-d');
+                    
+                    $KM_Anterior = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                        ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                        ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                        ->where('TRN_AUT_Fecha_Turno', $ultimoDiaMesAnterior)
+                        ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
+                        ->select(
+                            DB::raw('(uat.TRN_AUT_Kilometraje_Turno) as KM_Anterior')
+                        )
+                        ->first();
+                    
+                    $KM_Ultimo = DB::table('TBL_Usuario_Automovil_Turno as uat')
+                        ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
+                        ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
+                        ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
+                        ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
+                        ->select(
+                            'uat.TRN_AUT_Kilometraje_Turno'
+                        )
+                        ->first();
+                    
+                    //Diferencia kms en el mes
+                    $KMSTotales = ($KM_Ultimo) ? ($KM_Ultimo->TRN_AUT_Kilometraje_Turno - $KM_Anterior->KM_Anterior) : 0;
+                    $diferencia = $KMSTotales - (($mensual) ? $mensual->Kilometraje : 0);
+                    $cadaConductor = ($diferencia >= 0) ? ($diferencia / 2) : 0;
+                    
+                    $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+                        ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnioTurnos)->format('Y-m-d'))
+                        ->orderBy('id')
                         ->get();
                     
-                    array_push($dias, $turnosDia);
+                    if($request->has('notificacion') && $request->notificacion == true){
+                        Notificacion::find($request->notificacionId)->update([
+                            'NTF_Visto_Notificacion' => 1
+                        ]);
+                    }
+                    return view(
+                        'theme.back.automoviles.cuadro-turno',
+                        compact(
+                            'automovil',
+                            'conductorFijoUno',
+                            'conductorFijoDos',
+                            'dias',
+                            'fechaMes',
+                            'cantidadFebrero',
+                            'cadaConductor',
+                            'gastos'
+                        )
+                    );
                 }
-
-
-                $mensual = DB::table('TBL_Usuario_Automovil_Turno as uat')
-                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
-                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
-                    ->where('TRN_AUT_Fecha_Turno', '>=', $fecha[1].'-'.$fecha[0].'-01')
-                    ->where('TRN_AUT_Fecha_Turno', '<=', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
-                    ->select(
-                        DB::raw('SUM(uat.TRN_AUT_Producido_Turno) as Producido'),
-                        DB::raw('SUM(uat.TRN_AUT_Kilometros_Andados_Turno) as Kilometraje'),
-                        DB::raw('SUM(t.TRN_Valor_Turno)/2 as DiasTrabajados'),
-                        DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/SUM(uat.TRN_AUT_Kilometros_Andados_Turno)) as PromedioKilometraje'),
-                        DB::raw('ROUND(SUM(uat.TRN_AUT_Producido_Turno)/(SUM(t.TRN_Valor_Turno)/2)) as PromedioDia')
-                    )
-                    ->groupBy('uat.TRN_AUT_Automovil_Id')
-                    ->first();
-
-                $ultimoDiaMesAnterior = Carbon::createFromFormat('Y-m-d', $fecha[1].'-'.$fecha[0].'-01')->subDay()->format('Y-m-d');
-                
-                $KM_Anterior = DB::table('TBL_Usuario_Automovil_Turno as uat')
-                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
-                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
-                    ->where('TRN_AUT_Fecha_Turno', $ultimoDiaMesAnterior)
-                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
-                    ->select(
-                        DB::raw('(uat.TRN_AUT_Kilometraje_Turno) as KM_Anterior')
-                    )
-                    ->first();
-                
-                $KM_Ultimo = DB::table('TBL_Usuario_Automovil_Turno as uat')
-                    ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
-                    ->where('uat.TRN_AUT_Automovil_Id', $automovil->id)
-                    ->where('TRN_AUT_Fecha_Turno', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
-                    ->where('t.TRN_Nombre_Turno', 'LIKE', '%Noche%')
-                    ->select(
-                        'uat.TRN_AUT_Kilometraje_Turno'
-                    )
-                    ->first();
-                
-                //Diferencia kms en el mes
-                $KMSTotales = ($KM_Ultimo) ? ($KM_Ultimo->TRN_AUT_Kilometraje_Turno - $KM_Anterior->KM_Anterior) : 0;
-                $diferencia = $KMSTotales - (($mensual) ? $mensual->Kilometraje : 0);
-                $cadaConductor = ($diferencia >= 0) ? ($diferencia / 2) : 0;
-                
-                $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
-                    ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnioTurnos)->format('Y-m-d'))
-                    ->orderBy('id')
-                    ->get();
-                
-                if($request->has('notificacion') && $request->notificacion == true){
-                    Notificacion::find($request->notificacionId)->update([
-                        'NTF_Visto_Notificacion' => 1
-                    ]);
-                }
-                return view(
-                    'theme.back.automoviles.cuadro-turno',
-                    compact(
-                        'automovil',
-                        'conductorFijoUno',
-                        'conductorFijoDos',
-                        'dias',
-                        'fechaMes',
-                        'cantidadFebrero',
-                        'cadaConductor',
-                        'gastos'
-                    )
-                );
+                return response()->json(['mensaje'=>Lang::get('messages.CarNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
-        } catch (DecryptException $e) {
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
+        abort(404);
     }
 
-    public function agregarGastos(Request $request, $id){
-        try {
-            $automovilId = Crypt::decrypt($id);
-            $automovil = Automovil::findOrFail($automovilId);
+    public function listarGastos(Request $request, $id){
+        if(can2('balance')){
+            $automovil = Automovil::find($id);
 
             if($automovil){
                 if($request->has('notificacion') && $request->notificacion == true){
@@ -1196,50 +1202,114 @@ class AutomovilController extends Controller
 
                 $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
                     ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.((sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos))->format('Y-m-d'))
+                    ->orderBy('updated_at')
                     ->get();
                 
                 $mesAnio = (sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos;
 
-                return view('theme.back.automoviles.gastos.agregar', compact('gastos', 'mesAnio', 'automovil'));
+                return view('theme.back.automoviles.gastos.listar', compact('gastos', 'mesAnio', 'automovil'));
             }
 
             return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
-        } catch (DecryptException $e) {
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
         }
+        return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+    }
+
+    public function crearGastos(Request $request, $id){
+        if($request->ajax()){
+            if(can2('balance')){
+                $automovil = Automovil::find($id);
+
+                if($automovil){
+                    $mesAnio = (sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos;
+
+                    return view('theme.back.automoviles.gastos.agregar', compact('mesAnio', 'automovil'));
+                }
+                return response()->json(['mensaje'=>Lang::get('messages.CarNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+        }
+        abort(404);
     }
 
     public function editarGastos(Request $request, $id, $idGasto){
-        try {
-            $automovilId = Crypt::decrypt($id);
-            $automovil = Automovil::findOrFail($automovilId);
+        $automovil = Automovil::findOrFail($id);
 
-            if($automovil){
-                $gastoId = Crypt::decrypt($idGasto);
-                $gasto = Gastos::findOrFail($gastoId);
+        if($automovil){
+            $gasto = Gastos::findOrFail($idGasto);
                 
-                if($automovil){
-                    if($request->has('notificacion') && $request->notificacion == true){
-                        Notificacion::find($request->notificacionId)->update([
-                            'NTF_Visto_Notificacion' => 1
-                        ]);
-                    }
-
-                    $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
-                        ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.((sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos))->format('Y-m-d'))
-                        ->get();
-                    
-                    $mesAnio = (sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos;
-
-                    return view('theme.back.automoviles.gastos.agregar', compact('gastos', 'mesAnio', 'automovil'));
+            if($gasto){
+                if($request->has('notificacion') && $request->notificacion == true){
+                    Notificacion::find($request->notificacionId)->update([
+                        'NTF_Visto_Notificacion' => 1
+                    ]);
                 }
-                return redirect()->route('agregar_gastos', ['id'=>Crypt::encrypt($automovil->id)])->withErrors(Lang::get('messages.ExpenseNotExists'));
-            }
+                    
+                $mesAnio = (sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos;
 
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
-        } catch (DecryptException $e) {
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
+                return view('theme.back.automoviles.gastos.editar', compact('mesAnio', 'automovil', 'gasto'));
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.ExpenseNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
+        return response()->json(['mensaje'=>Lang::get('messages.CarNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+    }
+
+    public function actualizarGastos(Request $request, $id, $idGasto){
+        if($request->ajax()){
+            if(can2('balance')){
+                $automovil = Automovil::find($id);
+
+                if($automovil){
+                    $gasto = Gastos::findOrFail($idGasto);
+                    if($gasto){
+                        if($request->GST_Costo_Gasto == -1){
+                            return response()->json(['mensaje'=>Lang::get('messages.NoExpenses'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                        }
+                        
+                        if($request->GST_Costo_Gasto <= 0){
+                            return response()->json(['mensaje'=>Lang::get('messages.NoExpenses'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                        }
+                        $gastos = Gastos::where('GST_Automovil_Id', $automovil->id)
+                            ->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('d-m-Y', '01-'.$request->mesAnioGastos)->format('Y-m-d'))
+                            ->get();
+                            
+                        foreach ($gastos as $gasto) {
+                            if($gasto->GST_Costo_Gasto == -1){
+                                $gasto->delete();
+                                break;
+                            }
+                        }
+    
+                        $gasto->update([
+                            'GST_Descripcion_Gasto' => $request->GST_Descripcion_Gasto,
+                            'GST_Costo_Gasto' => $request->GST_Costo_Gasto
+                        ]);
+        
+                        return $this->vistaGastos(Lang::get('messages.ExpensesUpdated'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'), $automovil, $request->mesAnioGastos);
+                    }
+                    return response()->json(['mensaje'=>Lang::get('messages.ExpenseNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                }
+                return response()->json(['mensaje'=>Lang::get('messages.CarNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+        }
+        abort(404);
+    }
+
+    public function eliminarGastos(Request $request, $id, $idGasto){
+        if($request->ajax()){
+            if(can2('balance')){
+                try {
+                    Gastos::destroy($idGasto);
+
+                    return response()->json(['mensaje'=>Lang::get('messages.ExpensesDeleted'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeSuccess'), 'row' => $idGasto]);
+                } catch (QueryException $ex) {
+                    return response()->json(['mensaje'=>Lang::get('messages.ExpenseNotDeleted'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                }
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+        }
+        abort(404);
     }
 
     public function pfdBalanceDiario(Request $request, $id){

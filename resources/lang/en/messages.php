@@ -197,6 +197,9 @@ return [
     'AverageXMileage' => 'Average x Mileage',
     'Divided' => 'Divided',
     'CU' => 'C/U',
+    //Agregar Gastos
+    'NoExpenses' => 'Please enter a value in the expenses',
+    'ExpensesAdded' => 'Expenses added.',
 
     //Formularios
     'Required' => 'Required',
@@ -226,6 +229,7 @@ return [
     'December' => 'December',
 
     //Menu
+    'permisos' => 'Permissions',
     'roles' => 'Roles',
     'turnos' => 'Turns',
     'usuarios' => 'Users',
@@ -378,6 +382,12 @@ return [
     'AddExpensesCar' => 'Add Expenses Car ',
     'Cost' => 'Cost',
     'ExpenseAdded' => 'Expense Added',
+    //Editar Gastos
+    'EditExpensesCar' => 'Edit expenses car ',
+    'ExpensesUpdated' => 'Expenses updated',
+    //Eliminar Gastos
+    'ExpenseNotDeleted' => 'The expense could not be deleted, it is being used by another resource.',
+    'ExpensesDeleted' => 'Expenses deleted',
 
     //Companies
     'Companies' => 'Companies',

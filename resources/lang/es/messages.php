@@ -197,6 +197,9 @@ return [
     'AverageXMileage' => 'Promedio x Kilometraje',
     'Divided' => 'Dividido',
     'CU' => 'C/U',
+    //Agregar Gastos
+    'NoExpenses' => 'Por favor digite un valor en los gastos',
+    'ExpensesAdded' => 'Gastos Agregados',
 
     //Formularios
     'Required' => 'Este campo es requerido',
@@ -379,6 +382,12 @@ return [
     'AddExpensesCar' => 'Agregar Gastos Automóvil ',
     'Cost' => 'Costo',
     'ExpenseAdded' => 'Gasto Agregado',
+    //Editar Gastos
+    'EditExpensesCar' => 'Editar Gastos Automóvil ',
+    'ExpensesUpdated' => 'Gastos actualizados',
+    //Eliminar Gastos
+    'ExpenseNotDeleted' => 'El gasto no pudo ser eliminado, está siendo usado por otro recurso.',
+    'ExpensesDeleted' => 'Gasto eliminado',
 
     //Empresas
     'Companies' => 'Empresas',

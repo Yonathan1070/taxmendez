@@ -5,6 +5,14 @@
 @section('styles')
     <!-- Calendar CSS -->
     <link href="{{asset("assets/back/plugins/calendar/dist/fullcalendar.css")}}" rel="stylesheet" />
+
+    <style>
+        .verticalText {
+            writing-mode: vertical-lr;
+            transform: rotate(180deg);
+        }
+        .table-turnos {border:1px solid red; border-bottom:0; text-align: center;}
+    </style>
 @endsection
 @section('content')
 <div class="row page-titles">
@@ -29,38 +37,32 @@
             <h4 class="card-title m-b-0">{{Lang::get('messages.Balance')}} {{$automovil->AUT_Numero_Interno_Automovil}}</h4>
         </div>
         <div class="card-body collapse show b-t">
-            @if ($errors->any())
-                <x-alert tipo="danger" :mensaje="$errors" />
-            @endif
-            @if (session('mensaje'))
-                <x-alert tipo="success" :mensaje="session('mensaje')" />
-            @endif
             <div id="calendar"></div>
             <br />
-            <div class="row button-group">
+            <div class="row button-group" id="actions">
                 <div class="col-lg-3 col-md-4">
-                    <form action="{{route('balance_diario', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
+                    <form action="{{route('balance_diario', $automovil->id)}}" class="cuadro-turnos" method="POST">
                         @csrf
                         <input name="mesAnioTurnos" id="mesAnioTurnos" type="hidden">
                         <button type="submit" id="turnos" class="btn btn-block btn-success">{{Lang::get('messages.Cuadro_Turnos')}}</button>
                     </form>
                 </div>
                 <div class="col-lg-3 col-md-4">
-                    <form action="{{route('generar_balance', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
+                    <form action="{{route('generar_balance', $automovil->id)}}" class="cuadro-mensualidad" method="POST">
                         @csrf
                         <input name="mesAnio" id="mesAnio" type="hidden">
                         <button type="submit" id="mensualidad" class="btn btn-block btn-success" style="display:{{$boton}}">{{Lang::get('messages.GenerateMonthlyPayment')}}</button>
                     </form>
                 </div>
                 <div class="col-lg-3 col-md-4">
-                    <form action="{{route('balance_anual', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
+                    <form action="{{route('balance_anual', $automovil->id)}}" class="cuadro-anual" method="POST">
                         @csrf
                         <input name="Anio" id="Anio" type="hidden">
                         <button type="submit" id="anual" class="btn btn-block btn-success">{{Lang::get('messages.GenerateAnnualBalance')}}</button>
                     </form>
                 </div>
                 <div class="col-lg-3 col-md-4">
-                    <form action="{{route('agregar_gastos', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
+                    <form action="{{route('agregar_gastos', $automovil->id)}}" method="POST">
                         @csrf
                         <input name="mesAnioGastos" id="mesAnioGastos" type="hidden">
                         <button type="submit" id="gastos" class="btn btn-block btn-success">{{Lang::get('messages.InsertExpenses')}}</button>
@@ -70,14 +72,25 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="accion-balance" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel1">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-body"></div>
+        </div>
+    </div>
+</div>
 @endsection
 @section('scriptsPlugins')
-    <script src="{{asset("assets/back/plugins/calendar/jquery-ui.min.js")}}"></script>
-    <script src="{{asset("assets/back/plugins/moment/moment.js")}}"></script>
-    <script src='{{asset("assets/back/plugins/calendar/dist/fullcalendar.min.js")}}'></script>
-    <script src="{{asset("assets/back/plugins/calendar/dist/locale/".session()->get("locale").".js")}}""></script>
+    <script src="{{asset('assets/back/plugins/calendar/jquery-ui.min.js')}}"></script>
+    <script src="{{asset('assets/back/plugins/moment/moment.js')}}"></script>
+    <script src="{{asset('assets/back/plugins/calendar/dist/fullcalendar.min.js')}}"></script>
+    <script src="{{asset('assets/back/plugins/calendar/dist/locale/'.session()->get('locale').'.js')}}"></script>
 @endsection
 @section('scripts')
+    <script src="{{asset('assets/back/scripts/ajax.js')}}"></script>
+
+    <script src="{{asset('assets/back/js/validation.js')}}"></script>
     <script>
         $(document).ready(function () {
             document.getElementById('mesAnioTurnos').value = '{{\Carbon\Carbon::now()->format("m-Y")}}';

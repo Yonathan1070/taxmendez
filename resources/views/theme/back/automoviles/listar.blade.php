@@ -95,19 +95,19 @@
                                 <td>{{$automovil->EMP_Nombre_Empresa}}</td>
                                 @if (can2('propietarios_asignar'))
                                     <td>
-                                        <a href="{{route('propietarios_automovil', ['id'=>Crypt::encrypt($automovil->id)])}}">
+                                        <a href="{{route('propietarios_automovil', $automovil->id)}}">
                                             {{Str::of(Lang::get('messages.'.can4('propietarios_asignar')->PRM_Slug_Permiso))->explode(' ')[0]}}
                                         </a>
                                     </td>
                                 @endif
                                 @if (can2('balance'))
                                     <td>
-                                        <a href="{{route(can3('balance')->PRM_Accion_Permiso, ['id'=>Crypt::encrypt($automovil->id)])}}">{{Lang::get('messages.'.can3('balance')->PRM_Nombre_Permiso)}}</a>
+                                        <a href="{{route(can3('balance')->PRM_Accion_Permiso, $automovil->id)}}">{{Lang::get('messages.'.can3('balance')->PRM_Nombre_Permiso)}}</a>
                                     </td>
                                 @endif
                                 @if (can2('editar_automovil'))
                                     <td>
-                                        <a class="mytooltip" href="{{route('editar_automovil', ['id'=>Crypt::encrypt($automovil->id)])}}">
+                                        <a class="mytooltip" href="{{route('editar_automovil', $automovil->id)}}">
                                             <i class="ti-pencil"></i>
                                             <span class="tooltip-content3">
                                                 {{Lang::get('messages.EditCar')}} {{$automovil->AUT_Numero_Interno_Automovil}}

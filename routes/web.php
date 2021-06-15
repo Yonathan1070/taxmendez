@@ -98,10 +98,13 @@ Route::group(['prefix' => '/automoviles', 'middleware' => ['auth']], function ()
         Route::post('/verificar-dias', [AutomovilController::class, 'verificarDias'])->name('verificar_dias');
         Route::post('/generar', [AutomovilController::class, 'generarBalance'])->name('generar_balance');
         Route::group(['prefix' => '/gastos'], function () {
-            Route::post('/agregar', [AutomovilController::class, 'agregarGastos'])->name('agregar_gastos');
-            Route::get('/agregar-gastos', [AutomovilController::class, 'agregarGastos'])->name('agregar_gastos_sesion');
+            Route::post('/listar', [AutomovilController::class, 'listarGastos'])->name('agregar_gastos');
+            Route::post('/agregar', [AutomovilController::class, 'crearGastos'])->name('crear_gastos');
+            Route::get('/agregar-gastos', [AutomovilController::class, 'crearGastos'])->name('agregar_gastos_sesion');
             Route::post('/guardar', [AutomovilController::class, 'guardarGastos'])->name('guardar_gastos');
-            Route::post('/editar/{idGasto}', [AutomovilController::class, 'editarGastos'])->name('editar_gastos');
+            Route::put('/editar/{idGasto}', [AutomovilController::class, 'editarGastos'])->name('editar_gastos');
+            Route::put('/{idGasto}', [AutomovilController::class, 'actualizarGastos'])->name('actualizar_gastos');
+            Route::delete('/{idGasto}/eliminar', [AutomovilController::class, 'eliminarGastos'])->name('eliminar_gastos');
         });
         Route::post('/balance-anual', [AutomovilController::class, 'balanceAnual'])->name('balance_anual');
         Route::post('/balance-diario', [AutomovilController::class, 'balanceDiario'])->name('balance_diario');

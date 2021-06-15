@@ -2,9 +2,17 @@
 $('#nuevo-registro').on('click', function(event){
     event.preventDefault();
     $(".preloader").fadeIn();
-    const data = {
-        _token: $('input[name=_token]').val()
-    };
+    var data = {};
+    if($('#nuevo-registro').data('modal') == 'accion-gastos'){
+        data = {
+            _token: $('input[name=_token]').val(),
+            mesAnioGastos: document.getElementById('mesAnioGastosLista').value
+        };
+    }else{
+        data = {
+            _token: $('input[name=_token]').val()
+        };
+    }
     ajaxRequest($(this).attr('href'), data, 'crear', $('#nuevo-registro').data('modal'));
 });
 
@@ -12,10 +20,20 @@ $('#nuevo-registro').on('click', function(event){
 $('#data-table').on('click', '.editar-registro', function(event){
     event.preventDefault();
     $(".preloader").fadeIn();
-    const data = {
-        _method: 'PUT',
-        _token: $('input[name=_token]').val()
-    };
+    var data = {};
+    if($('#nuevo-registro').data('modal') == 'accion-gastos'){
+        data = {
+            _method: 'PUT',
+            _token: $('input[name=_token]').val(),
+            mesAnioGastos: document.getElementById('mesAnioGastosLista').value
+        };
+    }else{
+        data = data = {
+            _method: 'PUT',
+            _token: $('input[name=_token]').val()
+        };
+    }
+    
     ajaxRequest($(this).attr('href'), data, 'editar', $('#nuevo-registro').data('modal'));
 });
 
@@ -98,6 +116,24 @@ function ajaxRequest(url, data, action, modal, form){
                 inicializarNestable();
                 $(".preloader").fadeOut();
                 $('#'+modal).modal('show');
+            }else if(action == 'cuadro-turnos' || action == 'cuadro-mensualidad'){
+                $('#'+modal+' .modal-body').html(respuesta);
+                if(action == 'cuadro-mensualidad'){
+                    guardarGastos();
+                    validaciones();
+                }
+                $(".preloader").fadeOut();
+                $('#'+modal).modal('show');
+            }else if(action == 'guardar-gastos'){
+                taxmendez.notificaciones(respuesta.mensaje, respuesta.titulo, respuesta.tipo, 5000);
+                if(respuesta.tipo =='success'){
+                    $('#label').text('$ '+formatMoney(document.getElementById('GST_Costo_Gasto').value));
+                    document.getElementById('form').style.display = 'none';
+                    document.getElementById('formulario').style.display = 'none';
+                    document.getElementById('label').style.display = 'block';
+                    $('#ganancia').text('$ '+formatMoney(document.getElementById('produced').value - document.getElementById('GST_Costo_Gasto').value) + ((data.propietarios > 1) ? ' / '+data.propietarios+' = '+'$ '+formatMoney((document.getElementById('produced').value - document.getElementById('GST_Costo_Gasto').value)/data.propietarios)+' C/U' : ''));
+                }
+                $(".preloader").fadeOut();
             }
         },
         error: function(error){
@@ -215,3 +251,50 @@ function initDatePickerUser(){
         format: 'YYYY-MM-DD'
     });
 }
+
+$('#actions').on('submit', '.cuadro-turnos', function(event){
+    event.preventDefault();
+    const form = $(this);
+    $(".preloader").fadeIn();
+    ajaxRequest(form.attr('action'), form.serialize(), 'cuadro-turnos', 'accion-balance', form);
+});
+
+$('#actions').on('submit', '.cuadro-mensualidad', function(event){
+    event.preventDefault();
+    const form = $(this);
+    $(".preloader").fadeIn();
+    ajaxRequest(form.attr('action'), form.serialize(), 'cuadro-mensualidad', 'accion-balance', form);
+});
+
+$('#actions').on('submit', '.cuadro-anual', function(event){
+    event.preventDefault();
+    const form = $(this);
+    $(".preloader").fadeIn();
+    ajaxRequest(form.attr('action'), form.serialize(), 'cuadro-mensualidad', 'accion-balance', form);
+});
+
+function guardarGastos(){
+    $('#saveGastos').on('submit', '#formulario', function(event){
+        event.preventDefault();
+        const form = $(this);
+
+        $(".preloader").fadeIn();
+        ajaxRequest(form.attr('action'), form.serialize(), 'guardar-gastos', null, null);
+    });
+}
+
+function formatMoney(amount, decimalCount = 2, decimal = ".", thousands = ",") {
+    try {
+      decimalCount = Math.abs(decimalCount);
+      decimalCount = isNaN(decimalCount) ? 2 : decimalCount;
+  
+      const negativeSign = amount < 0 ? "-" : "";
+  
+      let i = parseInt(amount = Math.abs(Number(amount) || 0).toFixed(decimalCount)).toString();
+      let j = (i.length > 3) ? i.length % 3 : 0;
+  
+      return negativeSign + (j ? i.substr(0, j) + thousands : '') + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + thousands) + (decimalCount ? decimal + Math.abs(amount - i).toFixed(decimalCount).slice(2) : "");
+    } catch (e) {
+      console.log(e)
+    }
+  };

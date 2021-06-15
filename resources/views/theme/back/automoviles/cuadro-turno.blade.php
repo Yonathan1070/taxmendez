@@ -1,47 +1,8 @@
-@extends('theme.back.layout')
-@section('title')
-    {{Lang::get('messages.Automobiles')}}
-@endsection
-@section('styles')
-    <style>
-        .verticalText {
-            writing-mode: vertical-lr;
-            transform: rotate(180deg);
-        }
-        table {border:1px solid red; border-bottom:0; text-align: center;}
-    </style>
-@endsection
-@section('content')
-<div class="row page-titles">
-    <div class="col-md-5 col-8 align-self-center">
-        <h3 class="text-themecolor m-b-0 m-t-0">{{Lang::get('messages.Automobiles')}}</h3>
-    </div>
-    @include('theme.back.automoviles.meses')
-</div>
-@endsection
-@section('contenido')
-<div class="col-md-12 col-xlg-12">
     <div class="card">
-        <div class="card-header">
-            <div class="card-actions">
-                <a class="mytooltip" href="{{route('balance', ['id'=>Crypt::encrypt($automovil->id)])}}">
-                    <i class="ti-arrow-left"></i>
-                    <span class="tooltip-content3">
-                        {{Lang::get('messages.Back')}}
-                    </span>
-                </a>
-            </div>
+        <div class="card-body">
             <h4 class="card-title m-b-0">
                 {{Lang::get('messages.Monthly')}} Taxi {{$automovil->AUT_Numero_Interno_Automovil}}   /   {{Lang::get('messages.'.Carbon\Carbon::parse('01-'.$fechaMes)->format('F')).' '.Carbon\Carbon::parse('01-'.$fechaMes)->format('Y')}}
             </h4>
-        </div>
-        <div class="card-body collapse show b-t">
-            @if ($errors->any())
-                <x-alert tipo="danger" :mensaje="$errors" />
-            @endif
-            @if (session('mensaje'))
-                <x-alert tipo="success" :mensaje="session('mensaje')" />
-            @endif
             <?php 
                 $mesMensualidad = str_split(Str::upper(Lang::get('messages.'.Carbon\Carbon::parse('01-'.$fechaMes)->format('F')).' '.Carbon\Carbon::parse('01-'.$fechaMes)->format('Y')));
                 $totales = [];
@@ -53,7 +14,7 @@
                                     <div class="card">
                                             <div class="card-body" style="padding: 0;">
                                                 <div class="table-responsive m-t-40">
-                                                    <table style="width: 100%;">
+                                                    <table style="width: 100%;" class="table-turnos">
                                                         <tbody>
                                                             <tr>
                                                                 <td rowspan="2" style="border:1px solid red;">{{Lang::get('messages.Month')}}</td>
@@ -1538,23 +1499,17 @@
                             </div>
                         </div>
                     </div>
-                
-            <div class="row button-group">
-                <div class="col-lg-3 col-md-4">
-                    <form action="{{route('balance_diario_pdf', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
-                        @csrf
-                        <input name="mesAnioTurnos" id="mesAnioTurnos" type="hidden" value="{{$fechaMes}}">
-                        <button type="submit" id="turnos" class="btn btn-block btn-success">{{Lang::get('messages.PdfGenerate')}}</button>
-                    </form>
-                </div>
-            </div>
+                    <div class="border-top">
+                        <div class="card-body">
+                            <div class="row">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">{{Lang::get('messages.Close')}}</button>
+                                <form action="{{route('balance_diario_pdf', ['id'=>Crypt::encrypt($automovil->id)])}}" method="POST">
+                                    @csrf
+                                    <input name="mesAnioTurnos" id="mesAnioTurnos" type="hidden" value="{{$fechaMes}}">
+                                    <button type="submit" id="turnos" class="btn btn-block btn-success">{{Lang::get('messages.PdfGenerate')}}</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
         </div>
     </div>
-</div>
-@endsection
-@section('scriptsPlugins')
-    
-@endsection
-@section('scripts')
-
-@endsection
