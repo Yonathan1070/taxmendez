@@ -105,9 +105,13 @@ return [
     //Agregar Turno
     'Color' => 'Color',
     'TurnAdded' => 'Turn Added',
+    'TurnExists' => 'Turn exists.',
     //Editar Turno
     'TurnNotExists' => 'Turn not exists',
     'TurnUpdated' => 'Turn Updated',
+    //Eliminar turno
+    'TurnNotDelete' => 'The turn could not be deleted, it id being used by another resource.',
+    'DeletedTurn' => 'Turn deleted.',
 
     //Usuarios
     'Users' => 'Users',

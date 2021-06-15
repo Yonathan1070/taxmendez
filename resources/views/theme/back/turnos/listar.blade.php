@@ -3,7 +3,7 @@
     {{Lang::get('messages.Turns')}}
 @endsection
 @section('styles')
-    <link href="{{asset("assets/back/plugins/datatables/media/css/dataTables.bootstrap4.css")}}" rel="stylesheet">
+    
 @endsection
 @section('content')
 <div class="row page-titles">
@@ -18,11 +18,8 @@
         <div class="card-header">
             <div class="card-actions">
                 @if (can2('crear_turno'))
-                    <a class="mytooltip" href="{{route('crear_turno')}}">
+                    <a href="{{route('crear_turno')}}" id="nuevo-registro" data-modal="accion-turno">
                         <i class="ti-plus"></i>
-                        <span class="tooltip-content3">
-                            {{Lang::get('messages.AddTurn')}}
-                        </span>
                     </a>
                 @endif
             </div>
@@ -36,43 +33,25 @@
                 <x-alert tipo="success" :mensaje="session('mensaje')" />
             @endif
             <div class="table-responsive m-t-40">
-                <table class="table table-bordered table-striped myTable">
-                    <thead>
-                        <tr>
-                            <th>{{Lang::get('messages.Turn')}}</th>
-                            <th>{{Lang::get('messages.Value')}}</th>
-                            <th>{{Lang::get('messages.Description')}}</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($turnos as $turno)
-                            <tr>
-                                <td>{{$turno->TRN_Nombre_Turno}}</td>
-                                <td>{{$turno->TRN_Valor_Turno}}</td>
-                                <td>{{$turno->TRN_Descripcion_Turno}}</td>
-                                <td>
-                                    @if (can2('editar_turno'))
-                                        <a class="mytooltip" href="{{route('editar_turno', ['id'=>Crypt::encrypt($turno->id)])}}">
-                                            <i class="ti-pencil"></i>
-                                            <span class="tooltip-content3">
-                                                {{Lang::get('messages.EditTurn')}} {{$turno->TRN_Nombre_Turno}}
-                                            </span>
-                                        </a>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                @include('theme.back.turnos.table-data')
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="accion-turno" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel1">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-body"></div>
         </div>
     </div>
 </div>
 @endsection
 @section('scriptsPlugins')
-    <script src="{{asset("assets/back/plugins/datatables/datatables.min.js")}}"></script>
+    <script src="{{asset('assets/back/plugins/sweetalert/sweetalert.min.js')}}"></script>
 @endsection
 @section('scripts')
-    <script src="{{asset('assets/back/scripts/general.js')}}"></script>
+    <script src="{{asset('assets/back/scripts/ajax.js')}}"></script>
+
+    <script src="{{asset('assets/back/js/validation.js')}}"></script>
 @endsection

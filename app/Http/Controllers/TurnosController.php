@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Entity\Turno;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Lang;
@@ -18,7 +19,9 @@ class TurnosController extends Controller
      */
     public function index()
     {
-        $turnos = Turno::orderByDesc('TRN_Valor_Turno')->get();
+        can('turnos');
+
+        $turnos = Turno::orderByDesc('TRN_Valor_Turno')->paginate(5);
 
         return view('theme.back.turnos.listar', compact('turnos'));
     }
@@ -28,9 +31,14 @@ class TurnosController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function crear()
+    public function crear(Request $request)
     {
-        return view('theme.back.turnos.crear');
+        if($request->ajax()){
+            can2('crear_turnos');
+            
+            return view('theme.back.turnos.crear');
+        }
+        abort(404);
     }
 
     /**
@@ -41,21 +49,27 @@ class TurnosController extends Controller
      */
     public function guardar(Request $request)
     {
-        $turnos = Turno::get();
-        foreach ($turnos as $turno) {
-            if(Str::lower($turno->TRN_Nombre_Turno) == Str::lower($request->TRN_Nombre_Turno)){
-                return redirect()->route('crear_turno')->withErrors('El turno ya existe.')->withInput();
-            }
-        }
-        Turno::create([
-            'TRN_Nombre_Turno' => $request->TRN_Nombre_Turno,
-            'TRN_Slug_Turno' => Str::slug($request->TRN_Nombre_Turno, '_'),
-            'TRN_Descripcion_Turno' => $request->TRN_Descripcion_Turno,
-            'TRN_Color_Turno' => $request->TRN_Color_Turno,
-            'TRN_Valor_Turno' => $request->TRN_Valor_Turno
-        ]);
+        if($request->ajax()){
+            if(can2('crear_turnos')){
+                $turnos = Turno::get();
+                foreach ($turnos as $turno) {
+                    if(Str::lower($turno->TRN_Nombre_Turno) == Str::lower($request->TRN_Nombre_Turno)){
+                        return response()->json(['mensaje'=>Lang::get('messages.TurnExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                    }
+                }
+                Turno::create([
+                    'TRN_Nombre_Turno' => $request->TRN_Nombre_Turno,
+                    'TRN_Slug_Turno' => Str::slug($request->TRN_Nombre_Turno, '_'),
+                    'TRN_Descripcion_Turno' => $request->TRN_Descripcion_Turno,
+                    'TRN_Color_Turno' => $request->TRN_Color_Turno,
+                    'TRN_Valor_Turno' => $request->TRN_Valor_Turno
+                ]);
 
-        return redirect()->route('crear_turno')->with('mensaje', Lang::get('messages.TurnAdded'));
+                return $this->vista(Lang::get('messages.TurnAdded'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+        }
+        abort(404);
     }
 
     /**
@@ -64,18 +78,19 @@ class TurnosController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function editar($id)
+    public function editar(Request $request, $id)
     {
-        try {
-            $turnoId = Crypt::decrypt($id);
-            $turno = Turno::findOrFail($turnoId);
-            if($turno){
-                return view('theme.back.turnos.editar', compact('turno'));
+        if($request->ajax()){
+            if(can2('editar_turnos')){
+                $turno = Turno::findOrFail($id);
+                if($turno){
+                    return view('theme.back.turnos.editar', compact('turno'));
+                }
+                return response()->json(['mensaje'=>Lang::get('messages.TurnNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
-            return redirect()->route('turnos')->withErrors(Lang::get('messages.TurnNotExists'));
-        } catch (DecryptException $e) {
-            return redirect()->route('turnos')->withErrors(Lang::get('messages.IdNotValid'));
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
+        abort(404);
     }
 
     /**
@@ -87,29 +102,30 @@ class TurnosController extends Controller
      */
     public function actualizar(Request $request, $id)
     {
-        try {
-            $turnoId = Crypt::decrypt($id);
-            $turno = Turno::findOrFail($turnoId);
-            if($turno){
-                $turnos = Turno::where('id', '!=', $turnoId)->get();
-                foreach ($turnos as $turnoLista) {
-                    if(Str::lower($turnoLista->TRN_Nombre_Turno) == Str::lower($request->TRN_Nombre_Turno)){
-                        return redirect()->route('editar_turno', ['id'=>Crypt::encrypt($turnoId)])->withErrors('El turno ya existe.')->withInput();
+        if($request->ajax()){
+            if(can2('editar_turnos')){
+                $turno = Turno::findOrFail($id);
+                if($turno){
+                    $turnos = Turno::where('id', '!=', $id)->get();
+                    foreach ($turnos as $turnoLista) {
+                        if(Str::lower($turnoLista->TRN_Nombre_Turno) == Str::lower($request->TRN_Nombre_Turno)){
+                            return response()->json(['mensaje'=>Lang::get('messages.TurnExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                        }
                     }
+                    $turno->update([
+                        'TRN_Nombre_Turno' => $request->TRN_Nombre_Turno,
+                        'TRN_Slug_Turno' => Str::slug($request->TRN_Nombre_Turno, '_'),
+                        'TRN_Descripcion_Turno' => $request->TRN_Descripcion_Turno,
+                        'TRN_Color_Turno' => $request->TRN_Color_Turno,
+                        'TRN_Valor_Turno' => $request->TRN_Valor_Turno
+                    ]);
+                    return $this->vista(Lang::get('messages.TurnUpdated'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
                 }
-                $turno->update([
-                    'TRN_Nombre_Turno' => $request->TRN_Nombre_Turno,
-                    'TRN_Slug_Turno' => Str::slug($request->TRN_Nombre_Turno, '_'),
-                    'TRN_Descripcion_Turno' => $request->TRN_Descripcion_Turno,
-                    'TRN_Color_Turno' => $request->TRN_Color_Turno,
-                    'TRN_Valor_Turno' => $request->TRN_Valor_Turno
-                ]);
-                return redirect()->route('turnos')->with('mensaje', Lang::get('messages.TurnUpdated'));
+                return response()->json(['mensaje'=>Lang::get('messages.TurnNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
-            return redirect()->route('turnos')->withErrors(Lang::get('messages.TurnNotExists'));
-        } catch (DecryptException $e) {
-            return redirect()->route('turnos')->withErrors(Lang::get('messages.IdNotValid'));
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
+        abort(404);
     }
 
     /**
@@ -118,8 +134,33 @@ class TurnosController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function eliminar(Request $request, $id)
     {
-        //
+        if($request->ajax()){
+            if(can2('eliminar_turnos')){
+                try {
+                    Turno::destroy($id);
+                } catch (QueryException $ex) {
+                    return response()->json(['mensaje'=>Lang::get('messages.TurnNotDelete'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                }
+                return response()->json(['mensaje'=>Lang::get('messages.DeletedTurn'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeSuccess'), 'row' => $id]);
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+        }
+        abort(404);
+    }
+
+    private function vista($mensaje=null, $titulo, $tipo)
+    {
+        $turnos = Turno::orderByDesc('TRN_Valor_Turno')->paginate(5);
+        return response()->json(['view'=>view('theme.back.turnos.table-data')->with('turnos', $turnos)->render(), 'mensaje'=>$mensaje, 'titulo'=>$titulo, 'tipo'=>$tipo]);
+    }
+
+    function page(Request $request)
+    {
+        if($request->ajax()){
+            $turnos = Turno::orderByDesc('TRN_Valor_Turno')->paginate(5);
+            return view('theme.back.turnos.table-data', compact('turnos'))->render();
+        }
     }
 }

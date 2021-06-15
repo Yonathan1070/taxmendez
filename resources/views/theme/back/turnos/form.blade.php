@@ -1,6 +1,6 @@
 @csrf
 <div class="row">
-    <div class="col-md-5">
+    <div class="col-md-6">
         <div class="form-group">
             <h5>{{Lang::get('messages.Turn')}}</h5>
             <div class="controls">
@@ -8,7 +8,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-5">
+    <div class="col-md-6">
         <div class="form-group">
             <h5>{{Lang::get('messages.Value')}}</h5>
             <div class="controls">
@@ -16,7 +16,17 @@
             </div>
         </div>
     </div>
-    <div class="col-md-2">
+</div>
+<div class="row">
+    <div class="col-md-8">
+        <div class="form-group">
+            <h5>{{Lang::get('messages.Description')}}</h5>
+            <div class="controls">
+                <textarea name="TRN_Descripcion_Turno" id="TRN_Descripcion_Turno" class="form-control" required data-validation-required-message="{{Lang::get('messages.Required')}}">{{old('TRN_Descripcion_Turno', $turno->TRN_Descripcion_Turno ?? '')}}</textarea>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
         <div class="form-group">
             <h5>{{Lang::get('messages.Color')}}</h5>
             <div class="col-10">
@@ -25,13 +35,3 @@
         </div>
     </div>
 </div>
-    <div class="form-group">
-        <h5>{{Lang::get('messages.Description')}}</h5>
-        <div class="controls">
-            <textarea name="TRN_Descripcion_Turno" id="TRN_Descripcion_Turno" class="form-control" required data-validation-required-message="{{Lang::get('messages.Required')}}">{{old('TRN_Descripcion_Turno', $turno->TRN_Descripcion_Turno ?? '')}}</textarea>
-        </div>
-    </div>
-    <div class="text-xs-right">
-        <button type="submit" class="btn btn-info">Guardar</button>
-        <a href="{{route('turnos')}}" class="btn btn-inverse">Cancelar</a>
-    </div>

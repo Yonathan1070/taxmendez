@@ -110,10 +110,12 @@ Route::group(['prefix' => '/automoviles', 'middleware' => ['auth']], function ()
 });
 Route::group(['prefix' => '/turnos', 'middleware' => ['auth']], function () {
     Route::get('', [TurnosController::class, 'index'])->name('turnos');
-    Route::get('/crear', [TurnosController::class, 'crear'])->name('crear_turno');
-    Route::get('/editar/{id}', [TurnosController::class, 'editar'])->name('editar_turno');
-    Route::post('/crear', [TurnosController::class, 'guardar'])->name('guardar_turno');
-    Route::put('/editar/{id}', [TurnosController::class, 'actualizar'])->name('actualizar_turno');
+    Route::get('page', [TurnosController::class, 'page'])->name('page_turnos');
+    Route::post('/crear', [TurnosController::class, 'crear'])->name('crear_turno');
+    Route::put('/{id}/editar', [TurnosController::class, 'editar'])->name('editar_turno');
+    Route::post('', [TurnosController::class, 'guardar'])->name('guardar_turno');
+    Route::put('/{id}', [TurnosController::class, 'actualizar'])->name('actualizar_turno');
+    Route::delete('/{id}/eliminar', [TurnosController::class, 'eliminar'])->name('eliminar_turno');
 });
 Route::group(['prefix' => '/desinfeccion', 'middleware' => ['auth']], function () {
     Route::get('', [DesinfeccionController::class, 'index'])->name('control_desinfeccion');
