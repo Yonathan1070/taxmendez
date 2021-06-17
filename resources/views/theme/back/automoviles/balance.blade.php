@@ -4,7 +4,7 @@
 @endsection
 @section('styles')
     <!-- Calendar CSS -->
-    <link href="{{asset("assets/back/plugins/calendar/dist/fullcalendar.css")}}" rel="stylesheet" />
+    <link href="{{asset('assets/back/plugins/calendar/dist/fullcalendar.css')}}" rel="stylesheet" />
 
     <style>
         .verticalText {
@@ -24,7 +24,7 @@
 @endsection
 @section('contenido')
 <div class="col-md-12 col-xlg-12">
-    <div class="card" id="nuevo-registro" data-modal="accion-balance">
+    <div class="card">
         <div class="card-header">
             <div class="card-actions">
                 <a class="mytooltip" href="{{route('automoviles')}}">

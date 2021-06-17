@@ -155,7 +155,7 @@ function ajaxRequest(url, data, action, modal, form){
                 }
                 $(".preloader").fadeOut();
             }
-        }/*,
+        },
         error: function(XMLHttpRequest, textStatus, errorThrown, error){
             $(".preloader").fadeOut();
             if (XMLHttpRequest.readyState == 4) {
@@ -173,7 +173,7 @@ function ajaxRequest(url, data, action, modal, form){
                     return false;
                 });
             }
-        }*/
+        }
     });
 }
 
@@ -239,7 +239,7 @@ function ajaxFilesRequest(url, data, action, modal){
                 }
                 $(".preloader").fadeOut();
             }
-        }/*,
+        },
         error: function(XMLHttpRequest, textStatus, errorThrown, error){
             $(".preloader").fadeOut();
             if (XMLHttpRequest.readyState == 4) {
@@ -257,7 +257,7 @@ function ajaxFilesRequest(url, data, action, modal){
                     return false;
                 });
             }
-        }*/
+        }
     });
 }
 
