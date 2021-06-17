@@ -5,7 +5,7 @@
             <th>{{Lang::get('messages.CompanyName')}}</th>
             <th>{{Lang::get('messages.Logo')}}</th>
             <th>{{Lang::get('messages.LogoText')}}</th>
-            <th></th>
+            <th style="width: 10%"></th>
         </tr>
     </thead>
     <tbody>
@@ -16,19 +16,28 @@
                 <td>{{$empresa->EMP_Nombre_Empresa}}</td>
                 <td>
                     @if ($empresa->EMP_Logo_Empresa != null || $empresa->EMP_Logo_Empresa != '')
-                        <img id="LogoCompany" src="data:image/png;base64, {{$empresa->EMP_Logo_Empresa}}" alt="{{'Logo '.$empresa->EMP_Nombre_Empresa}}" height="27" width="50" />
+                        <img id="LogoCompany" src="data:image/png;base64, {{$empresa->EMP_Logo_Empresa}}" alt="{{'Logo '.$empresa->EMP_Nombre_Empresa}}" style="max-width: 100%; height: auto;" />
                     @endif
                 </td>
                 <td>
                     @if ($empresa->EMP_Logo_Texto_Empresa != null || $empresa->EMP_Logo_Texto_Empresa != '')
-                        <img id="LogoTextCompany" src="data:image/png;base64, {{$empresa->EMP_Logo_Texto_Empresa}}" alt="{{'Logo Texto '.$empresa->EMP_Nombre_Empresa}}" height="29" width="148" />
+                        <img id="LogoTextCompany" src="data:image/png;base64, {{$empresa->EMP_Logo_Texto_Empresa}}" alt="{{'Logo Texto '.$empresa->EMP_Nombre_Empresa}}" style="max-width: 100%; height: auto;" />
                     @endif
                 </td>
-                <td>
+                <td style="width: 10%">
                     @if (can2('editar_empresa'))
                         <a href="{{route('editar_empresa', $empresa->id)}}" class="editar-registro">
                             <i class="{{$permEditar->PRM_Icono_Permiso}}"></i>
                         </a>
+                    @endif
+                    @if (can2('eliminar_empresa'))
+                        <form action="{{route('eliminar_empresa', $empresa->id)}}" class="eliminar-registro d-inline" method="POST">
+                            @csrf
+                            @method('delete')
+                            <button type="submit" class="btn-accion-tabla">
+                                <i class="ti-trash text-danger"></i>
+                            </button>
+                        </form>
                     @endif
                 </td>
             </tr>

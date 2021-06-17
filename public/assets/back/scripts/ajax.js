@@ -42,7 +42,22 @@ $('#'+$('#nuevo-registro').data('modal')).on('submit', '#form-general', function
     event.preventDefault();
     $(".preloader").fadeIn();
     const form = $(this);
-    ajaxRequest(form.attr('action'), form.serialize(), 'guardar', $('#nuevo-registro').data('modal'));
+    if(form.attr('enctype') == 'multipart/form-data'){
+        var formData = new FormData(form[0]);
+        var logoEmpresa = $('#EMP_Logo_Empresa')[0].files;
+        var logoEmpresaTexto = $('#EMP_Logo_Texto_Empresa')[0].files;
+
+        if(logoEmpresa.length > 0 ){
+            formData.append('EMP_Logo_Empresa',logoEmpresa[0]);
+        }
+        if(logoEmpresaTexto.length > 0 ){
+            formData.append('EMP_Logo_Texto_Empresa',logoEmpresaTexto[0]);
+        }
+
+        ajaxFilesRequest(form.attr('action'), formData, 'guardar', $('#nuevo-registro').data('modal'));
+    }else{
+        ajaxRequest(form.attr('action'), form.serialize(), 'guardar', $('#nuevo-registro').data('modal'));
+    }
 });
 
 function swalWarning(form, title, text, type, confirm, cancel){
@@ -136,15 +151,107 @@ function ajaxRequest(url, data, action, modal, form){
                 $(".preloader").fadeOut();
             }
         },
-        error: function(error){
-            var errors = error.responseJSON.errors;
-            $.each(errors, function(key, val) {
-                $.each(val, function(key, mensaje){
-                    $(".preloader").fadeOut();
-                    taxmendez.notificaciones(mensaje, 'TaxMendez', 'error', 5000);
+        error: function(XMLHttpRequest, textStatus, errorThrown, error){
+            $(".preloader").fadeOut();
+            if (XMLHttpRequest.readyState == 4) {
+                taxmendez.notificaciones('HTTP: '+XMLHttpRequest.statusText, 'TaxMendez', 'error', 5000);
+            }
+            else if (XMLHttpRequest.readyState == 0) {
+                taxmendez.notificaciones('Red: '+XMLHttpRequest.statusText, 'TaxMendez', 'error', 5000);
+            }
+            else {
+                var errors = error.responseJSON.errors;
+                $.each(errors, function(key, val) {
+                    $.each(val, function(key, mensaje){
+                        taxmendez.notificaciones(mensaje, 'TaxMendez', 'error', 5000);
+                    });
+                    return false;
                 });
-                return false;
-            });
+            }
+        }
+    });
+}
+
+function ajaxFilesRequest(url, data, action, modal){
+    $.ajax({
+        url: url,
+        type: 'POST',
+        data: data,
+        contentType: false,
+        processData: false,
+        success: function(respuesta){
+            if(action == 'crear' || action == 'editar'){
+                $('#'+modal+' .modal-body').html(respuesta);
+                validaciones();
+                if(modal == 'accion-empresa'){
+                    initDropify();
+                }
+                if(modal == 'accion-usuario'){
+                    initDatePickerUser();
+                }
+                $(".preloader").fadeOut();
+                $('#'+modal).modal('show');
+            }else if(action == 'guardar'){
+                if(respuesta.tipo == 'success'){
+                    tablaData(respuesta.view, modal);
+                }
+                $(".preloader").fadeOut();
+                taxmendez.notificaciones(respuesta.mensaje, respuesta.titulo, respuesta.tipo, 5000);
+            }else if(action == 'actualizar'){
+                if(respuesta.tipo == 'success'){
+                    tablaData(respuesta.view, modal);
+                }
+                $(".preloader").fadeOut();
+                taxmendez.notificaciones(respuesta.mensaje, respuesta.titulo, respuesta.tipo, 5000);
+            }else if(action == 'eliminar'){
+                if(respuesta.tipo == 'success'){
+                    var row = document.getElementById('row'+respuesta.row);
+                    row.parentNode.removeChild(row);
+                }
+                $(".preloader").fadeOut();
+                taxmendez.notificaciones(respuesta.mensaje, respuesta.titulo, respuesta.tipo, 5000);
+            }else if(action == 'ordenar-menu'){
+                $('#'+modal+' .modal-body').html(respuesta);
+                inicializarNestable();
+                $(".preloader").fadeOut();
+                $('#'+modal).modal('show');
+            }else if(action == 'cuadro-turnos' || action == 'cuadro-mensualidad'){
+                $('#'+modal+' .modal-body').html(respuesta);
+                if(action == 'cuadro-mensualidad'){
+                    guardarGastos();
+                    validaciones();
+                }
+                $(".preloader").fadeOut();
+                $('#'+modal).modal('show');
+            }else if(action == 'guardar-gastos'){
+                taxmendez.notificaciones(respuesta.mensaje, respuesta.titulo, respuesta.tipo, 5000);
+                if(respuesta.tipo =='success'){
+                    $('#label').text('$ '+formatMoney(document.getElementById('GST_Costo_Gasto').value));
+                    document.getElementById('form').style.display = 'none';
+                    document.getElementById('formulario').style.display = 'none';
+                    document.getElementById('label').style.display = 'block';
+                    $('#ganancia').text('$ '+formatMoney(document.getElementById('produced').value - document.getElementById('GST_Costo_Gasto').value) + ((data.propietarios > 1) ? ' / '+data.propietarios+' = '+'$ '+formatMoney((document.getElementById('produced').value - document.getElementById('GST_Costo_Gasto').value)/data.propietarios)+' C/U' : ''));
+                }
+                $(".preloader").fadeOut();
+            }
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown, error){
+            $(".preloader").fadeOut();
+            if (XMLHttpRequest.readyState == 4) {
+                taxmendez.notificaciones('HTTP: '+XMLHttpRequest.statusText, 'TaxMendez', 'error', 5000);
+            }
+            else if (XMLHttpRequest.readyState == 0) {
+                taxmendez.notificaciones('Red: '+XMLHttpRequest.statusText, 'TaxMendez', 'error', 5000);
+            }
+            else {
+                var errors = error.responseJSON.errors;
+                $.each(errors, function(key, val) {
+                    $.each(val, function(key, mensaje){
+                        taxmendez.notificaciones(mensaje, 'TaxMendez', 'error', 5000);
+                    });
+                    return false;
+                });
+            }
         }
     });
 }

@@ -137,7 +137,7 @@ Route::group(['prefix' => '/empresas', 'middleware' => ['auth']], function () {
     Route::put('/{id}/editar', [EmpresasController::class, 'editar'])->name('editar_empresa');
     Route::post('', [EmpresasController::class, 'guardar'])->name('guardar_empresa');
     Route::put('/{id}', [EmpresasController::class, 'actualizar'])->name('actualizar_empresa');
-    //Route::delete('/{id}/eliminar', [RolesController::class, 'eliminar'])->name('eliminar_rol');
+    Route::delete('/{id}/eliminar', [EmpresasController::class, 'eliminar'])->name('eliminar_empresa');
 
     Route::get('/editar', [EmpresasController::class, 'editarEmpresa'])->name('editar_empresa_usuario');
     Route::put('/editar-usuario', [EmpresasController::class, 'actualizarEmpresa'])->name('actualizar_empresa_usuario');

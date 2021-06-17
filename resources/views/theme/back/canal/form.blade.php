@@ -23,7 +23,7 @@
     <div class="col-md-4">
         <br/>
         <div class="demo-checkbox">
-            <input type="checkbox" id="CNT_Habilitado_Canal_Notificacion" name="CNT_Habilitado_Canal_Notificacion" {{(old('CNT_Habilitado_Canal_Notificacion', $empresa->CNT_Habilitado_Canal_Notificacion ?? "") == 1) ? 'checked' : ''}} />
+            <input type="checkbox" id="CNT_Habilitado_Canal_Notificacion" name="CNT_Habilitado_Canal_Notificacion" {{(old('CNT_Habilitado_Canal_Notificacion', $canal->CNT_Habilitado_Canal_Notificacion ?? "") == 1) ? 'checked' : ''}} />
             <label for="CNT_Habilitado_Canal_Notificacion">{{Lang::get('messages.Enabled')}}</label>
         </div>
     </div>

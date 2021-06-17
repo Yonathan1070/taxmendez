@@ -6,6 +6,7 @@ use App\Models\Entity\CanalNotificacion;
 use App\Models\Entity\Empresa;
 use App\Models\Entity\ServidorCorreo;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Lang;
@@ -95,21 +96,20 @@ class EmpresasController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function editar($id)
+    public function editar(Request $request, $id)
     {
-        can('editar_empresa');
-        try {
-            $empresaId = Crypt::decrypt($id);
-            $empresa = Empresa::findOrFail($empresaId);
+        if($request->ajax()){
+            if(can2('editar_empresa')){
+                $empresa = Empresa::findOrFail($id);
 
-            if($empresa){
-                return view('theme.back.empresas.editar', compact('empresa'));
-            } else {
-                return redirect()->route('empresas')->withErrors(Lang::get('messages.CompanyNotExists'));
+                if($empresa){
+                    return view('theme.back.empresas.editar', compact('empresa'));
+                }
+                return response()->json(['mensaje'=>Lang::get('messages.CompanyNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
-        } catch (DecryptException $e) {
-            return redirect()->route('empresas')->withErrors(Lang::get('messages.IdNotValid'));
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
+        abort(404);
     }
 
     /**
@@ -121,58 +121,73 @@ class EmpresasController extends Controller
      */
     public function actualizar(Request $request, $id)
     {
-        try {
-            $empresaId = Crypt::decrypt($id);
-            $empresa = Empresa::findOrFail($empresaId);
+        if($request->ajax()){
+            if(can2('editar_empresa')){
+                $empresa = Empresa::findOrFail($id);
 
-            if($empresa){
-                $empresaDistintoId = Empresa::where('id', '!=', $empresa->id)
-                    ->where(function($q) use($request) {
-                        $q->where('EMP_NIT_Empresa', $request->EMP_NIT_Empresa)
-                          ->orWhere('EMP_Nombre_Empresa', $request->EMP_Nombre_Empresa);
-                    })
-                    ->first();
-                
-                if($empresaDistintoId){
-                    return redirect()->route('editar_empresa', ['id'=>Crypt::encrypt($empresa->id)])->withErrors('Placa o Número interno ya registrados.')
-                        ->withInput();
+                if($empresa){
+                    $empresaDistintoId = Empresa::where('id', '!=', $empresa->id)
+                        ->where(function($q) use($request) {
+                            $q->where('EMP_NIT_Empresa', $request->EMP_NIT_Empresa)
+                            ->orWhere('EMP_Nombre_Empresa', $request->EMP_Nombre_Empresa);
+                        })
+                        ->first();
+                    
+                    if($empresaDistintoId){
+                        return response()->json(['mensaje'=>Lang::get('messages.NitOrNameExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                    }
+
+                    $imagenComoBase64 = null;
+                    if($request->EMP_Logo_Empresa){
+                        $contenidoBinario = file_get_contents($request->EMP_Logo_Empresa);
+                        $imagenComoBase64 = base64_encode($contenidoBinario);
+                    } else {
+                        $imagenComoBase64 = $empresa->EMP_Logo_Empresa;
+                    }
+
+                    $textoLogoComoBase64 = null;
+                    if($request->EMP_Logo_Texto_Empresa){
+                        $contenidoBinario = file_get_contents($request->EMP_Logo_Texto_Empresa);
+                        $textoLogoComoBase64 = base64_encode($contenidoBinario);
+                    } else {
+                        $textoLogoComoBase64 = $empresa->EMP_Logo_Texto_Empresa;
+                    }
+
+                    $empresa->update([
+                        'EMP_Nombre_Empresa' => $request->EMP_Nombre_Empresa,
+                        'EMP_NIT_Empresa' => $request->EMP_NIT_Empresa,
+                        'EMP_Telefono_Empresa' => $request->EMP_Telefono_Empresa,
+                        'EMP_Direccion_Empresa' => $request->EMP_Direccion_Empresa,
+                        'EMP_Correo_Empresa' => $request->EMP_Correo_Empresa,
+                        'EMP_Logo_Empresa' => $imagenComoBase64,
+                        'EMP_Logo_Texto_Empresa' => $textoLogoComoBase64
+                    ]);
+
+                    return $this->vista(Lang::get('messages.Company').' '.$empresa->EMP_Nombre_Empresa.' '.Lang::get('messages.Updated').'.', Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
                 }
-
-                $imagenComoBase64 = null;
-                if($request->EMP_Logo_Empresa){
-                    $contenidoBinario = file_get_contents($request->EMP_Logo_Empresa);
-                    $imagenComoBase64 = base64_encode($contenidoBinario);
-                } else {
-                    $imagenComoBase64 = $empresa->EMP_Logo_Empresa;
-                }
-
-                $textoLogoComoBase64 = null;
-                if($request->EMP_Logo_Texto_Empresa){
-                    $contenidoBinario = file_get_contents($request->EMP_Logo_Texto_Empresa);
-                    $textoLogoComoBase64 = base64_encode($contenidoBinario);
-                } else {
-                    $textoLogoComoBase64 = $empresa->EMP_Logo_Texto_Empresa;
-                }
-
-                $empresa->update([
-                    'EMP_Nombre_Empresa' => $request->EMP_Nombre_Empresa,
-                    'EMP_NIT_Empresa' => $request->EMP_NIT_Empresa,
-                    'EMP_Telefono_Empresa' => $request->EMP_Telefono_Empresa,
-                    'EMP_Direccion_Empresa' => $request->EMP_Direccion_Empresa,
-                    'EMP_Correo_Empresa' => $request->EMP_Correo_Empresa,
-                    'EMP_Logo_Empresa' => $imagenComoBase64,
-                    'EMP_Logo_Texto_Empresa' => $textoLogoComoBase64
-                ]);
-
-                return redirect()->route('empresas')->with('mensaje', Lang::get('messages.Company').' '.$empresa->EMP_Nombre_Empresa.' '.Lang::get('messages.Updated'.'.'));
-            } else {
-                return redirect()->route('empresas')->withErrors(Lang::get('messages.CompanyNotExists'));
+                return response()->json(['mensaje'=>Lang::get('messages.CompanyNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
-        } catch (DecryptException $e) {
-            return redirect()->route('automoviles')->withErrors(Lang::get('messages.IdNotValid'));
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
+        abort(404);
     }
 
+    public function eliminar(Request $request, $id)
+    {
+        if($request->ajax()){
+            if(can2('eliminar_empresa')){
+                try {
+                    Empresa::destroy($id);
+
+                    return response()->json(['mensaje'=>Lang::get('messages.DeletedCompany'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeSuccess'), 'row' => $id]);
+                } catch (QueryException $ex) {
+                    return response()->json(['mensaje'=>Lang::get('messages.CompanyNotDeleted'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                }
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+        }
+        abort(404);
+    }
     
     public function editarEmpresa()
     {

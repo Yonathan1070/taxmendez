@@ -401,6 +401,10 @@ return [
     'CreatedCompany' => 'Created Company',
     'CompanyExists' => 'Company Exists',
     'CompanyNotExists' => 'Company Not Exists',
+    'NitOrNameExists' => 'The name or NIT of the company is already registered.',
+    //Eliminar empresa
+    'DeletedCompany' => 'Company deleted.',
+    'CompanyNotDeleted' => 'The company could not be deleted, it id being used by another resource.',
 
     //Editar Empresa
     'ChangeLogo' => 'Change Logo',
@@ -427,6 +431,7 @@ return [
     'NotificationChannelAdded' => 'Notification Channel Added',
     'NotificationChannelExists' => 'Channel notification exists',
     'ChannelNotExists' => 'Channel not exists',
+    'EditNotificationChannel' => 'Update notification channel',
     'NotificationChannelUpdated' => 'Channel notification updated',
     'ChannelNotificationNotDelete' => 'The notification channel is being used by another resource.',
     'DeletedChannelNotification' => 'Notification channel deleted',
