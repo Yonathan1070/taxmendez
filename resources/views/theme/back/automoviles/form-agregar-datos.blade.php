@@ -63,7 +63,3 @@
             </div>
         </div>
     </div>
-    <div class="text-xs-right">
-        <button type="submit" class="btn btn-info">{{Lang::get('messages.Save')}}</button>
-        <a href="{{route('balance', ['id'=>Crypt::encrypt($automovil->id)])}}" class="btn btn-inverse">{{Lang::get('messages.Cancel')}}</a>
-    </div>

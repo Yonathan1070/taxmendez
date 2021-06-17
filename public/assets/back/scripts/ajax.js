@@ -42,6 +42,7 @@ $('#'+$('#nuevo-registro').data('modal')).on('submit', '#form-general', function
     event.preventDefault();
     $(".preloader").fadeIn();
     const form = $(this);
+
     if(form.attr('enctype') == 'multipart/form-data'){
         var formData = new FormData(form[0]);
         var logoEmpresa = $('#EMP_Logo_Empresa')[0].files;
@@ -109,7 +110,11 @@ function ajaxRequest(url, data, action, modal, form){
                 $('#'+modal).modal('show');
             }else if(action == 'guardar'){
                 if(respuesta.tipo == 'success'){
-                    tablaData(respuesta.view, modal);
+                    if(respuesta.balance == true){
+                        refreshCalendar();
+                    }else{
+                        tablaData(respuesta.view, modal);
+                    }
                 }
                 $(".preloader").fadeOut();
                 taxmendez.notificaciones(respuesta.mensaje, respuesta.titulo, respuesta.tipo, 5000);
@@ -150,7 +155,7 @@ function ajaxRequest(url, data, action, modal, form){
                 }
                 $(".preloader").fadeOut();
             }
-        },
+        }/*,
         error: function(XMLHttpRequest, textStatus, errorThrown, error){
             $(".preloader").fadeOut();
             if (XMLHttpRequest.readyState == 4) {
@@ -168,7 +173,7 @@ function ajaxRequest(url, data, action, modal, form){
                     return false;
                 });
             }
-        }
+        }*/
     });
 }
 
@@ -234,7 +239,7 @@ function ajaxFilesRequest(url, data, action, modal){
                 }
                 $(".preloader").fadeOut();
             }
-        },
+        }/*,
         error: function(XMLHttpRequest, textStatus, errorThrown, error){
             $(".preloader").fadeOut();
             if (XMLHttpRequest.readyState == 4) {
@@ -252,7 +257,7 @@ function ajaxFilesRequest(url, data, action, modal){
                     return false;
                 });
             }
-        }
+        }*/
     });
 }
 
@@ -280,6 +285,11 @@ function tablaData(respuesta, modal){
     $('#data-table').html(respuesta);
     inicializarPaginador();
     $('#'+modal).modal('hide');
+}
+
+function refreshCalendar(){
+    $('#calendar').fullCalendar( 'refetchEvents' );
+    $('#accion-balance').modal('hide');
 }
 
 function pagination(page, url){

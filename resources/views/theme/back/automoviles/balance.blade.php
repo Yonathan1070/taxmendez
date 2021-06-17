@@ -24,7 +24,7 @@
 @endsection
 @section('contenido')
 <div class="col-md-12 col-xlg-12">
-    <div class="card">
+    <div class="card" id="nuevo-registro" data-modal="accion-balance">
         <div class="card-header">
             <div class="card-actions">
                 <a class="mytooltip" href="{{route('automoviles')}}">
@@ -36,7 +36,7 @@
             </div>
             <h4 class="card-title m-b-0">{{Lang::get('messages.Balance')}} {{$automovil->AUT_Numero_Interno_Automovil}}</h4>
         </div>
-        <div class="card-body collapse show b-t">
+        <div class="card-body collapse show b-t" id="balance-calendar">
             <div id="calendar"></div>
             <br />
             <div class="row button-group" id="actions">
@@ -97,7 +97,7 @@
             var calendar = $('#calendar').fullCalendar({
                 defaultDate: "{{(session()->has('FechaCalendario')) ? session()->get('FechaCalendario') : Carbon\Carbon::now()->format('m-d-Y')}}",
                 editable: true,
-                events: "{{route('balance_obtener_datos', ['id'=>Crypt::encrypt($automovil->id)])}}",
+                events: "{{route('balance_obtener_datos', $automovil->id)}}",
                 displayEventTime: false,
                 loading: function (bool) {
                     if(!bool){
@@ -120,6 +120,7 @@
                 selectable: true,
                 selectHelper: true,
                 select: function (start, end, allDay) {
+                    $(".preloader").fadeIn();
                     var fecha = $.fullCalendar.formatDate(start, "Y-MM-DD");
                     var today = $.fullCalendar.formatDate(moment(),'Y-MM-DD');
 
@@ -130,11 +131,14 @@
                             "fecha": fecha
                         };
                         $.ajax({
-                            url: "{{route('balance_agregar_datos', ['id'=>Crypt::encrypt($automovil->id)])}}",
+                            url: "{{route('balance_agregar_datos', $automovil->id)}}",
                             data: formData,
                             type: "POST",
                             success: function (data) {
-                                window.location.href = data;
+                                $('#accion-balance .modal-body').html(data);
+                                validaciones();
+                                $(".preloader").fadeOut();
+                                $('#accion-balance').modal('show');
                             }
                         });
                     }
@@ -144,16 +148,20 @@
                     }
                 },
                 eventClick: function (event) {
+                    $(".preloader").fadeIn();
                     var formData = {
                         "_token": "{{ csrf_token() }}",
                         "idTurnoAutomovil": event.id
                     };
                     $.ajax({
-                        url: "{{route('balance_editar_datos', ['id'=>Crypt::encrypt($automovil->id)])}}",
+                        url: "{{route('balance_editar_datos', $automovil->id)}}",
                         data: formData,
                         type: "POST",
                         success: function (data) {
-                            window.location.href = data;
+                            $('#accion-balance .modal-body').html(data);
+                            validaciones();
+                            $(".preloader").fadeOut();
+                            $('#accion-balance').modal('show');
                         }
                     });
                 }

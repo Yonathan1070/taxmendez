@@ -68,7 +68,7 @@
                 <div class="form-group">
                     <h5>{{Lang::get('messages.Logo')}}</h5>
                     <div class="controls">
-                        <img id="logoEmpresa" src="data:image/png;base64, {{$empresa->EMP_Logo_Empresa}}" width="100%" height="100%" alt="{{'Logo empresa '.$empresa->EMP_Nombre_Empresa}}" />
+                        <img id="logoEmpresa" src="data:image/png;base64, {{$empresa->EMP_Logo_Empresa}}" style="max-width: 100%; height: auto;" alt="{{'Logo empresa '.$empresa->EMP_Nombre_Empresa}}" />
                     </div>
                 </div>
             </div>
@@ -78,7 +78,7 @@
                 <div class="form-group">
                     <h5>{{Lang::get('messages.LogoText')}}</h5>
                     <div class="controls">
-                        <img id="logoTextoEmpresa" src="data:image/png;base64, {{$empresa->EMP_Logo_Texto_Empresa}}" width="148" height="29" alt="{{'Logo Texto empresa '.$empresa->EMP_Nombre_Empresa}}" />
+                        <img id="logoTextoEmpresa" src="data:image/png;base64, {{$empresa->EMP_Logo_Texto_Empresa}}" style="max-width: 100%; height: auto;" alt="{{'Logo Texto empresa '.$empresa->EMP_Nombre_Empresa}}" />
                     </div>
                 </div>
             </div>

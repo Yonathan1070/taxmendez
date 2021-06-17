@@ -88,7 +88,7 @@ Route::group(['prefix' => '/automoviles', 'middleware' => ['auth']], function ()
     Route::post('/asignar-propietarios/{id}', [AutomovilController::class, 'guardarAsignar'])->name('guardar_asignacion_automovil');
     Route::put('/editar/{id}', [AutomovilController::class, 'actualizar'])->name('actualizar_automovil');
     Route::group(['prefix' => '/balance/{id}'], function () {
-        Route::get('/', [AutomovilController::class, 'balance'])->name('balance');
+        Route::get('', [AutomovilController::class, 'balance'])->name('balance');
         Route::get('/obtener-datos', [AutomovilController::class, 'obtenerTurnoCalendar'])->name('balance_obtener_datos');
         Route::get('/agregar-datos/{fecha}', [AutomovilController::class, 'formularioDatos'])->name('formulario_datos');
         Route::get('/editar-datos/{idTurno}', [AutomovilController::class, 'formularioDatosEditar'])->name('formulario_datos_editar');
