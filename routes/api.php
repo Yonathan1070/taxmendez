@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\api\AutomovilController;
 use App\Http\Controllers\api\ControlDesinfeccionController;
+use App\Http\Controllers\api\GastosController;
 use App\Http\Controllers\api\LoginController;
 use App\Http\Controllers\api\TurnosController;
 use App\Http\Controllers\api\UsuariosController;
@@ -43,6 +44,12 @@ Route::group(['prefix' => 'automoviles', 'middleware' => ['auth:api']], function
             Route::post('agregar', [AutomovilController::class, 'agregarBalance']);
             Route::get('obtener/{idBalance}', [AutomovilController::class, 'obtenerBalance']);
             Route::put('editar/{idBalance}', [AutomovilController::class, 'editarBalance']);
+        });
+        Route::group(['prefix' => 'gastos'], function () {
+            Route::post('listar', [GastosController::class, 'index']);
+            Route::post('agregar', [GastosController::class, 'agregarGasto']);
+            Route::get('obtener/{idGasto}', [GastosController::class, 'obtenerGasto']);
+            Route::put('editar/{idGasto}', [GastosController::class, 'editarGasto']);
         });
     });
 });

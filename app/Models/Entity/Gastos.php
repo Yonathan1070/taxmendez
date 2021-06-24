@@ -17,4 +17,8 @@ class Gastos extends Model
         'GST_Costo_Gasto'
     ];
     protected $guarded = ['id'];
+
+    public function automovil(){
+        return $this->hasOne(Automovil::class, 'id', 'GST_Automovil_Id');
+    }
 }
