@@ -44,13 +44,16 @@ Route::group(['prefix' => 'automoviles', 'middleware' => ['auth:api']], function
             Route::post('agregar', [AutomovilController::class, 'agregarBalance']);
             Route::get('obtener/{idBalance}', [AutomovilController::class, 'obtenerBalance']);
             Route::put('editar/{idBalance}', [AutomovilController::class, 'editarBalance']);
+            Route::delete('eliminar/{idBalance}', [AutomovilController::class, 'eliminarBalance']);
         });
         Route::group(['prefix' => 'gastos'], function () {
             Route::post('listar', [GastosController::class, 'index']);
             Route::post('agregar', [GastosController::class, 'agregarGasto']);
             Route::get('obtener/{idGasto}', [GastosController::class, 'obtenerGasto']);
             Route::put('editar/{idGasto}', [GastosController::class, 'editarGasto']);
+            Route::delete('eliminar/{idGasto}', [GastosController::class, 'eliminarGasto']);
         });
+
     });
 });
 Route::group(['prefix' => 'conductores', 'middleware' => ['auth:api']], function () {

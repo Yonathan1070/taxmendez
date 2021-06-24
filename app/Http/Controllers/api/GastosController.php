@@ -30,7 +30,7 @@ class GastosController extends BaseController
                     return $this->sendError('El mes seleccionado no puede se mayor al mes actual.', 200);
                 }
             }
-            $gastos = Gastos::where('GST_Automovil_Id', $id)->where('GST_Mes_Anio_Gasto', $request->Fecha_Mes)->with('automovil')->get();
+            $gastos = Gastos::where('GST_Automovil_Id', $id)->where('GST_Mes_Anio_Gasto', Carbon::createFromFormat('Y-m-d', $request->Fecha_Mes)->format('Y-m').'-01')->with('automovil')->get();
             return $this->sendResponse($gastos, 'Completado Correctamente.');
         }
         return $this->sendError('El automovil no existe!', 200);
@@ -123,7 +123,7 @@ class GastosController extends BaseController
                 if(!$mensualidad){
                     Gastos::create([
                         'GST_Automovil_Id' => $id,
-                        'GST_Mes_Anio_Gasto' => $request->Fecha,
+                        'GST_Mes_Anio_Gasto' => Carbon::createFromFormat('Y-m-d', $request->Fecha)->format('Y-m').'-01',
                         'GST_Descripcion_Gasto' => $request->Descripcion,
                         'GST_Costo_Gasto' => $request->Costo
                     ]);
@@ -158,8 +158,26 @@ class GastosController extends BaseController
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function eliminarGasto($id, $idGasto)
     {
-        //
+        $automovil = Automovil::find($id);
+
+        if($automovil){
+            $gasto = Gastos::where('id', $idGasto)
+                ->where('GST_Automovil_Id', $id)->first();
+            if($gasto){
+                $mensualidad = Mensualidad::where('MNS_Mes_Anio_Mensualidad', Carbon::createFromFormat('Y-m-d', $gasto->GST_Mes_Anio_Gasto)->format('Y-m').'-01')
+                    ->where('MNS_Automovil_Id', $id)
+                    ->first();
+                if(!$mensualidad){
+                    $gasto->delete();
+
+                    return $this->sendResponse(null, 'Gasto eliminado correctamente.');
+                }
+                return $this->sendError('No es posible eliminar el gasto, ya se generó la mensualidad!', 200);
+            }
+            return $this->sendError('El gasto no existe!', 200);
+        }
+        return $this->sendError('El automovil no existe!', 200);
     }
 }
