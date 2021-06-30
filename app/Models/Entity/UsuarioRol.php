@@ -17,4 +17,24 @@ class UsuarioRol extends Model
     ];
     protected $guarded = ['id'];
     public $timestamps = false;
+
+    public static function crear($usuario, $request){
+        $usuario_rol = UsuarioRol::create([
+            'USR_RL_Usuario_Id' => $usuario->id,
+            'USR_RL_Rol_Id' => $request->USR_Tipo_Usuario_Usuario,
+            'USR_RL_Estado' => ($request->has('USR_Activo_Usuario'))? 1 : 0
+        ]);
+
+        return $usuario_rol;
+    }
+
+    public static function editar($usuario, $request){
+        $usuario_rol = UsuarioRol::where('USR_RL_Usuario_Id', $usuario->id)->first()
+            ->update([
+                'USR_RL_Rol_Id' => $request->USR_Tipo_Usuario_Usuario,
+                'USR_RL_Estado' => ($request->has('USR_Activo_Usuario'))? 1 : 0
+            ]);
+        
+        return $usuario_rol;
+    }
 }

@@ -8,6 +8,8 @@ return [
     'Default' => 'Home',
     'Back' => 'Back',
     'Updated' => 'Updated',
+    'Alert' => 'Alert!',
+    'AccessDeniedIndicators' => 'You do not have permissions to view the indicators, please contact the administrator.',
     //Access Denied
     'AccessDenied' => 'You don\'t have permissions to access',
     //Id invalid

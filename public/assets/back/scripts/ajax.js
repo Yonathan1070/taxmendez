@@ -3,7 +3,8 @@ $('#nuevo-registro').on('click', function(event){
     event.preventDefault();
     $(".preloader").fadeIn();
     var data = {};
-    if($('#nuevo-registro').data('modal') == 'accion-gastos'){
+    var modalName = $('#modalName').data('modal');
+    if(modalName == 'accion-gastos'){
         data = {
             _token: $('input[name=_token]').val(),
             mesAnioGastos: document.getElementById('mesAnioGastosLista').value
@@ -13,7 +14,7 @@ $('#nuevo-registro').on('click', function(event){
             _token: $('input[name=_token]').val()
         };
     }
-    ajaxRequest($(this).attr('href'), data, 'crear', $('#nuevo-registro').data('modal'));
+    ajaxRequest($(this).attr('href'), data, 'crear', modalName);
 });
 
 //Editar Registro
@@ -21,27 +22,29 @@ $('#data-table').on('click', '.editar-registro', function(event){
     event.preventDefault();
     $(".preloader").fadeIn();
     var data = {};
-    if($('#nuevo-registro').data('modal') == 'accion-gastos'){
+    var modalName = $('#modalName').data('modal');
+    if(modalName == 'accion-gastos'){
         data = {
             _method: 'PUT',
             _token: $('input[name=_token]').val(),
             mesAnioGastos: document.getElementById('mesAnioGastosLista').value
         };
     }else{
-        data = data = {
+        data = {
             _method: 'PUT',
             _token: $('input[name=_token]').val()
         };
     }
     
-    ajaxRequest($(this).attr('href'), data, 'editar', $('#nuevo-registro').data('modal'));
+    ajaxRequest($(this).attr('href'), data, 'editar', modalName);
 });
 
 //Guardar o actualizar
-$('#'+$('#nuevo-registro').data('modal')).on('submit', '#form-general', function(event){
+$('#'+$('#modalName').data('modal')).on('submit', '#form-general', function(event){
     event.preventDefault();
     $(".preloader").fadeIn();
     const form = $(this);
+    var modalName = $('#modalName').data('modal');
 
     if(form.attr('enctype') == 'multipart/form-data'){
         var formData = new FormData(form[0]);
@@ -55,9 +58,9 @@ $('#'+$('#nuevo-registro').data('modal')).on('submit', '#form-general', function
             formData.append('EMP_Logo_Texto_Empresa',logoEmpresaTexto[0]);
         }
 
-        ajaxFilesRequest(form.attr('action'), formData, 'guardar', $('#nuevo-registro').data('modal'));
+        ajaxFilesRequest(form.attr('action'), formData, 'guardar', modalName);
     }else{
-        ajaxRequest(form.attr('action'), form.serialize(), 'guardar', $('#nuevo-registro').data('modal'));
+        ajaxRequest(form.attr('action'), form.serialize(), 'guardar', modalName);
     }
 });
 
@@ -98,16 +101,21 @@ function ajaxRequest(url, data, action, modal, form){
         data: data,
         success: function(respuesta){
             if(action == 'crear' || action == 'editar'){
-                $('#'+modal+' .modal-body').html(respuesta);
-                validaciones();
-                if(modal == 'accion-empresa'){
-                    initDropify();
+                if(respuesta.tipo != 'error'){
+                    $('#'+modal+' .modal-body').html(respuesta);
+                    validaciones();
+                    if(modal == 'accion-empresa'){
+                        initDropify();
+                    }
+                    if(modal == 'accion-usuario'){
+                        initDatePickerUser();
+                    }
+                    $(".preloader").fadeOut();
+                    $('#'+modal).modal('show');
+                }else{
+                    $(".preloader").fadeOut();
+                    taxmendez.notificaciones(respuesta.mensaje, respuesta.titulo, respuesta.tipo, 5000);
                 }
-                if(modal == 'accion-usuario'){
-                    initDatePickerUser();
-                }
-                $(".preloader").fadeOut();
-                $('#'+modal).modal('show');
             }else if(action == 'guardar'){
                 if(respuesta.tipo == 'success'){
                     if(respuesta.balance == true){
@@ -137,13 +145,18 @@ function ajaxRequest(url, data, action, modal, form){
                 $(".preloader").fadeOut();
                 $('#'+modal).modal('show');
             }else if(action == 'cuadro-turnos' || action == 'cuadro-mensualidad'){
-                $('#'+modal+' .modal-body').html(respuesta);
-                if(action == 'cuadro-mensualidad'){
-                    guardarGastos();
-                    validaciones();
+                if(respuesta.tipo != 'error'){
+                    $('#'+modal+' .modal-body').html(respuesta);
+                    if(action == 'cuadro-mensualidad'){
+                        guardarGastos();
+                        validaciones();
+                    }
+                    $(".preloader").fadeOut();
+                    $('#'+modal).modal('show');
+                }else{
+                    $(".preloader").fadeOut();
+                    taxmendez.notificaciones(respuesta.mensaje, respuesta.titulo, respuesta.tipo, 5000);
                 }
-                $(".preloader").fadeOut();
-                $('#'+modal).modal('show');
             }else if(action == 'guardar-gastos'){
                 taxmendez.notificaciones(respuesta.mensaje, respuesta.titulo, respuesta.tipo, 5000);
                 if(respuesta.tipo =='success'){
@@ -323,7 +336,7 @@ $('#ordenar-menu').on('click', function(event){
     const data = {
         _token: $('input[name=_token]').val()
     };
-    ajaxRequest($(this).attr('href'), data, 'ordenar-menu', $('#ordenar-menu').data('modal'));
+    ajaxRequest($(this).attr('href'), data, 'ordenar-menu', $('#modalName').data('modal'));
 });
 
 function inicializarNestable(){

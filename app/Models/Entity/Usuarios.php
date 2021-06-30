@@ -6,7 +6,9 @@ use Laravel\Passport\HasApiTokens;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Support\Facades\Hash;
 
 class Usuarios extends Authenticatable
 {
@@ -91,5 +93,53 @@ class Usuarios extends Authenticatable
                 'SES_USR_Usuario_Id' => $this->id
             ]);
         }*/
+    }
+
+    public static function crear($request){
+        $usuario = Usuarios::create([
+            'USR_Tipo_Documento_Usuario' => $request->USR_Tipo_Documento_Usuario,
+            'USR_Documento_Usuario' => $request->USR_Documento_Usuario,
+            'USR_Fecha_Vencimiento_Licencia_Usuario' => $request->USR_Fecha_Vencimiento_Licencia_Usuario,
+            'USR_Nombres_Usuario' => $request->USR_Nombres_Usuario,
+            'USR_Apellidos_Usuario' => $request->USR_Apellidos_Usuario,
+            'USR_Fecha_Nacimiento_Usuario' => $request->USR_Fecha_Nacimiento_Usuario,
+            'USR_Direccion_Residencia_Usuario' => $request->USR_Direccion_Residencia_Usuario,
+            'USR_Telefono_Usuario' => $request->USR_Telefono_Usuario,
+            'USR_Correo_Usuario' => $request->USR_Correo_Usuario,
+            'USR_Nombre_Usuario' => $request->USR_Nombre_Usuario,
+            'password' => Hash::make($request->USR_Nombre_Usuario),
+            'USR_Empresa_Id' => $request->USR_Empresa_Id,
+            'USR_Conductor_Fijo_Usuario' => $request->has('USR_Conductor_Fijo_Usuario')
+        ]);
+
+        return $usuario;
+    }
+
+    public static function editar($usuario, $request){
+        $usuarioEditado = $usuario->update([
+            'USR_Tipo_Documento_Usuario' => $request->USR_Tipo_Documento_Usuario,
+            'USR_Documento_Usuario' => $request->USR_Documento_Usuario,
+            'USR_Fecha_Vencimiento_Licencia_Usuario' => $request->USR_Fecha_Vencimiento_Licencia_Usuario,
+            'USR_Nombres_Usuario' => $request->USR_Nombres_Usuario,
+            'USR_Apellidos_Usuario' => $request->USR_Apellidos_Usuario,
+            'USR_Fecha_Nacimiento_Usuario' => $request->USR_Fecha_Nacimiento_Usuario,
+            'USR_Direccion_Residencia_Usuario' => $request->USR_Direccion_Residencia_Usuario,
+            'USR_Telefono_Usuario' => $request->USR_Telefono_Usuario,
+            'USR_Correo_Usuario' => $request->USR_Correo_Usuario,
+            'USR_Nombre_Usuario' => $request->USR_Nombre_Usuario,
+            'USR_Empresa_Id' => $request->USR_Empresa_Id,
+            'USR_Conductor_Fijo_Usuario' => $request->has('USR_Conductor_Fijo_Usuario')
+        ]);
+
+        return $usuarioEditado;
+    }
+
+    public static function eliminar($id){
+        try{
+            Usuarios::destroy($id);
+            return true;
+        }catch(QueryException $ex){
+            return false;
+        }
     }
 }

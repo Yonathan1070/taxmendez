@@ -13,12 +13,13 @@
 </div>
 @endsection
 @section('contenido')
+<input type="hidden" id="modalName" data-modal="accion-canal-notificacion">
 <div class="col-md-12 col-xlg-12">
     <div class="card">
         <div class="card-header">
             <div class="card-actions">
                 @if (can2('crear_canal_notificacion'))
-                    <a href="{{route('crear_canal_notificacion')}}" id="nuevo-registro" data-modal="accion-canal-notificacion">
+                    <a href="{{route('crear_canal_notificacion')}}" id="nuevo-registro">
                         <i class="ti-plus"></i>
                     </a>
                 @endif

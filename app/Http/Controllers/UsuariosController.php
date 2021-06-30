@@ -29,6 +29,8 @@ class UsuariosController extends Controller
             $usuarios = DB::table('TBL_Usuario as u')
                 ->leftJoin('TBL_Rol_Usuario as ru', 'ru.USR_RL_Usuario_Id', 'u.id')
                 ->select('ru.*', 'u.*')
+                ->orderBy('ru.USR_RL_Estado', 'desc')
+                ->orderBy('u.USR_Nombres_Usuario')
                 ->groupBy('u.id')
                 ->get();
         }else{
@@ -36,6 +38,8 @@ class UsuariosController extends Controller
                 ->leftJoin('TBL_Rol_Usuario as ru', 'ru.USR_RL_Usuario_Id', 'u.id')
                 ->where('u.USR_Empresa_Id', session()->get('Empresa_Id'))
                 ->select('ru.*', 'u.*')
+                ->orderBy('ru.USR_RL_Estado', 'desc')
+                ->orderBy('u.USR_Nombres_Usuario')
                 ->groupBy('u.id')
                 ->get();
         }
@@ -51,10 +55,12 @@ class UsuariosController extends Controller
     public function crear(Request $request)
     {
         if($request->ajax()){
-            can('crear_usuario');
-            $roles = Roles::get();
-            $empresas = Empresa::get();
-            return view('theme.back.usuarios.crear', compact('roles', 'empresas'));
+            if(can('crear_usuario')){
+                $roles = Roles::get();
+                $empresas = Empresa::get();
+                return view('theme.back.usuarios.crear', compact('roles', 'empresas'));
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
         abort(404);
     }
@@ -69,28 +75,17 @@ class UsuariosController extends Controller
     {
         if($request->ajax()){
             if(can2('crear_usuario')){
-                $usuario = Usuarios::create([
-                    'USR_Tipo_Documento_Usuario' => $request->USR_Tipo_Documento_Usuario,
-                    'USR_Documento_Usuario' => $request->USR_Documento_Usuario,
-                    'USR_Fecha_Vencimiento_Licencia_Usuario' => $request->USR_Fecha_Vencimiento_Licencia_Usuario,
-                    'USR_Nombres_Usuario' => $request->USR_Nombres_Usuario,
-                    'USR_Apellidos_Usuario' => $request->USR_Apellidos_Usuario,
-                    'USR_Fecha_Nacimiento_Usuario' => $request->USR_Fecha_Nacimiento_Usuario,
-                    'USR_Direccion_Residencia_Usuario' => $request->USR_Direccion_Residencia_Usuario,
-                    'USR_Telefono_Usuario' => $request->USR_Telefono_Usuario,
-                    'USR_Correo_Usuario' => $request->USR_Correo_Usuario,
-                    'USR_Nombre_Usuario' => $request->USR_Nombre_Usuario,
-                    'password' => Hash::make($request->USR_Nombre_Usuario),
-                    'USR_Empresa_Id' => $request->USR_Empresa_Id,
-                    'USR_Conductor_Fijo_Usuario' => $request->has('USR_Conductor_Fijo_Usuario')
-                ]);
-                UsuarioRol::create([
-                    'USR_RL_Usuario_Id' => $usuario->id,
-                    'USR_RL_Rol_Id' => $request->USR_Tipo_Usuario_Usuario,
-                    'USR_RL_Estado' => ($request->has('USR_Activo_Usuario'))? 1 : 0
-                ]);
-
-                return $this->vista(Lang::get('messages.UserCreated'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                DB::beginTransaction();
+                $usuario = Usuarios::crear($request);
+                if($usuario){
+                    $usuario_rol = UsuarioRol::crear($usuario, $request);
+                    if($usuario_rol){
+                        DB::commit();
+                        return $this->vista(Lang::get('messages.UserCreated'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                    }
+                    DB::rollBack();
+                }
+                DB::rollBack();
             }
             return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
@@ -138,41 +133,28 @@ class UsuariosController extends Controller
     {
         if($request->ajax()){
             if(can2('editar_usuario')){
-                $usuario = Usuarios::findOrFail($id);
+                DB::beginTransaction();
+                $usuario = Usuarios::find($id);
 
                 if($usuario){
-                    $usuario->update([
-                        'USR_Tipo_Documento_Usuario' => $request->USR_Tipo_Documento_Usuario,
-                        'USR_Documento_Usuario' => $request->USR_Documento_Usuario,
-                        'USR_Fecha_Vencimiento_Licencia_Usuario' => $request->USR_Fecha_Vencimiento_Licencia_Usuario,
-                        'USR_Nombres_Usuario' => $request->USR_Nombres_Usuario,
-                        'USR_Apellidos_Usuario' => $request->USR_Apellidos_Usuario,
-                        'USR_Fecha_Nacimiento_Usuario' => $request->USR_Fecha_Nacimiento_Usuario,
-                        'USR_Direccion_Residencia_Usuario' => $request->USR_Direccion_Residencia_Usuario,
-                        'USR_Telefono_Usuario' => $request->USR_Telefono_Usuario,
-                        'USR_Correo_Usuario' => $request->USR_Correo_Usuario,
-                        'USR_Nombre_Usuario' => $request->USR_Nombre_Usuario,
-                        'USR_Empresa_Id' => $request->USR_Empresa_Id,
-                        'USR_Conductor_Fijo_Usuario' => $request->has('USR_Conductor_Fijo_Usuario')
-                    ]);
+                    $usuarioEditado = Usuarios::editar($usuario, $request);
+                    if($usuarioEditado){
+                        $rol = UsuarioRol::where('USR_RL_Usuario_Id', $usuario->id)->first();
+                        if($rol){
+                            $usuario_rol = UsuarioRol::editar($usuario, $request);
+                        }else{
+                            $usuario_rol = UsuarioRol::crear($usuario, $request);
+                        }
 
-                    $rol = UsuarioRol::where('USR_RL_Usuario_Id', $usuario->id)->first();
-                    if($rol){
-                        UsuarioRol::where('USR_RL_Usuario_Id', $usuario->id)->first()
-                            ->update([
-                                'USR_RL_Rol_Id' => $request->USR_Tipo_Usuario_Usuario,
-                                'USR_RL_Estado' => ($request->has('USR_Activo_Usuario'))? 1 : 0
-                            ]);
-                    }else{
-                        UsuarioRol::create([
-                            'USR_RL_Usuario_Id' => $usuario->id,
-                            'USR_RL_Rol_Id' => $request->USR_Tipo_Usuario_Usuario,
-                            'USR_RL_Estado' => ($request->has('USR_Activo_Usuario'))? 1 : 0
-                        ]);
+                        if($usuario_rol){
+                            DB::commit();
+                            return $this->vista(Lang::get('messages.User').' '.$usuario->USR_Nombres_Usuario.' '.Lang::get('messages.Updated'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                        }
+                        DB::rollBack();
                     }
-                    
-                    return $this->vista(Lang::get('messages.User').' '.$usuario->USR_Nombres_Usuario.' '.Lang::get('messages.Updated'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                    DB::rollBack();
                 }
+                DB::rollBack();
                 return response()->json(['mensaje'=>Lang::get('messages.UserNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
             return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
@@ -190,29 +172,31 @@ class UsuariosController extends Controller
     {
         if($request->ajax()){
             if(can2('eliminar_usuario')){
-                try {
-                    Usuarios::destroy($id);
-
+                DB::beginTransaction();
+                if(Usuarios::eliminar($id)){
+                    DB::commit();
                     return response()->json(['mensaje'=>Lang::get('messages.UserDeleted'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeSuccess'), 'row' => $id]);
-                } catch (QueryException $ex) {
-                    try {
-                        $roles = UsuarioRol::where('USR_RL_Usuario_Id', $id)->get();
-                        foreach ($roles as $rol) {
-                            $rol->delete();
-                        }
-                        Usuarios::destroy($id);
-    
-                        return response()->json(['mensaje'=>Lang::get('messages.UserDeleted'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeSuccess'), 'row' => $id]);
-                    } catch (QueryException $ex) {
-                        $roles = UsuarioRol::where('USR_RL_Usuario_Id', $id)->get();
-                        foreach ($roles as $rol) {
-                            $rol->update([
-                                'USR_RL_Estado' => 0
-                            ]);
-                        }
-                        return response()->json(['mensaje'=>Lang::get('messages.UserInactive'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeWarning')]);
-                    }
                 }
+                DB::rollBack();
+                    
+                $roles = UsuarioRol::where('USR_RL_Usuario_Id', $id)->get();
+                foreach ($roles as $rol) {
+                    $rol->delete();
+                }
+                if(Usuarios::eliminar($id)){
+                    DB::commit();
+                    return response()->json(['mensaje'=>Lang::get('messages.UserDeleted'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeSuccess'), 'row' => $id]);
+                }
+                DB::rollBack();
+
+                foreach ($roles as $rol) {
+                    $rol->update([
+                        'USR_RL_Estado' => 0
+                    ]);
+                }
+
+                DB::commit();
+                return response()->json(['mensaje'=>Lang::get('messages.UserInactive'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeWarning')]);
             }
             return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
@@ -225,6 +209,8 @@ class UsuariosController extends Controller
             $usuarios = DB::table('TBL_Usuario as u')
                 ->leftJoin('TBL_Rol_Usuario as ru', 'ru.USR_RL_Usuario_Id', 'u.id')
                 ->select('ru.*', 'u.*')
+                ->orderBy('ru.USR_RL_Estado', 'desc')
+                ->orderBy('u.USR_Nombres_Usuario')
                 ->groupBy('u.id')
                 ->get();
         }else{
@@ -232,6 +218,8 @@ class UsuariosController extends Controller
                 ->leftJoin('TBL_Rol_Usuario as ru', 'ru.USR_RL_Usuario_Id', 'u.id')
                 ->where('u.USR_Empresa_Id', session()->get('Empresa_Id'))
                 ->select('ru.*', 'u.*')
+                ->orderBy('ru.USR_RL_Estado', 'desc')
+                ->orderBy('u.USR_Nombres_Usuario')
                 ->groupBy('u.id')
                 ->get();
         }
@@ -245,6 +233,8 @@ class UsuariosController extends Controller
                 $usuarios = DB::table('TBL_Usuario as u')
                     ->leftJoin('TBL_Rol_Usuario as ru', 'ru.USR_RL_Usuario_Id', 'u.id')
                     ->select('ru.*', 'u.*')
+                    ->orderBy('ru.USR_RL_Estado', 'desc')
+                    ->orderBy('u.USR_Nombres_Usuario')
                     ->groupBy('u.id')
                     ->get();
             }else{
@@ -252,6 +242,8 @@ class UsuariosController extends Controller
                     ->leftJoin('TBL_Rol_Usuario as ru', 'ru.USR_RL_Usuario_Id', 'u.id')
                     ->where('u.USR_Empresa_Id', session()->get('Empresa_Id'))
                     ->select('ru.*', 'u.*')
+                    ->orderBy('ru.USR_RL_Estado', 'desc')
+                    ->orderBy('u.USR_Nombres_Usuario')
                     ->groupBy('u.id')
                     ->get();
             }
@@ -261,10 +253,8 @@ class UsuariosController extends Controller
 
     public function asignar($id)
     {
-        can('roles_asignar');
-        try {
-            $usuarioId = Crypt::decrypt($id);
-            $usuario = Usuarios::findOrFail($usuarioId);
+        if(can2('roles_asignar')){
+            $usuario = Usuarios::find($id);
 
             if($usuario){
                 $roles = DB::table('TBL_Rol as r')
@@ -274,33 +264,32 @@ class UsuariosController extends Controller
                     ->orderBy('r.RL_Nombre_Rol')
                     ->groupBy('r.id')
                     ->get();
+
                 return view('theme.back.usuarios.roles', compact('usuario', 'roles'));
             }
             return redirect()->route('usuarios')->withErrors(Lang::get('messages.UserNotExists'));
-        } catch (DecryptException $e) {
-            return redirect()->route('usuarios')->withErrors(Lang::get('messages.IdNotValid'));
         }
+        return redirect()->route('usuarios')->withErrors(Lang::get('messages.AccessDenied'));
     }
 
     public function guardarAsignar(Request $request, $id)
     {
-        try {
-            $usuarioId = Crypt::decrypt($id);
-            $usuario = Usuarios::findOrFail($usuarioId);
+        if(can2('roles_asignar')){
+            $usuario = Usuarios::find($id);
 
             if($usuario){
                 $roles = Roles::get();
                 foreach ($roles as $rol) {
                     if($request->has('cbx_'.$rol->id)) {
-                        if(!$this->verificarRol($usuarioId, $rol->id)){
+                        if(!$this->verificarRol($usuario->id, $rol->id)){
                             UsuarioRol::create([
-                                'USR_RL_Usuario_Id' => $usuarioId,
+                                'USR_RL_Usuario_Id' => $usuario->id,
                                 'USR_RL_Rol_Id' => $rol->id
                             ]);
                         }
                     } else {
-                        if($this->verificarRol($usuarioId, $rol->id)){
-                            UsuarioRol::where('USR_RL_Usuario_Id', $usuarioId)
+                        if($this->verificarRol($usuario->id, $rol->id)){
+                            UsuarioRol::where('USR_RL_Usuario_Id', $usuario->id)
                                 ->where('USR_RL_Rol_Id', $rol->id)
                                 ->first()->delete();
                         }
@@ -312,9 +301,8 @@ class UsuariosController extends Controller
                     ->with('mensaje', Lang::get('messages.AssignedRoles'));
             }
             return redirect()->route('usuarios')->withErrors(Lang::get('messages.UserNotExists'));
-        } catch (DecryptException $e) {
-            return redirect()->route('usuarios')->withErrors(Lang::get('messages.IdNotValid'));
         }
+        return redirect()->route('usuarios')->withErrors(Lang::get('messages.AccessDenied'));
     }
 
     private function verificarRol($usuarioId, $rolId){

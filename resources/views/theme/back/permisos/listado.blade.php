@@ -15,14 +15,15 @@
 </div>
 @endsection
 @section('contenido')
+<input type="hidden" id="modalName" data-modal="accion-permiso">
 <div class="col-md-12 col-xlg-12">
     <div class="card">
         <div class="card-header">
             <div class="card-actions">
-                <a href="{{route('ordenar_menu')}}" id="ordenar-menu" data-modal="accion-permiso">
+                <a href="{{route('ordenar_menu')}}" id="ordenar-menu">
                     <i class="ti-reload"></i>
                 </a>
-                <a href="{{route('crear_permiso')}}" id="nuevo-registro" data-modal="accion-permiso">
+                <a href="{{route('crear_permiso')}}" id="nuevo-registro">
                     <i class="ti-plus"></i>
                 </a>
             </div>

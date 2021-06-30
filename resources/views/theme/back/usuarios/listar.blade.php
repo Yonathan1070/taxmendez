@@ -14,12 +14,13 @@
     <link href="{{asset('assets/back/plugins/bootstrap-material-datetimepicker/css/bootstrap-material-datetimepicker.css')}}" rel="stylesheet">
 @endsection
 @section('contenido')
+<input type="hidden" id="modalName" data-modal="accion-usuario">
 <div class="col-12">
     <div class="card">
         <div class="card-header">
             <div class="card-actions">
                 @if (can2('crear_usuario'))
-                    <a href="{{route('crear_usuario')}}" id="nuevo-registro" data-modal="accion-usuario">
+                    <a href="{{route('crear_usuario')}}" id="nuevo-registro">
                         <i class="ti-plus"></i>
                     </a>
                 @endif

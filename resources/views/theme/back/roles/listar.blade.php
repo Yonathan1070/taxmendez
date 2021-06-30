@@ -13,12 +13,13 @@
 </div>
 @endsection
 @section('contenido')
+<input type="hidden" id="modalName" data-modal="accion-rol">
 <div class="col-md-12 col-xlg-12">
     <div class="card">
         <div class="card-header">
             <div class="card-actions">
                 @if (can2('crear_rol'))
-                    <a href="{{route('crear_rol')}}" id="nuevo-registro" data-modal="accion-rol">
+                    <a href="{{route('crear_rol')}}" id="nuevo-registro">
                         <i class="ti-plus"></i>
                     </a>
                 @endif

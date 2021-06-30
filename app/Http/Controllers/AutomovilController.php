@@ -337,24 +337,26 @@ class AutomovilController extends Controller
      */
     public function balance($id)
     {
-        can('balance');
-        $automovil = Automovil::find($id);
+        if(can2('balance')){
+            $automovil = Automovil::find($id);
 
-        if($automovil){
-            Session::put(['Automovil_Id' => $automovil->id]);
-            $mes = Carbon::now()->format('m');
-            $anio = Carbon::now()->format('Y');
+            if($automovil){
+                Session::put(['Automovil_Id' => $automovil->id]);
+                $mes = Carbon::now()->format('m');
+                $anio = Carbon::now()->format('Y');
 
-            $cantidadDias = $this->obtenerDiasMes($mes, $anio);
-            $turnosRegistrados = UsuarioAutomovilTurno::where('TRN_AUT_Fecha_Turno', '>=', $anio.'-'.$mes.'-01')
-                ->where('TRN_AUT_Fecha_Turno', '<=', $anio.'-'.$mes.'-'.$cantidadDias)
-                ->get()
-                ->count();
-                
-            $boton = (($turnosRegistrados/2) >= $cantidadDias) ? 'block' : 'none';
-            return view('theme.back.automoviles.balance', compact('automovil', 'boton'));
+                $cantidadDias = $this->obtenerDiasMes($mes, $anio);
+                $turnosRegistrados = UsuarioAutomovilTurno::where('TRN_AUT_Fecha_Turno', '>=', $anio.'-'.$mes.'-01')
+                    ->where('TRN_AUT_Fecha_Turno', '<=', $anio.'-'.$mes.'-'.$cantidadDias)
+                    ->get()
+                    ->count();
+                    
+                $boton = (($turnosRegistrados/2) >= $cantidadDias) ? 'block' : 'none';
+                return view('theme.back.automoviles.balance', compact('automovil', 'boton'));
+            }
+            return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
         }
-        return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
+        return redirect()->route('automoviles')->withErrors(Lang::get('messages.AccessDenied'));
     }
 
     public function agregarDatos(Request $request, $id)
@@ -765,8 +767,8 @@ class AutomovilController extends Controller
 
     public function generarBalance(Request $request, $id){
         if($request->ajax()){
-            if(can2('balance')){
-                $automovil = Automovil::findOrFail($id);
+            if(can2('balance_mensual')){
+                $automovil = Automovil::find($id);
 
                 if($automovil){
                     if($request->has('notificacion') && $request->notificacion == true){
@@ -944,7 +946,6 @@ class AutomovilController extends Controller
                     //Fin Mensualidad
                 }
                 return response()->json(['mensaje'=>Lang::get('messages.CarNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
-                
             }
             return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
@@ -1066,7 +1067,7 @@ class AutomovilController extends Controller
 
     public function balanceAnual(Request $request, $id){
         if($request->ajax()){
-            if(can2('balance')){
+            if(can2('balance_anual')){
                 $automovil = Automovil::find($id);
 
                 $anio = ($request->Anio) ? $request->Anio : Carbon::now()->format('Y');
@@ -1115,7 +1116,7 @@ class AutomovilController extends Controller
 
     public function balanceDiario(Request $request, $id){
         if($request->ajax()){
-            if(can2('balance')){
+            if(can2('balance_diario')){
                 $automovil = Automovil::find($id);
 
                 if($automovil){
@@ -1161,7 +1162,6 @@ class AutomovilController extends Controller
                         
                         array_push($dias, $turnosDia);
                     }
-
 
                     $mensual = DB::table('TBL_Usuario_Automovil_Turno as uat')
                         ->join('TBL_Turno as t', 't.id', 'uat.TRN_AUT_Turno_Id')
@@ -1237,7 +1237,7 @@ class AutomovilController extends Controller
     }
 
     public function listarGastos(Request $request, $id){
-        if(can2('balance')){
+        if(can2('gastos')){
             $automovil = Automovil::find($id);
 
             if($automovil){
@@ -1256,15 +1256,14 @@ class AutomovilController extends Controller
 
                 return view('theme.back.automoviles.gastos.listar', compact('gastos', 'mesAnio', 'automovil'));
             }
-
             return redirect()->route('automoviles')->withErrors(Lang::get('messages.CarNotExists'));
         }
-        return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+        return redirect()->route('automoviles')->withErrors(Lang::get('messages.AccessDenied'));
     }
 
     public function crearGastos(Request $request, $id){
         if($request->ajax()){
-            if(can2('balance')){
+            if(can2('crear_gastos')){
                 $automovil = Automovil::find($id);
 
                 if($automovil){
@@ -1280,34 +1279,40 @@ class AutomovilController extends Controller
     }
 
     public function editarGastos(Request $request, $id, $idGasto){
-        $automovil = Automovil::findOrFail($id);
+        if($request->ajax()){
+            if(can2('editar_gastos')){
+                $automovil = Automovil::find($id);
 
-        if($automovil){
-            $gasto = Gastos::findOrFail($idGasto);
-                
-            if($gasto){
-                if($request->has('notificacion') && $request->notificacion == true){
-                    Notificacion::find($request->notificacionId)->update([
-                        'NTF_Visto_Notificacion' => 1
-                    ]);
+                if($automovil){
+                    $gasto = Gastos::find($idGasto);
+                        
+                    if($gasto){
+                        if($request->has('notificacion') && $request->notificacion == true){
+                            Notificacion::find($request->notificacionId)->update([
+                                'NTF_Visto_Notificacion' => 1
+                            ]);
+                        }
+                            
+                        $mesAnio = (sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos;
+
+                        return view('theme.back.automoviles.gastos.editar', compact('mesAnio', 'automovil', 'gasto'));
+                    }
+                    return response()->json(['mensaje'=>Lang::get('messages.ExpenseNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
                 }
-                    
-                $mesAnio = (sizeof($request->all()) <= 0) ? session()->get('FechaGastos') : $request->mesAnioGastos;
-
-                return view('theme.back.automoviles.gastos.editar', compact('mesAnio', 'automovil', 'gasto'));
+                return response()->json(['mensaje'=>Lang::get('messages.CarNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
-            return response()->json(['mensaje'=>Lang::get('messages.ExpenseNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
-        return response()->json(['mensaje'=>Lang::get('messages.CarNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+        abort(404);
     }
 
     public function actualizarGastos(Request $request, $id, $idGasto){
         if($request->ajax()){
-            if(can2('balance')){
+            if(can2('editar_gastos')){
                 $automovil = Automovil::find($id);
 
                 if($automovil){
-                    $gasto = Gastos::findOrFail($idGasto);
+                    $gasto = Gastos::find($idGasto);
                     if($gasto){
                         if($request->GST_Costo_Gasto == -1){
                             return response()->json(['mensaje'=>Lang::get('messages.NoExpenses'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
@@ -1345,7 +1350,7 @@ class AutomovilController extends Controller
 
     public function eliminarGastos(Request $request, $id, $idGasto){
         if($request->ajax()){
-            if(can2('balance')){
+            if(can2('eliminar_gastos')){
                 try {
                     Gastos::destroy($idGasto);
 

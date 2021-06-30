@@ -29,7 +29,7 @@
         <div class="card-body collapse show b-t">
             <div class="table-responsive m-t-40">
                 <div id="accordian-3">
-                    <form action="{{route('guardar_asignar_rol', ['id'=>Crypt::encrypt($usuario->id)])}}" method="POST">
+                    <form action="{{route('guardar_asignar_rol', $usuario->id)}}" method="POST">
                         @csrf
                         <div class="demo-checkbox">
                             @foreach ($roles as $rol)

@@ -33,7 +33,7 @@
         @endforeach
         <tr>
             <th>{{Lang::get('messages.Total')}}</th>
-            <td>{{'$ '.number_format($totalGastos, 0, ',', '.')}}</td>
+            <td id="totalGastos">{{'$ '.number_format($totalGastos, 0, ',', '.')}}</td>
             <td></td>
         </tr>
     </tbody>

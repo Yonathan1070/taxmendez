@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Exception;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
@@ -56,6 +57,10 @@ class Handler extends ExceptionHandler
         if ($exception instanceof \Illuminate\Http\Exceptions\HttpResponseException) {
             $exception = $exception->getResponse();
         }
+
+        /*if ($exception instanceof ModelNotFoundException) {
+            $exception = $exception->getResponse();
+        }*/
 
         if ($exception instanceof \Illuminate\Auth\AuthenticationException) {
             $exception = $this->unauthenticated($request, $exception);

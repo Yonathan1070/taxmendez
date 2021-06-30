@@ -10,7 +10,7 @@
 </div>
 @endsection
 @section('styles')
-    <link href="{{asset("assets/back/plugins/datatables/media/css/dataTables.bootstrap4.css")}}" rel="stylesheet">
+    
 @endsection
 @section('contenido')
 <div class="col-md-12 col-xlg-12">
@@ -37,7 +37,7 @@
             @endif
             <div class="table-responsive m-t-40">
 
-                <table class="table table-bordered table-striped myTable">
+                <table class="table table-bordered table-striped">
                     <thead>
                         <tr>
                             <th></th>
@@ -78,8 +78,8 @@
 </div>
 @endsection
 @section('scriptsPlugins')
-    <script src="{{asset("assets/back/plugins/datatables/datatables.min.js")}}"></script>
+    
 @endsection
 @section('scripts')
-    <script src="{{asset('assets/back/scripts/general.js')}}"></script>
+    
 @endsection

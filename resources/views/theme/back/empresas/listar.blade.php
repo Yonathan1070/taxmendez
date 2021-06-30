@@ -14,12 +14,13 @@
 </div>
 @endsection
 @section('contenido')
+<input type="hidden" id="modalName" data-modal="accion-empresa">
 <div class="col-md-12 col-xlg-12">
     <div class="card">
         <div class="card-header">
             <div class="card-actions">
                 @if (can2('crear_empresa'))
-                    <a href="{{route('crear_empresa')}}" id="nuevo-registro" data-modal="accion-empresa">
+                    <a href="{{route('crear_empresa')}}" id="nuevo-registro">
                         <i class="ti-plus"></i>
                     </a>
                 @endif

@@ -29,7 +29,7 @@
         <div class="card-body collapse show b-t">
             <div class="table-responsive m-t-40">
                 <div id="accordian-3">
-                    <form action="{{route('guardar_permisos_usuario', ['id'=>Crypt::encrypt($usuario->id)])}}" method="POST">
+                    <form action="{{route('guardar_permisos_usuario', $usuario->id)}}" method="POST">
                         @csrf
                         @foreach ($categorias as $categoria)
                             <div class="card m-b-0">

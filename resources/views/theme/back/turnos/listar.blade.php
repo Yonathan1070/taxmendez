@@ -13,12 +13,13 @@
 </div>
 @endsection
 @section('contenido')
+<input type="hidden" id="modalName" data-modal="accion-turno">
 <div class="col-md-12 col-xlg-12">
     <div class="card">
         <div class="card-header">
             <div class="card-actions">
                 @if (can2('crear_turno'))
-                    <a href="{{route('crear_turno')}}" id="nuevo-registro" data-modal="accion-turno">
+                    <a href="{{route('crear_turno')}}" id="nuevo-registro">
                         <i class="ti-plus"></i>
                     </a>
                 @endif

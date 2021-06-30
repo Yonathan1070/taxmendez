@@ -592,6 +592,17 @@
                         </div>
                     </div>
                 @endif
+            @else
+                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="ribbon-wrapper-reverse card">
+                        <div class="ribbon ribbon-bookmark ribbon-danger">
+                            {{Lang::get('messages.Alert')}}
+                        </div>
+                        <p class="ribbon-content">
+                            {{Lang::get('messages.AccessDeniedIndicators')}}
+                        </p>
+                    </div>
+                </div>
             @endif
         </div>
     </div>

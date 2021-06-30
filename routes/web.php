@@ -64,7 +64,7 @@ Route::group(['prefix' => '/usuarios', 'middleware' => ['auth']], function () {
     Route::post('/asignarroles/{id}', [UsuariosController::class, 'guardarAsignar'])->name('guardar_asignar_rol');
 });
 Route::group(['prefix' => '/permisos', 'middleware' => ['auth']], function () {
-    Route::get('/listado', [PermisosController::class, 'listar'])->name('permisos');
+    Route::get('listado', [PermisosController::class, 'listar'])->name('permisos');
     Route::get('page', [PermisosController::class, 'page'])->name('page_permisos');
     Route::post('/crear', [PermisosController::class, 'crear'])->name('crear_permiso');
     Route::put('/{id}/editar', [PermisosController::class, 'editar'])->name('editar_permiso');

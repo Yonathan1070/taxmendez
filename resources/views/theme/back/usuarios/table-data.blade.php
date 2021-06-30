@@ -24,7 +24,7 @@
                 @if (can2('permisos_asignar'))
                     <td>
                         @if ($usuario->USR_RL_Estado == 1)
-                            <a href="{{route('permisos_usuario', ['id'=>Crypt::encrypt($usuario->id)])}}">
+                            <a href="{{route('permisos_usuario', $usuario->id)}}">
                                 {{Str::of(Lang::get('messages.'.can4('permisos_asignar')->PRM_Slug_Permiso))->explode(' ')[0]}}
                             </a>
                         @endif
@@ -32,7 +32,7 @@
                 @endif
                 @if (can2('roles_asignar'))
                     <td>
-                        <a href="{{route('asignar_rol', ['id'=>Crypt::encrypt($usuario->id)])}}">
+                        <a href="{{route('asignar_rol', $usuario->id)}}">
                             {{Str::of(Lang::get('messages.'.can4('roles_asignar')->PRM_Slug_Permiso))->explode(' ')[0]}}
                         </a>
                     </td>

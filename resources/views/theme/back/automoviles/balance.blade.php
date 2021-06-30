@@ -44,28 +44,36 @@
                     <form action="{{route('balance_diario', $automovil->id)}}" class="cuadro-turnos" method="POST">
                         @csrf
                         <input name="mesAnioTurnos" id="mesAnioTurnos" type="hidden">
-                        <button type="submit" id="turnos" class="btn btn-block btn-success">{{Lang::get('messages.Cuadro_Turnos')}}</button>
+                        @if (can2('balance_diario'))
+                            <button type="submit" id="turnos" class="btn btn-block btn-success">{{Lang::get('messages.Cuadro_Turnos')}}</button>
+                        @endif
                     </form>
                 </div>
                 <div class="col-lg-3 col-md-4">
-                    <form action="{{route('generar_balance', $automovil->id)}}" class="cuadro-mensualidad" method="POST">
+                    <form action="{{route('generar_balance', $automovil->id)}}" class="cuadro-mensualidad" method="POST" id="mensualidad" style="display:{{$boton}}">
                         @csrf
                         <input name="mesAnio" id="mesAnio" type="hidden">
-                        <button type="submit" id="mensualidad" class="btn btn-block btn-success" style="display:{{$boton}}">{{Lang::get('messages.GenerateMonthlyPayment')}}</button>
+                        @if (can2('balance_mensual'))
+                            <button type="submit" class="btn btn-block btn-success">{{Lang::get('messages.GenerateMonthlyPayment')}}</button>
+                        @endif
                     </form>
                 </div>
                 <div class="col-lg-3 col-md-4">
                     <form action="{{route('balance_anual', $automovil->id)}}" class="cuadro-anual" method="POST">
                         @csrf
                         <input name="Anio" id="Anio" type="hidden">
-                        <button type="submit" id="anual" class="btn btn-block btn-success">{{Lang::get('messages.GenerateAnnualBalance')}}</button>
+                        @if (can2('balance_anual'))
+                            <button type="submit" id="anual" class="btn btn-block btn-success">{{Lang::get('messages.GenerateAnnualBalance')}}</button>
+                        @endif
                     </form>
                 </div>
                 <div class="col-lg-3 col-md-4">
-                    <form action="{{route('agregar_gastos', $automovil->id)}}" method="POST">
+                    <form action="{{route('agregar_gastos', $automovil->id)}}" method="POST" id="gastos">
                         @csrf
                         <input name="mesAnioGastos" id="mesAnioGastos" type="hidden">
-                        <button type="submit" id="gastos" class="btn btn-block btn-success">{{Lang::get('messages.InsertExpenses')}}</button>
+                        @if (can2('gastos'))
+                            <button type="submit" class="btn btn-block btn-success">{{Lang::get('messages.InsertExpenses')}}</button>
+                        @endif
                     </form>
                 </div>
             </div>

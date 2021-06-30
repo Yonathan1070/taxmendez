@@ -9,6 +9,7 @@ use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -22,7 +23,7 @@ class EmpresasController extends Controller
      */
     public function index()
     {
-        can('roles');
+        can('empresas');
 
         $empresas = Empresa::orderBy('id')->paginate(10);
 
@@ -37,9 +38,10 @@ class EmpresasController extends Controller
     public function crear(Request $request)
     {
         if($request->ajax()){
-            can2('crear_rol');
-            
-            return view('theme.back.empresas.crear');
+            if(can2('crear_empresa')){
+                return view('theme.back.empresas.crear');
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
         abort(404);
     }
@@ -54,6 +56,7 @@ class EmpresasController extends Controller
     {
         if($request->ajax()){
             if(can2('crear_empresa')){
+                DB::beginTransaction();
                 $empresa = Empresa::where('EMP_Nit_Empresa', $request->EMP_Nit_Empresa)
                     ->orWhere('EMP_Nombre_Empresa', $request->EMP_Nombre_Empresa)
                     ->first();
@@ -71,18 +74,15 @@ class EmpresasController extends Controller
                         $textoLogoComoBase64 = base64_encode($contenidoBinario);
                     }
 
-                    Empresa::create([
-                        'EMP_Nombre_Empresa' => $request->EMP_Nombre_Empresa,
-                        'EMP_NIT_Empresa' => $request->EMP_NIT_Empresa,
-                        'EMP_Telefono_Empresa' => $request->EMP_Telefono_Empresa,
-                        'EMP_Direccion_Empresa' => $request->EMP_Direccion_Empresa,
-                        'EMP_Correo_Empresa' => $request->EMP_Correo_Empresa,
-                        'EMP_Logo_Empresa' => $imagenComoBase64,
-                        'EMP_Logo_Texto_Empresa' => $textoLogoComoBase64
-                    ]);
+                    $newEmpresa = Empresa::crear($request, $imagenComoBase64, $textoLogoComoBase64);
 
-                    return $this->vista(Lang::get('messages.CreatedCompany'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                    if($newEmpresa){
+                        DB::commit();
+                        return $this->vista(Lang::get('messages.CreatedCompany'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                    }
+                    DB::rollBack();
                 }
+                DB::rollBack();
                 return response()->json(['mensaje'=>Lang::get('messages.CompanyExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
             return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
@@ -123,7 +123,8 @@ class EmpresasController extends Controller
     {
         if($request->ajax()){
             if(can2('editar_empresa')){
-                $empresa = Empresa::findOrFail($id);
+                DB::beginTransaction();
+                $empresa = Empresa::find($id);
 
                 if($empresa){
                     $empresaDistintoId = Empresa::where('id', '!=', $empresa->id)
@@ -134,6 +135,7 @@ class EmpresasController extends Controller
                         ->first();
                     
                     if($empresaDistintoId){
+                        DB::rollBack();
                         return response()->json(['mensaje'=>Lang::get('messages.NitOrNameExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
                     }
 
@@ -153,18 +155,15 @@ class EmpresasController extends Controller
                         $textoLogoComoBase64 = $empresa->EMP_Logo_Texto_Empresa;
                     }
 
-                    $empresa->update([
-                        'EMP_Nombre_Empresa' => $request->EMP_Nombre_Empresa,
-                        'EMP_NIT_Empresa' => $request->EMP_NIT_Empresa,
-                        'EMP_Telefono_Empresa' => $request->EMP_Telefono_Empresa,
-                        'EMP_Direccion_Empresa' => $request->EMP_Direccion_Empresa,
-                        'EMP_Correo_Empresa' => $request->EMP_Correo_Empresa,
-                        'EMP_Logo_Empresa' => $imagenComoBase64,
-                        'EMP_Logo_Texto_Empresa' => $textoLogoComoBase64
-                    ]);
+                    $empresaEditada = Empresa::editar($empresa, $request, $imagenComoBase64, $textoLogoComoBase64);
 
-                    return $this->vista(Lang::get('messages.Company').' '.$empresa->EMP_Nombre_Empresa.' '.Lang::get('messages.Updated').'.', Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                    if($empresaEditada){
+                        DB::commit();
+                        return $this->vista(Lang::get('messages.Company').' '.$empresa->EMP_Nombre_Empresa.' '.Lang::get('messages.Updated').'.', Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                    }
+                    DB::rollBack();
                 }
+                DB::rollBack();
                 return response()->json(['mensaje'=>Lang::get('messages.CompanyNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
             return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
@@ -176,13 +175,13 @@ class EmpresasController extends Controller
     {
         if($request->ajax()){
             if(can2('eliminar_empresa')){
-                try {
-                    Empresa::destroy($id);
-
+                DB::beginTransaction();
+                if(Empresa::eliminar($id)){
+                    DB::commit();
                     return response()->json(['mensaje'=>Lang::get('messages.DeletedCompany'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeSuccess'), 'row' => $id]);
-                } catch (QueryException $ex) {
-                    return response()->json(['mensaje'=>Lang::get('messages.CompanyNotDeleted'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
                 }
+                DB::rollBack();
+                return response()->json(['mensaje'=>Lang::get('messages.CompanyNotDeleted'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
             return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }

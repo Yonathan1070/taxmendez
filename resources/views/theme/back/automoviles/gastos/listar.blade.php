@@ -15,13 +15,19 @@
 @endsection
 @section('contenido')
 <input id="mesAnioGastosLista" type="hidden" value="{{$mesAnio}}">
+<input type="hidden" id="modalName" data-modal="accion-gastos">
 <div class="col-md-12 col-xlg-12">
     <div class="card">
         <div class="card-header">
             <div class="card-actions">
-                @if (can2('balance'))
-                    <a href="{{route('crear_gastos', $automovil->id)}}" id="nuevo-registro" data-modal="accion-gastos">
+                @if (can2('crear_gastos'))
+                    <a href="{{route('crear_gastos', $automovil->id)}}" id="nuevo-registro">
                         <i class="ti-plus"></i>
+                    </a>
+                @endif
+                @if (can2('balance'))
+                    <a href="{{route('balance', $automovil->id)}}">
+                        <i class="ti-arrow-left"></i>
                     </a>
                 @endif
             </div>

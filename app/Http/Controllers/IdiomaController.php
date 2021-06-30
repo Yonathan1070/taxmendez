@@ -10,7 +10,7 @@ class IdiomaController extends Controller
     {
         // Almacenar el lenguaje en la session
         session()->put('locale', $idioma);
-        return redirect()->route('administracion');
+        return redirect()->back();
     }
 
 }

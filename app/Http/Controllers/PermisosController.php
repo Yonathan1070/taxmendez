@@ -26,11 +26,8 @@ class PermisosController extends Controller
      */
     public function index($id)
     {
-        can('permisos_asignar');
-
-        try {
-            $usuarioId = Crypt::decrypt($id);
-            $usuario = Usuarios::findOrFail($usuarioId);
+        if(can2('permisos_asignar')){
+            $usuario = Usuarios::find($id);
 
             if($usuario){
                 $categorias = Categoria::get();
@@ -49,13 +46,12 @@ class PermisosController extends Controller
                         array_push($permisosNoAsignados, $prm);
                     }
                 }
-                
+                    
                 return view('theme.back.permisos.listar', compact('usuario', 'categorias', 'permisosAsignados', 'permisosNoAsignados'));
             }
-
-        } catch (DecryptException $e) {
-            dd('error');
+            return redirect()->route('permisos')->withErrors(Lang::get('messages.UserNotExists'));
         }
+        return redirect()->route('usuarios')->withErrors(Lang::get('messages.AccessDenied'));
     }
 
     /**
@@ -65,7 +61,7 @@ class PermisosController extends Controller
      */
     public function listar()
     {
-        $rol = Roles::findOrFail(session()->get('Usuario_Id'));
+        $rol = Roles::find(session()->get('Usuario_Id'));
         if($rol && $rol->id == 1){
             $permisos = DB::table('TBL_Permiso as p')
                 ->join('TBL_Categoria as c', 'c.id', 'p.PRM_Categoria_Permiso')
@@ -75,7 +71,7 @@ class PermisosController extends Controller
 
             return view('theme.back.permisos.listado', compact('permisos'));
         } else{
-            return redirect()->route('administracion')->withErrors(Lang::get('messages.AccesDenied'));
+            return redirect()->route('administracion')->withErrors(Lang::get('messages.AccessDenied'));
         }
     }
 
@@ -87,7 +83,7 @@ class PermisosController extends Controller
     public function crear(Request $request)
     {
         if($request->ajax()){
-            $rol = Roles::findOrFail(session()->get('Usuario_Id'));
+            $rol = Roles::find(session()->get('Usuario_Id'));
             if($rol && $rol->id == 1){
                 $categorias = Categoria::get();
                 return view('theme.back.permisos.crear', compact('categorias'));
@@ -106,27 +102,26 @@ class PermisosController extends Controller
     public function guardar(Request $request)
     {
         if($request->ajax()){
-            $rol = Roles::findOrFail(session()->get('Usuario_Id'));
+            $rol = Roles::find(session()->get('Usuario_Id'));
             if($rol && $rol->id == 1){
+                DB::beginTransaction();
                 if(!($request->has('PRM_Menu_Permiso') && !$request->PRM_Icono_Permiso)){
                     $slugPermiso = Str::slug($request->PRM_Nombre_Permiso, '_');
                     $permiso = Permiso::where('PRM_Slug_Permiso',  $slugPermiso)
                         ->where('PRM_Menu_Permiso', $request->has('PRM_Menu_Permiso'))
                         ->first();
                     if(!$permiso){
-                        Permiso::create([
-                            'PRM_Nombre_Permiso' => $request->PRM_Nombre_Permiso,
-                            'PRM_Slug_Permiso' => $slugPermiso,
-                            'PRM_Menu_Permiso' => $request->has('PRM_Menu_Permiso'),
-                            'PRM_Icono_Permiso' => $request->PRM_Icono_Permiso,
-                            'PRM_Accion_Permiso' => $request->PRM_Accion_Permiso,
-                            'PRM_Categoria_Permiso' => $request->PRM_Categoria_Permiso
-                        ]);
-
-                        return $this->vista(Lang::get('messages.PermissionCreated'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                        $newPermiso = Permiso::crearPermiso($request, $slugPermiso);
+                        if($newPermiso){
+                            DB::commit();
+                            return $this->vista(Lang::get('messages.PermissionCreated'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                        }
+                        DB::rollBack();
                     }
+                    DB::rollBack();
                     return response()->json(['mensaje'=>Lang::get('messages.ExistingPermission'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
                 }
+                DB::rollBack();
                 return response()->json(['mensaje'=>Lang::get('messages.IconRequired'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
             return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
@@ -142,37 +137,37 @@ class PermisosController extends Controller
      */
     public function guardarPermiso(Request $request, $id)
     {
-        try {
-            $usuarioId = Crypt::decrypt($id);
-            $usuario = Usuarios::findOrFail($usuarioId);
+        if(can2('permisos_asignar')){
+            $usuario = Usuarios::find($id);
 
             if($usuario){
                 $permisos = Permiso::get();
                 foreach ($permisos as $permiso) {
                     if($request->has('cbx_'.$permiso->id)) {
-                        if(!$this->verificarPermiso($usuarioId, $permiso->id)){
+                        if(!$this->verificarPermiso($usuario->id, $permiso->id)){
                             PermisoUsuario::create([
-                                'PRM_USR_Usuario_Id' => $usuarioId,
+                                'PRM_USR_Usuario_Id' => $usuario->id,
                                 'PRM_USR_Permiso_Id' => $permiso->id
                             ]);
                         }
                     } else {
-                        if($this->verificarPermiso($usuarioId, $permiso->id)){
-                            PermisoUsuario::where('PRM_USR_Usuario_Id', $usuarioId)
+                        if($this->verificarPermiso($usuario->id, $permiso->id)){
+                            PermisoUsuario::where('PRM_USR_Usuario_Id', $usuario->id)
                                 ->where('PRM_USR_Permiso_Id', $permiso->id)
                                 ->first()->delete();
                         }
                     }
                 }
-                
+                    
                 return redirect()
                     ->route('usuarios')
                     ->with('mensaje', Lang::get('messages.AssignedPermissions'));
             }
             return redirect()->route('usuarios')->with('mensaje', Lang::get('messages.UserNotExists'));
-        } catch (DecryptException $e) {
-            return redirect()->route('turnos')->withErrors(Lang::get('messages.IdNotValid'));
         }
+        return redirect()
+            ->route('usuarios')
+            ->with('mensaje', Lang::get('messages.AccessDenied'));
     }
 
     private function verificarPermiso($usuarioId, $permisoId){
@@ -195,9 +190,9 @@ class PermisosController extends Controller
     public function editar(Request $request, $id)
     {
         if($request->ajax()){
-            $rol = Roles::findOrFail(session()->get('Usuario_Id'));
+            $rol = Roles::find(session()->get('Usuario_Id'));
             if($rol && $rol->id == 1){
-                $permiso = Permiso::findOrFail($id);
+                $permiso = Permiso::find($id);
 
                 if($permiso){
                     $categorias = Categoria::get();
@@ -221,9 +216,10 @@ class PermisosController extends Controller
     public function actualizar(Request $request, $id)
     {
         if($request->ajax()){
-            $rol = Roles::findOrFail(session()->get('Usuario_Id'));
+            $rol = Roles::find(session()->get('Usuario_Id'));
             if($rol && $rol->id == 1){
-                $permiso = Permiso::findOrFail($id);
+                DB::beginTransaction();
+                $permiso = Permiso::find($id);
                 if($permiso){
                     if(!($request->has('PRM_Menu_Permiso') && !$request->PRM_Icono_Permiso)){
                         $slugPermiso = Str::slug($request->PRM_Nombre_Permiso, '_');
@@ -232,21 +228,21 @@ class PermisosController extends Controller
                             ->where('id', '!=', $id)
                             ->first();
                         if(!$permiso){
-                            Permiso::findOrFail($id)->update([
-                                'PRM_Nombre_Permiso' => $request->PRM_Nombre_Permiso,
-                                'PRM_Slug_Permiso' => $slugPermiso,
-                                'PRM_Menu_Permiso' => $request->has('PRM_Menu_Permiso'),
-                                'PRM_Icono_Permiso' => $request->PRM_Icono_Permiso,
-                                'PRM_Accion_Permiso' => $request->PRM_Accion_Permiso,
-                                'PRM_Categoria_Permiso' => $request->PRM_Categoria_Permiso
-                            ]);
+                            $permisoEditado = Permiso::editarPermiso($request, $slugPermiso, $id);
 
-                            return $this->vista(Lang::get('messages.PermissionUpdated'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                            if($permisoEditado){
+                                DB::commit();
+                                return $this->vista(Lang::get('messages.PermissionUpdated'), Lang::get('messages.TaxMendez'), Lang::get('messages.NotificationTypeSuccess'));
+                            }
+                            DB::rollBack();
                         }
+                        DB::rollBack();
                         return response()->json(['mensaje'=>Lang::get('messages.ExistingPermission'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
                     }
+                    DB::rollBack();
                     return response()->json(['mensaje'=>Lang::get('messages.IconRequired'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
                 }
+                DB::rollBack();
                 return response()->json(['mensaje'=>Lang::get('messages.ExistingRol'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
             return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
@@ -257,14 +253,15 @@ class PermisosController extends Controller
     public function eliminar(Request $request, $id)
     {
         if($request->ajax()){
-            $rol = Roles::findOrFail(session()->get('Usuario_Id'));
+            $rol = Roles::find(session()->get('Usuario_Id'));
             if($rol && $rol->id == 1){
-                try {
-                    Permiso::destroy($id);
-                } catch (QueryException $ex) {
-                    return response()->json(['mensaje'=>Lang::get('messages.PermissionNoDelete'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+                DB::beginTransaction();
+                if(Permiso::eliminarPermiso($id)){
+                    DB::commit();
+                    return response()->json(['mensaje'=>Lang::get('messages.PermissionDelete'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeSuccess'), 'row' => $id]);
                 }
-                return response()->json(['mensaje'=>Lang::get('messages.PermissionDelete'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeSuccess'), 'row' => $id]);
+                DB::rollBack();
+                return response()->json(['mensaje'=>Lang::get('messages.PermissionNoDelete'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
             }
             return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
         }
@@ -302,7 +299,7 @@ class PermisosController extends Controller
     public function ordenarMenu(Request $request)
     {
         if($request->ajax()){
-            $rol = Roles::findOrFail(session()->get('Usuario_Id'));
+            $rol = Roles::find(session()->get('Usuario_Id'));
             if($rol && $rol->id == 1){
                 $menu = Permiso::where('PRM_Menu_Permiso', 1)
                     ->orderBy('PRM_Orden_Menu_Permiso')
