@@ -1031,6 +1031,7 @@ class AutomovilController extends Controller
             ->where('uat.TRN_AUT_Automovil_Id', $id)
             ->where('TRN_AUT_Fecha_Turno', '>=', $fecha[1].'-'.$fecha[0].'-01')
             ->where('TRN_AUT_Fecha_Turno', '<=', $fecha[1].'-'.$fecha[0].'-'.$cantidadDias)
+            ->where('u.USR_Conductor_Fijo_Usuario', 1)
             ->select('u.*', DB::raw('COUNT(uat.TRN_AUT_Fecha_Turno) as turnos'))
             ->groupBy('u.id')
             ->limit(2);
