@@ -4,7 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Entity\CanalNotificacion;
 use App\Models\Entity\Empresa;
+use App\Models\Entity\Roles;
 use App\Models\Entity\ServidorCorreo;
+use App\Models\Entity\Setting;
+use App\Models\Entity\UsuarioRol;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
@@ -193,9 +196,12 @@ class EmpresasController extends Controller
         $empresa = Empresa::find(session()->get('Empresa_Id'));
         $servidor = ServidorCorreo::where('SRC_Empresa_Servidor', session()->get('Empresa_Id'))->first();
         $canalCorreo = CanalNotificacion::where('CNT_Nick_Canal_Notificacion', 'like', '%correo%')->first();
+        $setBtn = Setting::where('ST_Empresa_Setting', $empresa->id)->where('ST_Nick_Setting', 'btn')->first();
+        $setText = Setting::where('ST_Empresa_Setting', $empresa->id)->where('ST_Nick_Setting', 'text')->first();
+        $setSpin = Setting::where('ST_Empresa_Setting', $empresa->id)->where('ST_Nick_Setting', 'spin')->first();
         
         if($empresa){
-            return view('theme.back.administracion.empresa', compact('empresa', 'servidor', 'canalCorreo'));
+            return view('theme.back.administracion.empresa', compact('empresa', 'servidor', 'canalCorreo', 'setBtn', 'setText', 'setSpin'));
         } else {
             return redirect()->route('administracion')->withErrors(Lang::get('messages.CompanyNotExists'));
         }
@@ -450,5 +456,36 @@ class EmpresasController extends Controller
             $empresas = Empresa::orderBy('id')->paginate(10);
             return view('theme.back.empresas.table-data', compact('empresas'))->render();
         }
+    }
+
+    function cambiarAparienciaApp(Request $request){
+        if($request->ajax()){
+            $roles = UsuarioRol::join('TBL_Rol as r', 'r.id', '=', 'TBL_Rol_Usuario.USR_RL_Rol_Id')->select('r.*')->where('USR_RL_Usuario_Id', session()->get('Usuario_Id'))->get();
+            $acceso = false;
+            foreach ($roles as $rol) {
+                if($rol->RL_Nombre_Rol == 'Administrador'){
+                    $acceso = true;
+                    break;
+                }
+            }
+            if($acceso==true){
+                DB::beginTransaction();
+                $empresa = Empresa::find(session()->get('Empresa_Id'));
+
+                if($empresa){
+                    $setting = Setting::editar($request->Control, $request->ST_Valor_Setting, $empresa->id);
+
+                    if($setting){
+                        DB::commit();
+                        return response()->json(['mensaje'=>Lang::get('messages.AppearanceModified'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeSuccess'), 'valor'=>$request->ST_Valor_Setting, 'control'=>$request->Control]);
+                    }
+                    DB::rollBack();
+                }
+                DB::rollBack();
+                return response()->json(['mensaje'=>Lang::get('messages.CompanyNotExists'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+        }
+        abort(404);
     }
 }

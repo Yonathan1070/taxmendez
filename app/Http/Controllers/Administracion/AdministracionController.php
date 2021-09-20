@@ -10,6 +10,7 @@ use Faker\Provider\File;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Storage;
 
 class AdministracionController extends Controller
@@ -115,6 +116,206 @@ class AdministracionController extends Controller
         }
 
         return view('theme.back.administracion.index', compact('generalUnMes', 'fechaUnMes', 'generalDosMeses', 'fechaDosMeses'));
+    }
+
+    public function indicadores(Request $request)
+    {
+        if($request->ajax()){
+            if(can2('indicadores')){
+                if($request->tipo == 'false'){
+                    $fechaUnMes = Carbon::now()->addMonth(-1)->format('Y-m');
+                    $fechaDosMeses = Carbon::now()->addMonth(-2)->format('Y-m');
+                    $cantidadDiasUnMes = $this->obtenerDiasMes(Carbon::now()->addMonth(-1)->format('m'), Carbon::now()->addMonth(-1)->format('Y'));
+                    $cantidadDiasDosMeses = $this->obtenerDiasMes(Carbon::now()->addMonth(-2)->format('m'), Carbon::now()->addMonth(-2)->format('Y'));
+
+                    if(session()->get('Rol_Nombre') == "Super Administrador"){
+                        $generalUnMes = DB::table('TBL_Mensualidad as m')
+                            ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                            ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaUnMes.'-01', $fechaUnMes.'-'.$cantidadDiasUnMes])
+                            ->select(
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                                DB::raw("SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos"),
+                                DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                            )
+                            ->groupBy('a.AUT_Empresa_Id')
+                            ->first();
+
+                        $generalDosMeses = DB::table('TBL_Mensualidad as m')
+                            ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                            ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaDosMeses.'-01', $fechaDosMeses.'-'.$cantidadDiasDosMeses])
+                            ->select(
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                                DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                                DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                            )
+                            ->groupBy('a.AUT_Empresa_Id')
+                            ->first();
+                    } else if(session()->get('Rol_Nombre') == "Administrador"){
+                        $generalUnMes = DB::table('TBL_Mensualidad as m')
+                            ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                            ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaUnMes.'-01', $fechaUnMes.'-'.$cantidadDiasUnMes])
+                            ->where('a.AUT_Empresa_Id', session()->get('Empresa_Id'))
+                            ->select(
+                                'a.AUT_Numero_Interno_Automovil',
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                                DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                                DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                            )
+                            ->groupBy('a.id')
+                            ->orderBy('a.AUT_Numero_Interno_Automovil')
+                            ->get();
+
+                        $generalDosMeses = DB::table('TBL_Mensualidad as m')
+                            ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                            ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaDosMeses.'-01', $fechaDosMeses.'-'.$cantidadDiasDosMeses])
+                            ->where('a.AUT_Empresa_Id', session()->get('Empresa_Id'))
+                            ->select(
+                                'a.AUT_Numero_Interno_Automovil',
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                                DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                                DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                            )
+                            ->groupBy('a.id')
+                            ->orderBy('a.AUT_Numero_Interno_Automovil')
+                            ->get()->toArray();
+                    }else{
+                        $generalUnMes = DB::table('TBL_Mensualidad as m')
+                            ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                            ->join('TBL_Automovil_Propietario as ap', 'ap.AUT_PRP_Automovil_Id', 'a.id')
+                            ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaUnMes.'-01', $fechaUnMes.'-'.$cantidadDiasUnMes])
+                            ->where('ap.AUT_PRP_Propietario_Id', session()->get('Usuario_Id'))
+                            ->select(
+                                'a.AUT_Numero_Interno_Automovil',
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                                DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                                DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                            )
+                            ->groupBy('a.id')
+                            ->orderBy('a.AUT_Numero_Interno_Automovil')
+                            ->get();
+
+                        $generalDosMeses = DB::table('TBL_Mensualidad as m')
+                            ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                            ->join('TBL_Automovil_Propietario as ap', 'ap.AUT_PRP_Automovil_Id', 'a.id')
+                            ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaDosMeses.'-01', $fechaDosMeses.'-'.$cantidadDiasDosMeses])
+                            ->where('ap.AUT_PRP_Propietario_Id', session()->get('Usuario_Id'))
+                            ->select(
+                                'a.AUT_Numero_Interno_Automovil',
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                                DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                                DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                            )
+                            ->groupBy('a.id')
+                            ->orderBy('a.AUT_Numero_Interno_Automovil')
+                            ->get()->toArray();
+                    }
+                } else if($request->tipo == 'true') {
+                    $fechaUnMes = Carbon::now()->addMonth(-1)->format('Y-m');
+                    $fechaUnAnio = Carbon::now()->addYear(-1)->addMonth(-1)->format('Y-m');
+                    $fechaDosMeses = Carbon::now()->addYear(-1)->addMonth(-1)->format('Y-m');
+                    $cantidadDiasUnMes = $this->obtenerDiasMes(Carbon::now()->addMonth(-1)->format('m'), Carbon::now()->addMonth(-1)->format('Y'));
+                    $cantidadDiasUnAnio = $this->obtenerDiasMes(Carbon::now()->addYear(-1)->addMonth(-1)->format('m'), Carbon::now()->addYear(-1)->addMonth(-1)->format('Y'));
+
+                    if(session()->get('Rol_Nombre') == "Super Administrador"){
+                        $generalUnMes = DB::table('TBL_Mensualidad as m')
+                            ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                            ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaUnMes.'-01', $fechaUnMes.'-'.$cantidadDiasUnMes])
+                            ->select(
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                                DB::raw("SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos"),
+                                DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                            )
+                            ->groupBy('a.AUT_Empresa_Id')
+                            ->first();
+
+                        $generalDosMeses = DB::table('TBL_Mensualidad as m')
+                            ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                            ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaUnAnio.'-01', $fechaUnAnio.'-'.$cantidadDiasUnAnio])
+                            ->select(
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                                DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                                DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                            )
+                            ->groupBy('a.AUT_Empresa_Id')
+                            ->first();
+                    } else if(session()->get('Rol_Nombre') == "Administrador"){
+                        $generalUnMes = DB::table('TBL_Mensualidad as m')
+                            ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                            ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaUnMes.'-01', $fechaUnMes.'-'.$cantidadDiasUnMes])
+                            ->where('a.AUT_Empresa_Id', session()->get('Empresa_Id'))
+                            ->select(
+                                'a.AUT_Numero_Interno_Automovil',
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                                DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                                DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                            )
+                            ->groupBy('a.id')
+                            ->orderBy('a.AUT_Numero_Interno_Automovil')
+                            ->get();
+
+                        $generalDosMeses = DB::table('TBL_Mensualidad as m')
+                            ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                            ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaUnAnio.'-01', $fechaUnAnio.'-'.$cantidadDiasUnAnio])
+                            ->where('a.AUT_Empresa_Id', session()->get('Empresa_Id'))
+                            ->select(
+                                'a.AUT_Numero_Interno_Automovil',
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                                DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                                DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                            )
+                            ->groupBy('a.id')
+                            ->orderBy('a.AUT_Numero_Interno_Automovil')
+                            ->get()->toArray();
+                    }else{
+                        $generalUnMes = DB::table('TBL_Mensualidad as m')
+                            ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                            ->join('TBL_Automovil_Propietario as ap', 'ap.AUT_PRP_Automovil_Id', 'a.id')
+                            ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaUnMes.'-01', $fechaUnMes.'-'.$cantidadDiasUnMes])
+                            ->where('ap.AUT_PRP_Propietario_Id', session()->get('Usuario_Id'))
+                            ->select(
+                                'a.AUT_Numero_Interno_Automovil',
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                                DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                                DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                            )
+                            ->groupBy('a.id')
+                            ->orderBy('a.AUT_Numero_Interno_Automovil')
+                            ->get();
+
+                        $generalDosMeses = DB::table('TBL_Mensualidad as m')
+                            ->join('TBL_Automovil as a', 'a.id', 'm.MNS_Automovil_Id')
+                            ->join('TBL_Automovil_Propietario as ap', 'ap.AUT_PRP_Automovil_Id', 'a.id')
+                            ->whereBetween('m.MNS_Mes_Anio_Mensualidad', [$fechaUnAnio.'-01', $fechaUnAnio.'-'.$cantidadDiasUnAnio])
+                            ->where('ap.AUT_PRP_Propietario_Id', session()->get('Usuario_Id'))
+                            ->select(
+                                'a.AUT_Numero_Interno_Automovil',
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad) as Producido'),
+                                DB::raw('SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Gastos'),
+                                DB::raw('SUM(m.MNS_Kilometraje_Mensualidad) as Kilometraje'),
+                                DB::raw('SUM(m.MNS_Producido_Mensualidad)-SUM(IF(m.MNS_Gastos_Mensualidad < 0, 0, m.MNS_Gastos_Mensualidad)) as Ganancia'),
+                            )
+                            ->groupBy('a.id')
+                            ->orderBy('a.AUT_Numero_Interno_Automovil')
+                            ->get()->toArray();
+                    }
+                }
+
+                return view('theme.back.administracion.indicadores', compact('generalUnMes', 'fechaUnMes', 'generalDosMeses', 'fechaDosMeses'));
+            }
+            return response()->json(['mensaje'=>Lang::get('messages.AccessDenied'), 'titulo'=>Lang::get('messages.TaxMendez'), 'tipo'=>Lang::get('messages.NotificationTypeError')]);
+        }
+        abort(404);
     }
 
     /**

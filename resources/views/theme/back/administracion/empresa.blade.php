@@ -72,6 +72,7 @@
                 @if ($canalCorreo && $canalCorreo->CNT_Habilitado_Canal_Notificacion)
                     <li class="nav-item"> <a class="nav-link" data-toggle="tab" href="#edit_server" role="tab">{{Lang::get('messages.EditServerEmail')}}</a> </li>
                 @endif
+                <li class="nav-item"> <a class="nav-link" data-toggle="tab" href="#edit_app" role="tab">{{Lang::get('messages.AppConfig')}}</a> </li>
             </ul>
             <!-- Tab panes -->
             <div class="tab-content">
@@ -183,6 +184,43 @@
                         </div>
                     </div>
                 @endif
+                <!-- edit app tab -->
+                <div class="tab-pane" id="edit_app" role="tabpanel">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <center class="m-t-30">
+                                    <h4 class="card-title m-t-10">
+                                        Botones
+                                    </h4>
+                                    <button class="btn" id="btn" style="background: {{($setBtn) ? $setBtn->ST_Valor_Setting : '#bfe800'}}; color: #000;" onclick="cambiarColor('btn')">Boton</button>
+                                </center>
+                            </div>
+                            <div class="col-lg-3">
+                                <center class="m-t-30">
+                                    <h4 class="card-title m-t-10">
+                                        Campos de texto
+                                    </h4>
+                                    <div class="form-control-line">
+                                        <div class="form-group has-success">
+                                            <input type="text" id="text" class="form-control" style="border-color: {{($setText) ? $setText->ST_Valor_Setting : '#bfe800'}}; border-bottom: 2px solid #bfe800;" readonly onclick="cambiarColor('text')">
+                                        </div>
+                                    </div>
+                                </center>
+                            </div>
+                            <div class="col-lg-3">
+                                <center class="m-t-30">
+                                    <h4 class="card-title m-t-10">
+                                        Loader
+                                    </h4>
+                                    <div class="spinner-border" id="spin" role="status" style="color: {{($setSpin) ? $setSpin->ST_Valor_Setting : '#bfe800'}};" onclick="cambiarColor('spin')">
+                                        <span class="sr-only">Loading...</span>
+                                    </div>
+                                </center>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div id="modal-editor" class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" aria-hidden="true" style="display: none;">
@@ -357,6 +395,38 @@
         </div>
     </div>
     <!-- Column -->
+
+    <div class="modal fade" id="accion-app" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel1">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title">{{Lang::get('messages.ChangeAppearance')}}</h4>
+                            <form action="{{route('guardarApariencia')}}" class="m-t-40" method="POST" novalidate id="form-general">
+                                @csrf
+                                <input type="hidden" name="Control" id="Control">
+                                <div class="form-group">
+                                    <h5>{{Lang::get('messages.Color')}}</h5>
+                                    <div class="controls">
+                                        <input type="color" name="ST_Valor_Setting" id="ST_Valor_Setting" class="form-control" required data-validation-required-message="{{Lang::get('messages.Required')}}" value="">
+                                    </div>
+                                </div>
+                                <div class="border-top">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <button type="button" class="btn btn-default" data-dismiss="modal">{{Lang::get('messages.Close')}}</button>
+                                            <button type="submit" class="btn btn-info">{{Lang::get('messages.Save')}}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 @section('scriptsPlugins')
     <!-- Image cropper JavaScript -->
@@ -364,7 +434,8 @@
     <script src="{{asset('assets/back/plugins/cropper/cropper.perfil.init.js')}}"></script>
 @endsection
 @section('scripts')
-    <script src="{{asset("assets/back/js/validation.js")}}"></script>
+    <script src="{{asset('assets/back/js/validation.js')}}"></script>
+    <script src="{{asset('assets/back/scripts/ajax.js')}}"></script>
     <script>
         ! function(window, document, $) {
             "use strict";
@@ -372,6 +443,20 @@
         }(window, document, jQuery);
     </script>
     <script>
+        function cambiarColor(control){
+            $('#Control').val(control);
+            $('#accion-app').modal('show');
+        }
+
+        //Guardar o actualizar
+        $('#accion-app').on('submit', '#form-general', function(event){
+            event.preventDefault();
+            $(".preloader").fadeIn();
+            const form = $(this);
+
+            ajaxRequest(form.attr('action'), form.serialize(), 'guardar', 'accion-app');
+        });
+
         function logoClic(){
             $('#EMP_Logo_Empresa').trigger('click');
         }

@@ -27,7 +27,7 @@ class GastosRequest extends FormRequest
         return [
             'Fecha' => 'required|max:10|date|before:'.Carbon::now()->format('Y-m-d'),
             'Costo' => 'required|max:10|regex:/^[0-9]+$/u',
-            'Descripcion' => 'required|regex:/^[a-zA-Z0-9 ]+$/u',
+            'Descripcion' => 'required|regex:/^[a-zA-ZÀ-ÿ0-9\u00f1\u00d1]+(\s*[a-zA-ZÀ-ÿ0-9\u00f1\u00d1]*)*[a-zA-ZÀ-ÿ0-9\u00f1\u00d1]+$/u',
         ];
     }
 

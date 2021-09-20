@@ -120,6 +120,16 @@ function ajaxRequest(url, data, action, modal, form){
                 if(respuesta.tipo == 'success'){
                     if(respuesta.balance == true){
                         refreshCalendar();
+                    }else if(respuesta.valor != null || respuesta.valor != ""){
+                        var control = document.getElementById(respuesta.control)
+                        if(respuesta.control == "btn"){
+                            control.style.background = respuesta.valor;
+                        }else if(respuesta.control == "text"){
+                            control.style.borderColor = respuesta.valor;
+                        }else if(respuesta.control == "spin"){
+                            control.style.color = respuesta.valor;
+                        }
+                        $('#'+modal).modal('hide');
                     }else{
                         tablaData(respuesta.view, modal);
                     }
@@ -165,6 +175,13 @@ function ajaxRequest(url, data, action, modal, form){
                     document.getElementById('formulario').style.display = 'none';
                     document.getElementById('label').style.display = 'block';
                     $('#ganancia').text('$ '+formatMoney(document.getElementById('produced').value - document.getElementById('GST_Costo_Gasto').value) + ((data.propietarios > 1) ? ' / '+data.propietarios+' = '+'$ '+formatMoney((document.getElementById('produced').value - document.getElementById('GST_Costo_Gasto').value)/data.propietarios)+' C/U' : ''));
+                }
+                $(".preloader").fadeOut();
+            }else if (action == 'inicio'){
+                if(respuesta.tipo != 'error'){
+                    $('#'+modal).html(respuesta);
+                }else{
+                    taxmendez.notificaciones(respuesta.mensaje, respuesta.titulo, respuesta.tipo, 5000);
                 }
                 $(".preloader").fadeOut();
             }
@@ -427,4 +444,15 @@ function formatMoney(amount, decimalCount = 2, decimal = ".", thousands = ",") {
     } catch (e) {
       console.log(e)
     }
-  };
+};
+
+$('#cambiar-modo').on('change', function(event){
+    event.preventDefault();
+    $(".preloader").fadeIn();
+    var data = {};
+    data = {
+        _token: $('input[name=_token]').val(),
+        tipo: $(this).is(":checked")
+    };
+    ajaxRequest($(this).data('url'), data, 'inicio', $('#divName').val());
+});

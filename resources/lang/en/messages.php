@@ -46,6 +46,8 @@ return [
     'Gain' => 'Gain',
     'Mileage' => 'Mileage',
     'Balance' => 'Balance',
+    'Monthly' => 'Monthly',
+    'Annual' => 'Annual',
 
     //Permisos
     'Permissions' => 'Permissions',
@@ -417,6 +419,9 @@ return [
     'LogoRequired' => 'The image for logo is required',
     'TextLogoUpdated' => 'Text Logo Updated',
     'TextLogoRequired' => 'The image for text logo is required',
+    'AppConfig' => 'App Config',
+    'ChangeAppearance' => 'Change appearance',
+    'Color' => 'Color',
     
     //Pdf
     'Automobile' => 'Automobile',

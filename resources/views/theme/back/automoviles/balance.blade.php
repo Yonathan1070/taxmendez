@@ -23,6 +23,7 @@
 </div>
 @endsection
 @section('contenido')
+<input type="hidden" id="modalName" data-modal="accion-balance">
 <div class="col-md-12 col-xlg-12">
     <div class="card">
         <div class="card-header">

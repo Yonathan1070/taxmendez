@@ -57,7 +57,7 @@ class GastosController extends BaseController
                     ->where('MNS_Automovil_Id', $id)
                     ->first();
                 
-                if(!$mensualidad){
+                if(!$mensualidad || ($mensualidad && $mensualidad->MNS_Gastos_Mensualidad <= 0)){
                     return $this->sendResponse($gasto, 'Completado correctamente.');
                 }
                 return $this->sendError('No es posible editar el gasto, ya se generó la mensualidad!', 200);
@@ -120,7 +120,7 @@ class GastosController extends BaseController
                     ->where('MNS_Automovil_Id', $id)
                     ->first();
                 
-                if(!$mensualidad){
+                    if(!$mensualidad || ($mensualidad && $mensualidad->MNS_Gastos_Mensualidad <= 0)){
                     Gastos::create([
                         'GST_Automovil_Id' => $id,
                         'GST_Mes_Anio_Gasto' => Carbon::createFromFormat('Y-m-d', $request->Fecha)->format('Y-m').'-01',

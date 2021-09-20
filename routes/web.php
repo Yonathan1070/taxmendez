@@ -34,6 +34,7 @@ Route::group(['prefix' => '/setting', 'middleware' => ['auth']], function () {
 });
 Route::group(['prefix' => '/administracion', 'middleware' => ['auth']], function () {
     Route::get('/', [AdministracionController::class, 'index'])->name('administracion');
+    Route::post('indicadores', [AdministracionController::class, 'indicadores'])->name('administracion_indicadores');
     Route::get('perfil', [PerfilUsuarioController::class, 'index'])->name('perfil');
     Route::put('perfil', [PerfilUsuarioController::class, 'actualizarPerfil'])->name('actualizar_perfil');
     Route::post('foto-perfil', [PerfilUsuarioController::class, 'actualizarFotoPerfil'])->name('actualizar_foto_perfil');
@@ -144,6 +145,8 @@ Route::group(['prefix' => '/empresas', 'middleware' => ['auth']], function () {
     Route::post('logo', [EmpresasController::class, 'actualizarLogo'])->name('actualizar_logo_empresa');
     Route::post('logo-texto', [EmpresasController::class, 'actualizarLogoTexto'])->name('actualizar_logo_texto_empresa');
     Route::put('/editar-servidor-correo', [EmpresasController::class, 'actualizarServidorCorreo'])->name('actualizar_servidor_correo');
+
+    Route::post('/cambiar-apariencia', [EmpresasController::class, 'cambiarAparienciaApp'])->name('guardarApariencia');
 });
 Route::group(['prefix' => '/canal-notificacion', 'middleware' => ['auth']], function () {
     Route::get('', [CanalNotificacionController::class, 'index'])->name('canal_notificacion');

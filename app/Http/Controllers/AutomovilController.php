@@ -599,7 +599,7 @@ class AutomovilController extends Controller
                 $automovil = Automovil::find($id);
 
                 if($automovil){
-                    $turnoAutomovil = UsuarioAutomovilTurno::findOrFail($idTurno);
+                    $turnoAutomovil = UsuarioAutomovilTurno::find($idTurno);
 
                     if($turnoAutomovil){
                         $turnoAutomovil->update([
